@@ -1,13 +1,15 @@
 """Automated smart testing strategies for web services."""
 
+# This package follows a 'Convenience Store' model.
+# That is, it directly exports all the features that will be useful to users.
+# They do not need to import sub-modules.
+#
+# See the article: "What’s __init__ for me?" by Jacob Deppen on TowardsDataScience.com:
+# https://towardsdatascience.com/whats-init-for-me-d70a312da583
+
+from . random_tester import RandomTester, uniq, build_interface, print_signatures, DUMP_WSDL, DUMP_SIGNATURES
+
+
 __version__ = '0.1'
 
-msg = """Agilkia is an island in the reservoir of the Aswan Low Dam, 
-    downstream of the Aswan Dam and Lake Nasser, Egypt.  
-    It is the current location of the ancient temple of Isis, which was 
-    moved there from the islands of Philae after dam water levels rose.
-    
-    Agilkia was also the name given to the first landing place of the
-    Philae landing craft on the comet 67P/Churyumov–Gerasimenko,
-    during the Rosetta space mission.
-    """
+

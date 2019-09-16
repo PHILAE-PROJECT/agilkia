@@ -1,7 +1,26 @@
-# bus-testing
+# Agilkia: AGILe (K)Coverage with Intelligence Artificial
+
 Automated smart testing tools for web services.
 
-This currently supports SOAP web services with WSDL descriptions.
+This 'agilkia' library is part of the Philae research project.
+
+It currently supports testing SOAP web services with WSDL descriptions.
+
+## About the Name
+
+Apart from the clumsy acronym, the name Agilkia was chosen because
+it is closely associated with the name 'Philae', and this tool
+came out of the Philae research project.
+
+Agilkia is an island in the reservoir of the Aswan Low Dam, 
+downstream of the Aswan Dam and Lake Nasser, Egypt.  
+It is the current location of the ancient temple of Isis, which was 
+moved there from the islands of Philae after dam water levels rose.
+    
+Agilkia was also the name given to the first landing place of the
+Philae landing craft on the comet 67P/Churyumov–Gerasimenko,
+during the Rosetta space mission.
+
 
 
 # Example Usage
