@@ -10,69 +10,62 @@ https://medium.com/python-pandemonium/json-the-python-way-91aac95d4041
 
 import json
 import decimal
-import unittest
+import datetime
+from typing import List
 
 
-class MyEncoder(json.JSONEncoder):
-    """Custom JSON encoder because objects from zeep could not be serialised.
-    """
+class TraceEncoder(json.JSONEncoder):
+    """Custom JSON encoder because objects from zeep could not be serialised."""
+
+    # count = 0
+
     def default(self, obj):
         if isinstance(obj, (dict, list, tuple, str, int, float, bool)):
             return super().default(obj)  # JSON already handles these
         if isinstance(obj, decimal.Decimal):
             return float(round(obj, 6))  # f"{o:.5f}"
-        if isinstance(obj, bytes):
-            return "BYTES..."    # or repr(o)
+        if isinstance(obj, (bytes, bytearray)):
+            return "BYTES..."    # TODO: handle these better: repr(o)?
         if isinstance(obj, (set, frozenset)):
             return list(obj)
+        if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
+            return obj.isoformat()  # as a string
         if hasattr(obj, "__dict__"):
             result = {
                 "__class__": obj.__class__.__name__,
                 "__module__": obj.__module__
                 }
-            result.update(obj.__dict__)
+#            if self.count < 10:
+#                print(obj.__class__.__name__, obj.__dict__)
+#                self.count += 1
+            if len(obj.__dict__) == 1 and "__values__" in obj.__dict__:
+                # zeep seems to hide the attributes in a __values__ dict.
+                # We lift them up to the top level to make the json more readable.
+                result.update(obj.__dict__["__values__"])
+            else:
+                result.update(obj.__dict__)
             return result
         raise Exception("JSON serialisation not implemented yet for: " +
                         str(obj) + " type " + str(type(obj)))
 
 
-
-class Dummy():
-    def __init__(self):
-        self.f = [3.14]
-
-
-class TestMyEncoder(unittest.TestCase):
-    """Unit Tests for MyEncoder."""
-    def test_decimal(self):
-        d1 = decimal.Decimal(3.45)
-        d2 = decimal.Decimal(3.4500048012)
-        self.assertEqual('3.45', json.dumps(d1, cls=MyEncoder))
-        self.assertEqual('3.450005', json.dumps(d2, cls=MyEncoder))
-
-    def test_object(self):
-        d1 = Dummy()
-        str1 = '{"__class__": "Dummy", "__module__": "__main__", "f": [3.14]}'
-        self.assertEqual(str1, json.dumps(d1, cls=MyEncoder))
-
-    def test_nested_object(self):
-        d1 = Dummy()
-        d2 = Dummy()
-        d2.extra = d1
-        str1 = '{"__class__": "Dummy", "__module__": "__main__", "f": [3.14]}'
-        str2 = str1[0:-1] + ', "extra": ' + str1 + '}'
-        self.assertEqual(str2, json.dumps(d2, cls=MyEncoder))
-
-    def test_dict(self):
-        d1 = {"a": 1, "b": [2, 3]}
-        str1 = '{"a": 1, "b": [2, 3]}'
-        self.assertEqual(str1, json.dumps(d1, cls=MyEncoder))
-
-    def test_set(self):
-        d = {'testing': {1, 2, 3}}
-        str1 = '{"testing": [1, 2, 3]}'
-        self.assertEqual(str1, json.dumps(d, cls=MyEncoder))
+def save_traces_to_json(traces, filename) -> None:
+    with open(filename, "w") as output:
+        json.dump(traces, output, indent=2, cls=TraceEncoder)
+#        output.write("[")
+#        for tr in traces:
+#            comma_outer = "," if i > 0 else ""
+#            output.write(f"{comma_outer}\n  [")
+#            tr_num = 0
+#            for op in tr:
+#                comma_inner = "," if tr_num > 0 else ""
+#                output.write(f"{comma_inner}\n    ")
+#                output.write(jsonpickle.encode(op))
+#                tr_num += 1
+#            output.write("\n  ]")
+#        output.write("\n]\n")
 
 
-if __name__ == "__main__":
-    unittest.main()
+def load_traces_from_json(filename) -> List[List]:
+    with open(filename, "r") as input:
+        return json.load(input)
