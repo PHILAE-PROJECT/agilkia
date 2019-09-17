@@ -14,12 +14,12 @@ import random
 import types
 import unittest
 from pprint import pprint
-from typing import List, Tuple, Dict, Mapping
+from typing import Tuple, Mapping
 
 
 # TODO: make these user-configurable
 DUMP_WSDL = False         # save each *.wsdl file into current directory.
-DUMP_SIGNATURES = True    # save a summary of each web service into *_signatures.txt
+DUMP_SIGNATURES = True    # save summary of methods into *_signatures.txt
 
 
 def summary(value) -> str:
@@ -31,12 +31,13 @@ def summary(value) -> str:
 def uniq(d):
     """Returns the unique value of a dictionary, else an empty dictionary."""
     result = {}
-    for k,v in d.items():
+    for k, v in d.items():
         if result == {} or result == v:
             result = v
-            return result   # temporary hack because ITM webservice 3 ports have slight differences.
+            return result  # temp hack - ITM 3 ports have slight differences.
         else:
-            print(f"WARNING: uniq sees different values.\n  val1={result}\n  val2={v}")
+            print(f"WARNING: uniq sees different values.\n" +
+                  " val1={result}\n  val2={v}")
             return {}
     return result
 
@@ -50,7 +51,7 @@ class TestUniq(unittest.TestCase):
     # TODO: assert uniq({"abc":"one", "xyz":"two"}) == {}
 
     def test_duplicate_values(self):
-        self.assertEquals("one", uniq({"abc":"one", "xyz":"one"}))
+        self.assertEquals("one", uniq({"abc": "one", "xyz": "one"}))
 
 
 def parse_elements(elements):
@@ -67,9 +68,10 @@ def parse_elements(elements):
 
 
 def build_interface(client: zeep.Client) -> Mapping[str, Mapping]:
-    """Returns a nested dictionary structure for the methods (names + inputs) of client.
+    """Returns a nested dictionary structure for the methods of client.
+
     Typical usage to get a method called "Login" is:
-    * build_interface(client)[service][port]["operations"]["Login"]
+    ```build_interface(client)[service][port]["operations"]["Login"]```
     """
     interface = {}
     for service in client.wsdl.services.values():
@@ -88,7 +90,7 @@ def build_interface(client: zeep.Client) -> Mapping[str, Mapping]:
 
 def print_signatures(client: zeep.Client, out):
     """Print a short summary of each operation signature offered by client."""
-    # Adapted from: https://stackoverflow.com/questions/50089400/introspecting-a-wsdl-with-python-zeep
+    # From: https://stackoverflow.com/questions/50089400/introspecting-a-wsdl-with-python-zeep
     for service in client.wsdl.services.values():
         out.write(f"service: {service.name}\n")
         for port in service.ports.values():
@@ -117,15 +119,16 @@ class RandomTester:
     * supply a set of input values (or generation functions) for each named input parameter.
     * TODO: supply a machine learning model for predicting the next best methods to try.
     """
-    def __init__(self, base_url, services=[], methods_to_test=[], input_rules={}, rand=random.Random()):
+    def __init__(self, base_url, services=[], methods_to_test=[], input_rules={},
+                 rand=random.Random()):
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
             base_url (str): the URL to the server that is running the web services.
             services (List[str]): the names of the web services, used to find the WSDL files.
             methods_to_test (List[str]): only these methods will be tested.
-            input_rules (Dict[str,List]): maps each input parameter name to a list of possible values
-                or functions for generating those values.
+            input_rules (Dict[str,List]): maps each input parameter name to a list of
+                possible values or functions for generating those values.
             rand (random.Random): the random number generator used to generate tests.
         """
         self.base_url = base_url
@@ -134,7 +137,7 @@ class RandomTester:
         self.random = rand
         self.client_methods = []  # List[(zeep.Service, Dict[str, Signature)]
         self.methods_to_test = methods_to_test
-        self.named_input_rules = input_rules   # maps each parameter name to a list of possible 'values'
+        self.named_input_rules = input_rules   # maps each parameter to list of possible 'values'
         self.curr_trace = []
         self.all_traces = [self.curr_trace]
         for w in services:
@@ -187,7 +190,7 @@ class RandomTester:
             a string if successful, or None if no suitable value was found.
         """
         values = self.named_input_rules.get(arg_name, None)
-        if not values:
+        if values is None:
             print(f"ERROR: please define possible parameter values for input {arg_name}")
             values = [arg_name]  # wrong values, but just so we can continue and see all errors.
         for i in range(10):
@@ -206,7 +209,8 @@ class RandomTester:
         Args:
             name (str): the name of the method to call.
             args (List): the input values for the method.  If args=None, then this method uses
-                :code:choose_input_value to choose appropriate values for each argument value of the method.
+                :code:choose_input_value to choose appropriate values for each argument
+                value of the method.
         Returns:
         Before the call, this method replaces some symbolic arguments by actual concrete values.
         For example the correct password token is replaced by the real password --
@@ -217,7 +221,7 @@ class RandomTester:
         """
         (client, signature) = self.find_method(name)
         inputs = signature["input"]
-        if not args:
+        if args is None:
             args = [self.choose_input_value(n) for n in inputs.keys()]
         # TODO: check if None in args.  If so, backtrack and try another method.
         print(f"    call {name}{args}")
