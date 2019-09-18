@@ -10,8 +10,10 @@ import jsonpickle
 import json
 import decimal
 import datetime
+import os
 import unittest
 
+THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class Dummy():
     """Dummy object for testing JSON saving/loading of custom objects."""
@@ -34,14 +36,14 @@ class TestTraceEncoder(unittest.TestCase):
 
     def test_object(self):
         d1 = Dummy()
-        str1 = '{"__class__": "Dummy", "__module__": "__main__", "f": [3.14]}'
+        str1 = '{"__class__": "Dummy", "__module__": "' + __name__ + '", "f": [3.14]}'
         self.assertEqual(str1, self.dumps(d1))
 
     def test_nested_object(self):
         d1 = Dummy()
         d2 = Dummy()
         d2.extra = d1
-        str1 = '{"__class__": "Dummy", "__module__": "__main__", "f": [3.14]}'
+        str1 = '{"__class__": "Dummy", "__module__": "' + __name__ + '", "f": [3.14]}'
         str2 = str1[0:-1] + ', "extra": ' + str1 + '}'
         self.assertEqual(str2, self.dumps(d2))
 
@@ -69,7 +71,8 @@ class TestJsonTraces(unittest.TestCase):
 
     def test_round_trip(self):
         """Test that load and save are the inverse of each other."""
-        data2 = agilkia.load_traces_from_json("fixtures/traces1.json")
+        traces_file = os.path.join(THIS_DIR, "fixtures/traces1.json")
+        data2 = agilkia.load_traces_from_json(traces_file)
         agilkia.save_traces_to_json(data2, "tmp2.json")
         data3 = agilkia.load_traces_from_json("tmp2.json")
         assert len(data2) == len(data3)
@@ -78,7 +81,8 @@ class TestJsonTraces(unittest.TestCase):
 
     def test_pickled_round_trip(self):
         """Loads some pickled zeep objects and checks that they save/load okay."""
-        with open("fixtures/traces_pickled.json", "r") as input:
+        traces_file = os.path.join(THIS_DIR, "fixtures/traces_pickled.json")
+        with open(traces_file, "r") as input:
             data = jsonpickle.loads(input.read())
             print(len(data), "traces loaded")
             agilkia.save_traces_to_json(data, "tmp.json")
