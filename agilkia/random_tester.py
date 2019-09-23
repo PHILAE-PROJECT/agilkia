@@ -17,9 +17,14 @@ from pprint import pprint
 from typing import Tuple, Mapping
 
 
+# A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
+Signature = Mapping[str, Mapping[str, str]]
+
+
 # TODO: make these user-configurable
 DUMP_WSDL = False         # save each *.wsdl file into current directory.
 DUMP_SIGNATURES = True    # save summary of methods into *_signatures.txt
+GOOD_PASSWORD = "<GOOD_PASSWORD>"
 
 
 def summary(value) -> str:
@@ -119,14 +124,14 @@ class RandomTester:
     * supply a set of input values (or generation functions) for each named input parameter.
     * TODO: supply a machine learning model for predicting the next best methods to try.
     """
-    def __init__(self, base_url, services=[], methods_to_test=[], input_rules={},
+    def __init__(self, base_url, services, methods_to_test=None, input_rules={},
                  rand=random.Random()):
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
             base_url (str): the URL to the server that is running the web services.
             services (List[str]): the names of the web services, used to find the WSDL files.
-            methods_to_test (List[str]): only these methods will be tested.
+            methods_to_test (List[str]): only these methods will be tested (None means all).
             input_rules (Dict[str,List]): maps each input parameter name to a list of
                 possible values or functions for generating those values.
             rand (random.Random): the random number generator used to generate tests.
@@ -135,8 +140,9 @@ class RandomTester:
         self.username = None
         self.password = None
         self.random = rand
-        self.client_methods = []  # List[(zeep.Service, Dict[str, Signature)]
+        self.clients_and_methods = []  # List[(zeep.Service, Dict[str, Signature)]
         self.methods_to_test = methods_to_test
+        self.methods_allowed = [] if methods_to_test is None else methods_to_test
         self.named_input_rules = input_rules   # maps each parameter to list of possible 'values'
         self.curr_trace = []
         self.all_traces = [self.curr_trace]
@@ -152,7 +158,7 @@ class RandomTester:
 
     def add_web_service(self, name):
         """Add another web service, on the current server."""
-        url = self.base_url + "/" + name + ".asmx?WSDL"
+        url = self.base_url + "/" + name + ("" if name.upper().endswith("WSDL") else ".asmx?WSDL")
         print("  loading WSDL: ", url)
         if DUMP_WSDL:
             # save the WSDL for reference
@@ -171,11 +177,13 @@ class RandomTester:
             pprint(interface)
         else:
             ops = uniq(uniq(interface))["operations"]
-            self.client_methods.append((client, ops))
+            self.clients_and_methods.append((client, ops))
+            if self.methods_to_test is None:
+                self.methods_allowed += list(ops.keys())
 
-    def find_method(self, name) -> Tuple[zeep.Client, dict]:
+    def _find_method(self, name) -> Tuple[zeep.Client, Mapping[str, Signature]]:
         """Find the given method in one of the web services and returns its signature."""
-        for (client, interface) in self.client_methods:
+        for (client, interface) in self.clients_and_methods:
             if name in interface:
                 return client, interface[name]
         raise Exception(f"could not find {name} in any WSDL specifications.")
@@ -203,42 +211,56 @@ class RandomTester:
                     return val
         return None
 
+    def _insert_password(self, arg_value: str) -> str:
+        if arg_value == GOOD_PASSWORD:
+            return self.password
+        else:
+            return arg_value
+
+    def get_methods(self) -> Mapping[str, Signature]:
+        """Return the set of all method names in all the web services."""
+        methods = {}
+        for (client, interface) in self.clients_and_methods:
+            methods.update(interface)
+        return methods
+
     def call_method(self, name, args=None):
         """Call the web service name(args) and add the result to trace.
 
         Args:
             name (str): the name of the method to call.
-            args (List): the input values for the method.  If args=None, then this method uses
+            args (dict): the input values for the method.  If args=None, then this method uses
                 :code:choose_input_value to choose appropriate values for each argument
                 value of the method.
         Returns:
-        Before the call, this method replaces some symbolic arguments by actual concrete values.
+        Before the call, this method replaces some symbolic inputs by actual concrete values.
         For example the correct password token is replaced by the real password --
-        this avoids having the real password in the arguments of the trace.
+        this avoids recording the real password in the inputs of the trace.
 
         Returns:
             all the data returned by the method.
         """
-        (client, signature) = self.find_method(name)
+        (client, signature) = self._find_method(name)
         inputs = signature["input"]
         if args is None:
-            args = [self.choose_input_value(n) for n in inputs.keys()]
+            args = {n: self.choose_input_value(n) for n in inputs.keys()}
         # TODO: check if None in args.  If so, backtrack and try another method.
         print(f"    call {name}{args}")
         # insert special secret argument values if requested
-        args2 = [self.password if arg == "<GOOD_PASSWORD>" else arg for arg in args]
-        out = getattr(client.service, name)(*args2)
+        args_list = [self._insert_password(arg) for (n, arg) in args.items()]
+        out = getattr(client.service, name)(*args_list)
         # we call it 'action' so it gets printed before 'inputs' (alphabetical order).
         self.curr_trace.append({"action": name, "inputs": args, "outputs": out})
         print(f"    -> {summary(out)}")
         return out
 
-    def generate_trace(self, start=True, length=20):
+    def generate_trace(self, start=True, length=20, methods=None):
         """Generates the requested length of test steps, choosing methods at random.
 
         Args:
             start (bool): True means that a new trace is started, beginning with a "Login" call.
             length (int): The number of steps to generate (default=20).
+            methods (List[str]): only these methods will be chosen (None means all are allowed)
 
         Returns:
             the whole of the current trace that has been generated so far.
@@ -247,10 +269,10 @@ class RandomTester:
             if self.curr_trace:
                 self.curr_trace = []  # start a new trace
                 self.all_traces.append(self.curr_trace)
-            self.call_method("Login")  # assume we always start with Login
-        non_login = [m for m in self.methods_to_test if m != "Login"]
+        if methods is None:
+            methods = self.methods_allowed
         for i in range(length):  # TODO: continue while Status==0?
-            self.call_method(self.random.choice(non_login))
+            self.call_method(self.random.choice(methods))
         return self.curr_trace
 
 

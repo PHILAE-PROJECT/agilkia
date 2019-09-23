@@ -50,6 +50,7 @@ class TraceEncoder(json.JSONEncoder):
 
 
 def save_traces_to_json(traces, filename) -> None:
+    # TODO: include signature and other meta-data (rand seed etc.) at the start of the file.
     with open(filename, "w") as output:
         json.dump(traces, output, indent=2, cls=TraceEncoder)
 #        output.write("[")
