@@ -11,4 +11,4 @@ __version__ = '0.1'
 
 from . random_tester import (RandomTester, uniq, build_interface, print_signatures,
                              DUMP_WSDL, DUMP_SIGNATURES, GOOD_PASSWORD)
-from . json_traces import TraceEncoder, save_traces_to_json, load_traces_from_json
+from . json_traces import TraceEncoder, save_traces_to_json, load_traces_from_json, xml_decode
