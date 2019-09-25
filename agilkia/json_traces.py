@@ -82,7 +82,7 @@ def xml_decode(obj: ET.Element) -> Union[str, Mapping[str, any]]:
             curr_list.append(xml_decode(child))
         if len(curr_list) > 0:
             result[curr_tag] = curr_list if len(curr_list) > 1 else curr_list[0]
-        if obj.text:
+        if obj.text and obj.text.strip():  # ignore text that is just whitespace
             result["text"] = obj.text
         return result
 

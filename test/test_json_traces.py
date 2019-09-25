@@ -88,12 +88,17 @@ class TestXMLDecode(unittest.TestCase):
 
     def test_simple(self):
         xml0 = ET.Element("Simple")
-        xml0.text = "abc"
-        self.assertEqual("abc", agilkia.xml_decode(xml0))
+        xml0.text = "abc "
+        self.assertEqual("abc ", agilkia.xml_decode(xml0))
 
     def test_attributes(self):
         xml1 = ET.Element("Inner", attrib=self.inner)
         self.assertEqual(self.inner, agilkia.xml_decode(xml1))
+
+    def test_empty_text(self):
+        xml1 = ET.Element("Inner", size=1234)
+        xml1.text = "\n    "
+        self.assertEqual({'size': 1234}, agilkia.xml_decode(xml1))
 
     def test_children(self):
         xml = ET.Element("Outer", size=3)
