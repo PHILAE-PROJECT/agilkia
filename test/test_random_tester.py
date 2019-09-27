@@ -7,7 +7,6 @@ Unit tests for the RandomTester class.
 
 import unittest
 import random
-import zeep
 
 import agilkia
 
@@ -18,6 +17,8 @@ test_input_rules = {
     "username": ["User1"],
     "password": ["<GOOD_PASSWORD>"] * 9 + ["bad-pass"],
     "speed": [str(s) for s in range(0, 120, 10)],
+    "bstrParam1": ["VAL1"],
+    "bstrParam2": ["p2AAA", "p2BBB"],
 }
 
 
@@ -54,12 +55,8 @@ class TestRandomTester(unittest.TestCase):
 
     def test_dummy_client0(self):
         """Test the dummy web service provided by soapresponder."""
-        input_rules = {
-                "bstrParam1": ["VAL1"],
-                "bstrParam2": ["p2AAA", "p2BBB"],
-                }
         tester = agilkia.RandomTester(WSDL_EG, ["soapresponder.wsdl"],
-                                      input_rules=input_rules,
+                                      input_rules=test_input_rules,
                                       rand=random.Random(1234))
         print("Methods:", tester.get_methods())
         out1 = tester.call_method("Method1")

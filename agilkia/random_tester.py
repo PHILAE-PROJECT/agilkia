@@ -2,6 +2,10 @@
 Simple random test generator for SOAP web services.
 
 Author: Mark Utting, 2019
+
+TODO:
+* provide a way of generating related inputs like (lat,long) together.
+
 """
 
 
@@ -119,7 +123,7 @@ class RandomTester:
 
     For more sophisticated (user-directed) testing you can also:
     * supply a username and password if login credentials are needed.
-    * supply the set of method names that you want to focus on testing.
+    * supply the subset of method names that you want to focus on testing (default is all).
     * supply a set of default input values (or generation functions) for each data type.
     * supply a set of input values (or generation functions) for each named input parameter.
     * TODO: supply a machine learning model for predicting the next best methods to try.
@@ -133,7 +137,7 @@ class RandomTester:
             services (List[str]): the names of the web services, used to find the WSDL files.
             methods_to_test (List[str]): only these methods will be tested (None means all).
             input_rules (Dict[str,List]): maps each input parameter name to a list of
-                possible values or functions for generating those values.
+                possible values, one of which will be chosen randomly.
             rand (random.Random): the random number generator used to generate tests.
         """
         self.base_url = base_url
@@ -190,6 +194,8 @@ class RandomTester:
 
     def choose_input_value(self, arg_name: str) -> str:
         """Choose an appropriate value for the input argument called 'arg_name'.
+        If no set of input rules is defined for 'arg_name', then 'generate_input_value'
+        is called to generate a suitable input value.  Subclasses can override this.
 
         Args:
             arg_name (str): the name of the input parameter.
@@ -199,16 +205,13 @@ class RandomTester:
         """
         values = self.named_input_rules.get(arg_name, None)
         if values is None:
-            print(f"ERROR: please define possible parameter values for input {arg_name}")
-            values = [arg_name]  # wrong values, but just so we can continue and see all errors.
-        for i in range(10):
-            val = self.random.choice(values)
-            if isinstance(val, (str, int, float, bool, list)):
-                return val
-            if isinstance(val, types.FunctionType):  # type(val) == types.functionType:
-                val = val(self.curr_trace, self.random)
-                if val:
-                    return val
+            return self.generate_input_value(arg_name)
+        val = self.random.choice(values)
+        return val
+
+    def generate_input_value(self, arg_name: str) -> any:
+        """Can be overridden in subclasses to generate smart values for an input argument."""
+        print(f"ERROR: please define possible parameter values for input {arg_name}")
         return None
 
     def _insert_password(self, arg_value: str) -> str:
