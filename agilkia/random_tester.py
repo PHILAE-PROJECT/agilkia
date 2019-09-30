@@ -15,10 +15,11 @@ import zeep.helpers
 import getpass
 import operator
 import random
+import numpy
 import types
 import unittest
 from pprint import pprint
-from typing import Tuple, Mapping
+from typing import Tuple, List, Mapping
 
 
 # A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
@@ -129,7 +130,7 @@ class RandomTester:
     * TODO: supply a machine learning model for predicting the next best methods to try.
     """
     def __init__(self, base_url, services, methods_to_test=None, input_rules={},
-                 rand=random.Random()):
+                 rand=random.Random(), verbose=False):
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
@@ -139,11 +140,13 @@ class RandomTester:
             input_rules (Dict[str,List]): maps each input parameter name to a list of
                 possible values, one of which will be chosen randomly.
             rand (random.Random): the random number generator used to generate tests.
+            verbose (bool): True means print progress messages during test generation.
         """
         self.base_url = base_url
         self.username = None
         self.password = None
         self.random = rand
+        self.verbose = verbose
         self.clients_and_methods = []  # List[(zeep.Service, Dict[str, Signature)]
         self.methods_to_test = methods_to_test
         self.methods_allowed = [] if methods_to_test is None else methods_to_test
@@ -247,14 +250,15 @@ class RandomTester:
         inputs = signature["input"]
         if args is None:
             args = {n: self.choose_input_value(n) for n in inputs.keys()}
-        # TODO: check if None in args.  If so, backtrack and try another method.
-        print(f"    call {name}{args}")
+        if self.verbose:
+            print(f"    call {name}{args}")
         # insert special secret argument values if requested
         args_list = [self._insert_password(arg) for (n, arg) in args.items()]
         out = getattr(client.service, name)(*args_list)
         # we call it 'action' so it gets printed before 'inputs' (alphabetical order).
         self.curr_trace.append({"action": name, "inputs": args, "outputs": out})
-        print(f"    -> {summary(out)}")
+        if self.verbose:
+            print(f"    -> {summary(out)}")
         return out
 
     def generate_trace(self, start=True, length=20, methods=None):
@@ -276,6 +280,59 @@ class RandomTester:
             methods = self.methods_allowed
         for i in range(length):  # TODO: continue while Status==0?
             self.call_method(self.random.choice(methods))
+        return self.curr_trace
+
+    def setup_feature_data(self):
+        """Must be called before the first call to get_trace_features."""
+        actions = self.methods_allowed
+        nums = len(actions)
+        self.action2number = dict(zip(actions, range(nums)))
+        self.number2action = dict(zip(range(nums), actions))
+        if self.verbose:
+            print("Action 2 num:", self.action2number)
+            print("Num 2 Action:", self.number2action)
+
+    def get_count_events(self, trace) -> List[int]:
+        """Returns an array of counts - how many times each event occurs in trace."""
+        result = [0 for k in self.action_number.keys()]
+        for ev in trace:
+            action_num = self.action2number[ev["action"]]
+            result[action_num] += 1
+        return result
+
+    def get_trace_features(self) -> List[int]:
+        """Returns a vector of numeric features suitable for input to an ML model.
+        The results returned by this function must match the training set of the ML model.
+        Currently this returns an array of counts - how many times each event occurs
+        in the whole current trace, and how many times in the most recent 8 events.
+        """
+        prefix = self.count_events(self.curr_trace)
+        suffix = self.count_events(self.curr_trace[-8:])
+        return prefix+suffix
+
+    def generate_trace_ml(self, model, start=True, length=20):
+        """Generates the requested length of test steps, choosing methods using the given model.
+
+        Args:
+            model (any): the ML model to use to generate the next event.
+                This model must support the 'predict_proba' method.
+            start (bool): True means that a new trace is started, beginning with a "Login" call.
+            length (int): The number of steps to generate (default=20).
+
+        Returns:
+            the whole of the current trace that has been generated so far.
+        """
+        self.setup_feature_data()
+        # start a new (empty) trace if requested.
+        self.generate_trace(start=start, length=0)
+        for i in range(length):
+            features = self.get_trace_features(self)
+            [proba] = model.predict_proba([features])
+            [action_num] = numpy.random.choice(len(proba), p=proba, size=1)
+            action = self.number2action[action_num]
+            if self.verbose:
+                print(i, features, action, ",".join([f"{int(p*100)}" for p in proba]))
+            self.call_method(action)
         return self.curr_trace
 
 
