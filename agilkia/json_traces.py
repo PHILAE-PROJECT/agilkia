@@ -12,6 +12,7 @@ import json
 import decimal
 import datetime
 import xml.etree.ElementTree as ET
+import pandas
 from typing import List, Mapping, Union
 
 
@@ -108,3 +109,87 @@ def save_traces_to_json(traces, filename) -> None:
 def load_traces_from_json(filename) -> List[List]:
     with open(filename, "r") as input:
         return json.load(input)
+
+
+def default_map_to_chars(actions: List[str], given: Mapping[str, str] = None) -> Mapping[str, str]:
+    """Tries to guess a useful default mapping from action names to single characters.
+
+    Args:
+        actions: the names of all the actions.
+        given: optional pre-allocation of a few action names to chars.
+            You can use this to override the default behaviour.
+
+    Returns:
+        A map from every name in actions to a unique single character.
+    """
+    names = sorted(actions)
+    result = {} if given is None else given
+    # TODO: a better algorithm might be to break up compound words and look for word prefixes?
+    curr_prefix = ""
+    pass2 = []
+    for i in range(len(names)):
+        name = names[i]
+        if name in result:
+            continue  # given
+        # skip over any prefix that was in common with previous name.
+        if name.startswith(curr_prefix):
+            pos = len(curr_prefix)
+        else:
+            pos = 0
+        # check ahead for common prefixes first
+        if i + 1 < len(names):
+            nxt = names[i + 1]
+            if nxt.startswith(name) and name[0] not in result.values():
+                result[name] = name[0]
+                curr_prefix = name
+                continue
+            prefix = max([p for p in range(max(len(name), len(nxt))) if name[0:p] == nxt[0:p]])
+            print(f"  found prefix {prefix} of {name} and {nxt}")
+            curr_prefix = name[0:prefix]
+        else:
+            prefix = 0
+            curr_prefix = ""
+        if prefix > 0 and prefix > pos:
+            pos = prefix
+        done = False
+        for j in range(pos, len(name)):
+            if name[pos] not in result.values():
+                result[name] = name[pos]
+                done = True
+                break
+        if not done:
+            pass2.append(name)
+    # Pass 2 (all visible ASCII chars except " and ')
+    allchars = "".join([chr(n) for n in range(42, 127)]) + "!#$%&()"
+    print(f"allchars={allchars}")
+    for name in pass2:
+        for ch in name + allchars:
+            if ch not in result.values():
+                result[name] = ch
+                break  # move onto next name in pass2
+    return result
+
+
+def trace_to_string(trace: List[dict], to_char: Mapping[str, str], compress=None) -> str:
+    """Converts a trace to a short summary string, one character per action.
+
+    Args:
+        trace: the sequence of JSON-like events, with an "action" field.
+        to_char: maps each action name to a single character.  It is recommended that
+            extremely common actions should be mapped to 'small' characters like '.' or ','.
+        compress: a list of Action names.  Repeated events will be compressed if in this list.
+
+    Returns:
+        a summary string.
+    """
+    compress_set = set() if compress is None else set(compress)
+    chars = []
+    prev_action = None
+    for ev in trace:
+        action = ev["action"]
+        if action == prev_action and action in compress_set:
+            pass
+        else:
+            chars.append(to_char[action])
+            prev_action = action
+    return "".join(chars)

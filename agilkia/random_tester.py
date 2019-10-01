@@ -129,7 +129,7 @@ class RandomTester:
     * supply a set of input values (or generation functions) for each named input parameter.
     * TODO: supply a machine learning model for predicting the next best methods to try.
     """
-    def __init__(self, base_url, services, methods_to_test=None, input_rules={},
+    def __init__(self, base_url, services, methods_to_test=None, input_rules=None,
                  rand=random.Random(), verbose=False):
         """Creates a random tester for the server url and set of web services on that server.
 
@@ -150,7 +150,8 @@ class RandomTester:
         self.clients_and_methods = []  # List[(zeep.Service, Dict[str, Signature)]
         self.methods_to_test = methods_to_test
         self.methods_allowed = [] if methods_to_test is None else methods_to_test
-        self.named_input_rules = input_rules   # maps each parameter to list of possible 'values'
+        # maps each parameter to list of possible 'values'
+        self.named_input_rules = {} if input_rules is None else input_rules
         self.curr_trace = []
         self.all_traces = [self.curr_trace]
         for w in services:

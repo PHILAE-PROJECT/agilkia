@@ -141,5 +141,46 @@ class TestJsonTraces(unittest.TestCase):
                 self.assertEqual(data3[i], data2[i])
 
 
+class TestTraceToString(unittest.TestCase):
+
+    ev1 = {"action": "Order", "input": {"name": "Mark"}, "output": {"status": 0}}
+    ev2 = {"action": "Skip", "input": {"size": 3}, "output": {"status": 0}}
+    ev3 = {"action": "Pay", "input": {"name": "Mark", "amount": 23.45}, "output": {"status": 0}}
+    to_char = {"Order": "O", "Skip": ",", "Pay": "p"}
+
+    def test_simple(self):
+        tr = [self.ev1, self.ev2, self.ev3]
+        s = agilkia.trace_to_string(tr, to_char=self.to_char)
+        self.assertEqual("O,p", s)
+
+    def test_compress(self):
+        tr = [self.ev2, self.ev2, self.ev1, self.ev2, self.ev3, self.ev2, self.ev2, self.ev2]
+        s = agilkia.trace_to_string(tr, to_char=self.to_char)
+        self.assertEqual(",,O,p,,,", s)
+        s = agilkia.trace_to_string(tr, to_char=self.to_char, compress=["Skip"])
+        self.assertEqual(",O,p,", s)
+
+    def test_default_map_to_chars(self):
+        actions = ["Order", "Skip", "PayLate", "Pay"]
+        expect = {"Order": "O", "Skip": "S", "PayLate": "L", "Pay": "P"}
+        self.assertEqual(expect, agilkia.default_map_to_chars(actions))
+
+    def test_default_map_to_chars_prefixes(self):
+        actions = ["Order", "PayLate", "PayEarly", "PayExtra"]
+        expect = {'Order': 'O', 'PayEarly': 'a', 'PayExtra': 'x', 'PayLate': 'L'}
+        self.assertEqual(expect, agilkia.default_map_to_chars(actions))
+
+    def test_default_map_to_chars_hard(self):
+        actions = ["O", "Oa", "Oy", "Pay", "Play", "yay"]
+        expect = {'O': 'O', 'Oa': 'a', 'Oy': 'y', 'Pay': 'P', 'Play': 'l', 'yay': '*'}
+        self.assertEqual(expect, agilkia.default_map_to_chars(actions))
+
+    def test_default_map_to_chars_given(self):
+        actions = ["Order", "Save", "Skip", "PayLate", "Pay"]
+        given = {"Save": "."}
+        expect = {'Order': 'O', 'Pay': 'P', 'PayLate': 'L', 'Save': '.', 'Skip': 'S'}
+        self.assertEqual(expect, agilkia.default_map_to_chars(actions, given=given))
+
+
 if __name__ == "__main__":
     unittest.main()
