@@ -13,7 +13,7 @@ import decimal
 import datetime
 import xml.etree.ElementTree as ET
 import pandas
-from typing import List, Mapping, Union
+from typing import List, Set, Mapping, Union
 
 
 class TraceEncoder(json.JSONEncoder):
@@ -144,7 +144,7 @@ def default_map_to_chars(actions: List[str], given: Mapping[str, str] = None) ->
                 curr_prefix = name
                 continue
             prefix = max([p for p in range(max(len(name), len(nxt))) if name[0:p] == nxt[0:p]])
-            print(f"  found prefix {prefix} of {name} and {nxt}")
+            # print(f"  found prefix {prefix} of {name} and {nxt}")
             curr_prefix = name[0:prefix]
         else:
             prefix = 0
@@ -161,7 +161,6 @@ def default_map_to_chars(actions: List[str], given: Mapping[str, str] = None) ->
             pass2.append(name)
     # Pass 2 (all visible ASCII chars except " and ')
     allchars = "".join([chr(n) for n in range(42, 127)]) + "!#$%&()"
-    print(f"allchars={allchars}")
     for name in pass2:
         for ch in name + allchars:
             if ch not in result.values():
@@ -170,7 +169,23 @@ def default_map_to_chars(actions: List[str], given: Mapping[str, str] = None) ->
     return result
 
 
-def trace_to_string(trace: List[dict], to_char: Mapping[str, str], compress=None) -> str:
+def all_action_names(traces) -> Set[str]:
+    """Collects all the action names that appear in the given traces."""
+    result = set()
+    for tr in traces:
+        for ev in tr:
+            action = ev["action"]
+            result.add(action)
+    return result
+
+
+def event_status(event) -> int:
+    """Get the status result for the given event."""
+    return int(event["outputs"]["Status"])
+
+
+def trace_to_string(trace: List[dict], to_char: Mapping[str, str], compress: List[str] = None,
+                    color_status: bool = False) -> str:
     """Converts a trace to a short summary string, one character per action.
 
     Args:
@@ -178,6 +193,8 @@ def trace_to_string(trace: List[dict], to_char: Mapping[str, str], compress=None
         to_char: maps each action name to a single character.  It is recommended that
             extremely common actions should be mapped to 'small' characters like '.' or ','.
         compress: a list of Action names.  Repeated events will be compressed if in this list.
+        color_status: True means color the string red where status is non-zero.
+            This uses ANSI escape sequences, so needs to be printed to a terminal.
 
     Returns:
         a summary string.
@@ -188,8 +205,14 @@ def trace_to_string(trace: List[dict], to_char: Mapping[str, str], compress=None
     for ev in trace:
         action = ev["action"]
         if action == prev_action and action in compress_set:
+            # NOTE: we color compressed output just based on the first event.
             pass
         else:
-            chars.append(to_char[action])
+            if color_status and event_status(ev) != 0:
+                chars.append("\033[91m")  # start RED
+                chars.append(to_char[action])
+                chars.append("\033[0m")  # turn off color
+            else:
+                chars.append(to_char[action])
             prev_action = action
     return "".join(chars)

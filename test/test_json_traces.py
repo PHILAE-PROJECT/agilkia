@@ -143,9 +143,9 @@ class TestJsonTraces(unittest.TestCase):
 
 class TestTraceToString(unittest.TestCase):
 
-    ev1 = {"action": "Order", "input": {"name": "Mark"}, "output": {"status": 0}}
-    ev2 = {"action": "Skip", "input": {"size": 3}, "output": {"status": 0}}
-    ev3 = {"action": "Pay", "input": {"name": "Mark", "amount": 23.45}, "output": {"status": 0}}
+    ev1 = {"action": "Order", "input": {"Name": "Mark"}, "outputs": {"Status": 0}}
+    ev2 = {"action": "Skip", "input": {"Size": 3}, "outputs": {"Status": 1}}
+    ev3 = {"action": "Pay", "input": {"Name": "Mark", "Amount": 23.45}, "outputs": {"Status": 0}}
     to_char = {"Order": "O", "Skip": ",", "Pay": "p"}
 
     def test_simple(self):
@@ -159,6 +159,19 @@ class TestTraceToString(unittest.TestCase):
         self.assertEqual(",,O,p,,,", s)
         s = agilkia.trace_to_string(tr, to_char=self.to_char, compress=["Skip"])
         self.assertEqual(",O,p,", s)
+
+    def test_status(self):
+        tr = [self.ev1, self.ev2, self.ev3]
+        s = agilkia.trace_to_string(tr, to_char=self.to_char, color_status=True)
+        self.assertEqual("O\033[93m,\033[0mp", s)
+
+    def test_all_action_names(self):
+        tr1 = [self.ev1, self.ev3]
+        tr2 = [self.ev2, self.ev3]
+        self.assertEqual(set(["Order", "Skip", "Pay"]), agilkia.all_action_names([tr1, tr2]))
+
+
+class TestDefaultMapToChars(unittest.TestCase):
 
     def test_default_map_to_chars(self):
         actions = ["Order", "Skip", "PayLate", "Pay"]
