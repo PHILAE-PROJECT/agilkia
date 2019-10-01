@@ -12,7 +12,7 @@ import json
 import decimal
 import datetime
 import xml.etree.ElementTree as ET
-import pandas
+import pandas as pd
 from typing import List, Set, Mapping, Union
 
 
@@ -216,3 +216,22 @@ def trace_to_string(trace: List[dict], to_char: Mapping[str, str], compress: Lis
                 chars.append(to_char[action])
             prev_action = action
     return "".join(chars)
+
+
+def traces_to_pandas(traces) -> pd.DataFrame:
+    """Collects all events into a single Pandas DataFrame.
+
+    Columns include the trace number, the event number, the action name, each input parameter,
+    the result status and error message.
+    """
+    rows = []
+    for tr_num in range(len(traces)):
+        trace = traces[tr_num]
+        for ev_num in range(len(trace)):
+            event = trace[ev_num]
+            row = {"trace": tr_num, "event": ev_num, "action": event["action"]}
+            row["Status"] = event_status(event)
+            row["Error"] = event["outputs"].get("Error", None)  # so this column is ordered early
+            row.update(event["inputs"].items())
+            rows.append(row)
+    return pd.DataFrame(rows)

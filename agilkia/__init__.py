@@ -13,4 +13,4 @@ from . random_tester import (RandomTester, uniq, build_interface, print_signatur
                              DUMP_WSDL, DUMP_SIGNATURES, GOOD_PASSWORD)
 from . json_traces import (TraceEncoder, save_traces_to_json, load_traces_from_json,
                            xml_decode, all_action_names, event_status,
-                           default_map_to_chars, trace_to_string,)
+                           default_map_to_chars, trace_to_string, traces_to_pandas)
