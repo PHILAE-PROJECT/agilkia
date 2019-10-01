@@ -288,14 +288,12 @@ class RandomTester:
         actions = self.methods_allowed
         nums = len(actions)
         self.action2number = dict(zip(actions, range(nums)))
-        self.number2action = dict(zip(range(nums), actions))
         if self.verbose:
             print("Action 2 num:", self.action2number)
-            print("Num 2 Action:", self.number2action)
 
-    def get_count_events(self, trace) -> List[int]:
+    def get_action_counts(self, trace) -> List[int]:
         """Returns an array of counts - how many times each event occurs in trace."""
-        result = [0 for k in self.action_number.keys()]
+        result = [0 for k in self.action2number.keys()]
         for ev in trace:
             action_num = self.action2number[ev["action"]]
             result[action_num] += 1
@@ -307,8 +305,8 @@ class RandomTester:
         Currently this returns an array of counts - how many times each event occurs
         in the whole current trace, and how many times in the most recent 8 events.
         """
-        prefix = self.count_events(self.curr_trace)
-        suffix = self.count_events(self.curr_trace[-8:])
+        prefix = self.get_action_counts(self.curr_trace)
+        suffix = self.get_action_counts(self.curr_trace[-8:])
         return prefix+suffix
 
     def generate_trace_ml(self, model, start=True, length=20):
@@ -327,10 +325,10 @@ class RandomTester:
         # start a new (empty) trace if requested.
         self.generate_trace(start=start, length=0)
         for i in range(length):
-            features = self.get_trace_features(self)
+            features = self.get_trace_features()
             [proba] = model.predict_proba([features])
             [action_num] = numpy.random.choice(len(proba), p=proba, size=1)
-            action = self.number2action[action_num]
+            action = self.methods_allowed[action_num]
             if self.verbose:
                 print(i, features, action, ",".join([f"{int(p*100)}" for p in proba]))
             self.call_method(action)
