@@ -16,6 +16,15 @@ import agilkia
 
 
 def read_database_changes(before_csv: str, after_csv: str) -> pd.DataFrame:
+    """Reads two files of database row counts and calculates tuples added to each table.
+
+    Args:
+        before_csv: name of CSV file containing the 'before' counts.
+        after_csv: name of CSV file containing the 'after' counts.
+
+    Returns:
+        A Pandas table with an 'added' column for how many rows were added to each table.
+    """
     before = pd.read_csv(before_csv)
     after = pd.read_csv(after_csv)
     col_msg = "ERROR: {} must have columns 'name', 'row_count', ..."
@@ -30,6 +39,7 @@ def read_database_changes(before_csv: str, after_csv: str) -> pd.DataFrame:
 
 
 def main():
+    """A command line program that gives an overview of a set of generated traces."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-b", "--before", help="database row counts before testing (*.csv)")
     parser.add_argument("-a", "--after", help="database row counts after testing (*.csv)")
@@ -45,28 +55,28 @@ def main():
         nonzero = changes[changes.added > 0].sort_values(by="added", ascending=False)
         print("==== database changes ====")
         print(nonzero)
-    traces = agilkia.load_traces_from_json(args.traces)
-    actions = agilkia.all_action_names(traces)
+    traceset = agilkia.TraceSet.load_from_json(args.traces)
+    actions = agilkia.all_action_names(traceset.traces)
     if args.map:
         mapfile = pd.read_csv(args.map, header=None)
         # we assume this has just two columns: 0=action_name and 1=char.
         char_map = dict(zip(mapfile.iloc[:, 0], mapfile.iloc[:, 1]))
         # print("given map=", char_map)
-    else:
-        char_map = {}
-    char_map = agilkia.default_map_to_chars(actions, given=char_map)
+        traceset.set_event_chars(char_map)
     # print("final map=", char_map)
     compress = [] if args.compress is None else [args.compress]
-    for tr in traces:
-        print(agilkia.trace_to_string(tr, char_map, compress=compress, color_status=args.status))
+    for tr in traceset.traces:
+        print(tr.to_string(compress=compress, color_status=args.status))
     print("==== statistics ====")
-    df = agilkia.traces_to_pandas(traces)
+    df = traceset.to_pandas()
     # print(df.head())
-    print(f"Number of traces    : {len(traces)}")
-    print(f"Average trace length: {df.groupby('trace').count().action.mean()}")
+    print(f"Number of traces     : {len(traceset.traces)}")
+    print(f"Average trace length : {df.groupby('trace').count().action.mean()}")
+    print(f"Number of events     : {df.shape[0]}")
+    print(f"Number of event kinds: {len(actions)}")
     statuses = df.Status.value_counts()
     percent_ok = 100.0 * statuses[0] / df.shape[0]
-    print(f"Percent of status ok: {percent_ok:.2f}%")
+    print(f"Percent of status ok : {percent_ok:.2f}%")
     print(f"Detailed error frequencies:")
     print(textwrap.indent(str(df.groupby("Error").count().action), "    "))
 

@@ -25,7 +25,7 @@ class Dummy():
 
 
 class TestTraceEncoder(unittest.TestCase):
-    """Unit Tests for MyEncoder."""
+    """Unit Tests for agilkia.TraceEncoder."""
 
     xml0 = '{"__class__": "Element", "__module__": "xml.etree.ElementTree", "__tag__": '
     xml1 = xml0 + '"Inner", "__text__": null, "__children__": [], "first": 1, "second": 22}'
@@ -80,6 +80,19 @@ class TestTraceEncoder(unittest.TestCase):
         xml2.append(xml1)
         self.assertEqual(self.xml2, self.dumps(xml2))
 
+    def test_trace(self):
+        ev1 = {"action": "Order", "inputs": {"Name": "Mark"}, "outputs": {"Status": 0}}
+        tr1 = agilkia.Trace([ev1])
+        s0 = "{'__class__': 'Trace', '__module__': 'agilkia.json_traces', 'events': ["
+        s1 = str(ev1)
+        s2 = "], 'parent': null, 'random_state': null}"
+
+        s0 = '{"__class__": "Trace", "__module__": "agilkia.json_traces", "events": ['
+        s1 = '{"action": "Order", "inputs": {"Name": "Mark"}, "outputs": {"Status": 0}}'
+        s2 = '], "random_state": null}'
+        expect = s0 + s1 + s2
+        self.assertEqual(expect, self.dumps(tr1))
+
 
 class TestXMLDecode(unittest.TestCase):
     """Unit Tests for agilkia.xml_decode."""
@@ -117,12 +130,16 @@ class TestJsonTraces(unittest.TestCase):
     def test_round_trip(self):
         """Test that load and save are the inverse of each other."""
         traces_file = os.path.join(THIS_DIR, "fixtures/traces1.json")
-        data2 = agilkia.load_traces_from_json(traces_file)
-        agilkia.save_traces_to_json(data2, "tmp2.json")
-        data3 = agilkia.load_traces_from_json("tmp2.json")
-        assert len(data2) == len(data3)
-        for i in range(len(data2)):
-            self.assertEqual(data3[i], data2[i])
+        data2 = agilkia.TraceSet.load_from_json(traces_file)
+        self.assertEqual(agilkia.TRACE_SET_VERSION, data2.version)
+        data2.save_to_json("tmp2.json")
+        data3 = agilkia.TraceSet.load_from_json("tmp2.json")
+        self.assertEqual(agilkia.TRACE_SET_VERSION, data3.version)
+        self.assertEqual(data2.meta_data, data3.meta_data)
+        assert len(data2.traces) == len(data3.traces)
+        for i in range(len(data2.traces)):
+            # we have not defined equality on Trace objects, so just compare first events.
+            self.assertEqual(data3.traces[i].events[0], data2.traces[i].events[0])
 
     def test_pickled_round_trip(self):
         """Loads some pickled zeep objects and checks that they save/load okay."""
@@ -130,54 +147,97 @@ class TestJsonTraces(unittest.TestCase):
         with open(traces_file, "r") as input:
             data = jsonpickle.loads(input.read())
             print(len(data), "traces loaded")
-            agilkia.save_traces_to_json(data, "tmp.json")
-            data2 = agilkia.load_traces_from_json("tmp.json")
-            assert len(data) == len(data2)
+            parent = agilkia.TraceSet([], {"date": "2019-10-02", "dataset": "test1"})
+            for tr in data:
+                parent.append(agilkia.Trace(tr))
+            parent.save_to_json("tmp.json")
+            parent2 = agilkia.TraceSet.load_from_json("tmp.json")
+            assert len(data) == len(parent2.traces)
 
-            agilkia.save_traces_to_json(data, "tmp2.json")
-            data3 = agilkia.load_traces_from_json("tmp2.json")
-            assert len(data) == len(data3)
-            for i in range(len(data2)):
-                self.assertEqual(data3[i], data2[i])
+            parent2.save_to_json("tmp2.json")
+            parent3 = agilkia.TraceSet.load_from_json("tmp2.json")
+            assert len(data) == len(parent3.traces)
+            for i in range(len(parent3.traces)):
+                self.assertEqual(parent3.traces[i].events[0], parent2.traces[i].events[0])
 
 
-class TestTraceToString(unittest.TestCase):
+class TestTrace(unittest.TestCase):
+    """Unit tests for agilkia.Trace and agilkia.TraceSet."""
 
     ev1 = {"action": "Order", "inputs": {"Name": "Mark"}, "outputs": {"Status": 0}}
     ev2 = {"action": "Skip", "inputs": {"Size": 3}, "outputs": {"Status": 1, "Error": "Too big"}}
     ev3 = {"action": "Pay", "inputs": {"Name": "Mark", "Amount": 23.45}, "outputs": {"Status": 0}}
+    ev4 = {"action": "Ski", "inputs": {"Type": "downhill"}, "outputs": {"Status": 1}}
     to_char = {"Order": "O", "Skip": ",", "Pay": "p"}
 
+    def test_trace(self):
+        tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])  # no parent initially
+        with self.assertRaises(Exception):
+            tr1.to_string()
+        self.assertEqual("...", str(tr1))
+
+    def test_traceset(self):
+        parent = agilkia.TraceSet([], {})
+        # add a first trace
+        tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])
+        parent.append(tr1)
+        self.assertEqual(parent, tr1.trace_set())
+        self.assertEqual("SOP", tr1.to_string())
+        self.assertEqual("SOP", str(tr1))
+        # now add a second trace.
+        tr2 = agilkia.Trace([self.ev4, self.ev2])
+        parent.append(tr2)
+        self.assertEqual("Sp", tr2.to_string())
+        self.assertEqual("Sp", str(tr2))
+        self.assertEqual("pOP", str(tr1))  # changed since to-char is recalculated
+
+    def test_trace_iter(self):
+        tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])
+        it = iter(tr1)
+        self.assertEqual(self.ev2, next(it))
+        self.assertEqual(self.ev1, next(it))
+        self.assertEqual(self.ev3, next(it))
+        with self.assertRaises(StopIteration):
+            next(it)
+
     def test_simple(self):
-        tr = [self.ev1, self.ev2, self.ev3]
-        s = agilkia.trace_to_string(tr, to_char=self.to_char)
+        tr1 = agilkia.Trace([self.ev1, self.ev2, self.ev3])
+        s = tr1.to_string(to_char=self.to_char)
         self.assertEqual("O,p", s)
 
     def test_compress(self):
-        tr = [self.ev2, self.ev2, self.ev1, self.ev2, self.ev3, self.ev2, self.ev2, self.ev2]
-        s = agilkia.trace_to_string(tr, to_char=self.to_char)
+        events = [self.ev2, self.ev2, self.ev1, self.ev2, self.ev3, self.ev2, self.ev2, self.ev2]
+        tr1 = agilkia.Trace(events)
+        s = tr1.to_string(to_char=self.to_char)
         self.assertEqual(",,O,p,,,", s)
-        s = agilkia.trace_to_string(tr, to_char=self.to_char, compress=["Skip"])
+        s = tr1.to_string(to_char=self.to_char, compress=["Skip"])
         self.assertEqual(",O,p,", s)
 
     def test_status(self):
-        tr = [self.ev1, self.ev2, self.ev3]
-        s = agilkia.trace_to_string(tr, to_char=self.to_char, color_status=True)
+        tr = agilkia.Trace([self.ev1, self.ev2, self.ev3])
+        s = tr.to_string(to_char=self.to_char, color_status=True)
         self.assertEqual("O\033[91m,\033[0mp", s)
 
     def test_all_action_names(self):
-        tr1 = [self.ev1, self.ev3]
-        tr2 = [self.ev2, self.ev3]
+        tr1 = agilkia.Trace([self.ev1, self.ev3])
+        tr2 = agilkia.Trace([self.ev2, self.ev3])
         self.assertEqual(set(["Order", "Skip", "Pay"]), agilkia.all_action_names([tr1, tr2]))
 
     def test_pandas(self):
-        tr1 = [self.ev1, self.ev3]
-        tr2 = [self.ev2, self.ev3]
-        df = agilkia.traces_to_pandas([tr1, tr2])
+        traces = agilkia.TraceSet([])
+        traces.append(agilkia.Trace([self.ev1, self.ev3]))
+        traces.append(agilkia.Trace([self.ev2, self.ev3]))
+        df = traces.to_pandas()
         self.assertEqual(4, df.shape[0])  # rows
         self.assertEqual(8, df.shape[1])  # columns
         cols = ["trace", "event", "action", "Status", "Error", "Name", "Amount", "Size"]
         self.assertEqual(cols, list(df.columns))
+
+    def test_default_meta_data(self):
+        now = str(datetime.datetime.now())
+        md = agilkia.TraceSet.get_default_meta_data()
+        self.assertEqual("pytest", md["source"].split("/")[-1])
+        self.assertEqual(now[0:10], md["date"][0:10])  # same date, unless it is exactly midnight!
 
 
 class TestDefaultMapToChars(unittest.TestCase):
