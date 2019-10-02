@@ -16,10 +16,11 @@ import getpass
 import operator
 import random
 import numpy
-import types
 import unittest
 from pprint import pprint
 from typing import Tuple, List, Mapping
+
+from . json_traces import (Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION)
 
 
 # A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
@@ -152,8 +153,15 @@ class RandomTester:
         self.methods_allowed = [] if methods_to_test is None else methods_to_test
         # maps each parameter to list of possible 'values'
         self.named_input_rules = {} if input_rules is None else input_rules
-        self.curr_trace = []
-        self.all_traces = [self.curr_trace]
+        meta = TraceSet.get_default_meta_data()
+        meta["source"] = "RandomTester for " + base_url
+        meta["services_to_test"] = services
+        meta["methods_to_test"] = methods_to_test
+        meta["input_rules"] = input_rules
+        new_trace = Trace([], self.random.getstate())
+        self.curr_events = new_trace.events  # mutable list to append to.
+        self.trace_set = TraceSet([], meta)
+        self.trace_set.append(new_trace)
         for w in services:
             self.add_web_service(w)
 
@@ -162,6 +170,7 @@ class RandomTester:
         If password is not supplied, this method will immediately interactively prompt for it.
         """
         self.username = username
+        self.trace_set.meta_data["username"] = username
         self.password = password or getpass.getpass(f"Please enter password for user {username}:")
 
     def add_web_service(self, name):
@@ -257,7 +266,7 @@ class RandomTester:
         args_list = [self._insert_password(arg) for (n, arg) in args.items()]
         out = getattr(client.service, name)(*args_list)
         # we call it 'action' so it gets printed before 'inputs' (alphabetical order).
-        self.curr_trace.append({"action": name, "inputs": args, "outputs": out})
+        self.curr_events.append({"action": name, "inputs": args, "outputs": out})
         if self.verbose:
             print(f"    -> {summary(out)}")
         return out
@@ -266,7 +275,7 @@ class RandomTester:
         """Generates the requested length of test steps, choosing methods at random.
 
         Args:
-            start (bool): True means that a new trace is started, beginning with a "Login" call.
+            start (bool): True means that a new trace is started (unless current one is empty).
             length (int): The number of steps to generate (default=20).
             methods (List[str]): only these methods will be chosen (None means all are allowed)
 
@@ -274,14 +283,15 @@ class RandomTester:
             the whole of the current trace that has been generated so far.
         """
         if start:
-            if self.curr_trace:
-                self.curr_trace = []  # start a new trace
-                self.all_traces.append(self.curr_trace)
+            if len(self.curr_events) > 0:
+                new_trace = Trace([], self.random.getstate())
+                self.curr_events = new_trace.events  # mutable list to append to.
+                self.trace_set.append(new_trace)
         if methods is None:
             methods = self.methods_allowed
         for i in range(length):  # TODO: continue while Status==0?
             self.call_method(self.random.choice(methods))
-        return self.curr_trace
+        return self.curr_events
 
     def setup_feature_data(self):
         """Must be called before the first call to get_trace_features."""
@@ -305,8 +315,8 @@ class RandomTester:
         Currently this returns an array of counts - how many times each event occurs
         in the whole current trace, and how many times in the most recent 8 events.
         """
-        prefix = self.get_action_counts(self.curr_trace)
-        suffix = self.get_action_counts(self.curr_trace[-8:])
+        prefix = self.get_action_counts(self.curr_events)
+        suffix = self.get_action_counts(self.curr_events[-8:])
         return prefix+suffix
 
     def generate_trace_ml(self, model, start=True, length=20):
@@ -332,7 +342,7 @@ class RandomTester:
             if self.verbose:
                 print(i, features, action, ",".join([f"{int(p*100)}" for p in proba]))
             self.call_method(action)
-        return self.curr_trace
+        return self.curr_events
 
 
 if __name__ == "__main__":

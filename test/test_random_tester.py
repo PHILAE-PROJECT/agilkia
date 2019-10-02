@@ -2,6 +2,10 @@
 """
 Unit tests for the RandomTester class.
 
+TODO:
+    * test generating more than one trace.
+    * test the ML test generator
+
 @author: utting@usc.edu.au
 """
 
@@ -67,12 +71,20 @@ class TestRandomTester(unittest.TestCase):
         self.assertEqual("Your input parameters are VAL1 and p2AAA", out1)
         out1 = tester.call_method("Method1")
         self.assertEqual("Your input parameters are VAL1 and p2BBB", out1)
-        self.assertEqual(4, len(tester.curr_trace))
-        self.assertEqual(1, len(tester.all_traces))
-        # TODO:
-        # agilkia.save_traces_to_json(tester.all_traces, "tmp_dummy1.json")
-        # traces2 = agilkia.load_traces_from_json("tmp_dummy1.json")
-        # self.assertEqual(traces2, tester.all_traces)
+        self.assertEqual(4, len(tester.curr_events))
+        self.assertEqual(1, len(tester.trace_set.traces))
+        # now generate a second trace
+        tester.generate_trace(start=True, length=3)
+        self.assertEqual(3, len(tester.curr_events))
+        self.assertEqual(2, len(tester.trace_set.traces))
+        # now test saving and loading those traces.
+        traceset1 = tester.trace_set
+        traceset1.save_to_json("tmp_dummy1.json")
+        traceset2 = agilkia.TraceSet.load_from_json("tmp_dummy1.json")
+        self.assertEqual(traceset2.meta_data, traceset1.meta_data)
+        self.assertEqual(len(traceset2.traces), len(traceset1.traces))
+        self.assertEqual(len(traceset2.traces[0].events[0]),
+                         len(traceset1.traces[0].events[0]))
 
     def test_generate_trace(self):
         tr = self.tester.generate_trace()
