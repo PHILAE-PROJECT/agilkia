@@ -173,7 +173,7 @@ class TraceSet:
             elif isinstance(data, dict) and data.get("__class__", None) == "TraceSet":
                 version = data["version"]
                 if version == TRACE_SET_VERSION:
-                    # Current version, so we convert this into TraceSet and Trace objects.
+                    # Current version, so we convert raw data into TraceSet and Trace objects.
                     traceset = TraceSet([], data["meta_data"])
                     for tr_data in data["traces"]:
                         assert tr_data["__class__"] == "Trace"
@@ -393,7 +393,7 @@ def traces_to_pandas(traces: List[Trace]) -> pd.DataFrame:
         events = traces[tr_num].events
         for ev_num in range(len(events)):
             event = events[ev_num]
-            row = {"trace": tr_num, "event": ev_num, "action": event["action"]}
+            row = {"Trace": tr_num, "Event": ev_num, "Action": event["action"]}
             # we add "Status" and "Error" first, so that those columns come before inputs.
             row["Status"] = event_status(event)
             row["Error"] = event["outputs"].get("Error", None)

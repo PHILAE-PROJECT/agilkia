@@ -38,6 +38,22 @@ def read_database_changes(before_csv: str, after_csv: str) -> pd.DataFrame:
     return changes
 
 
+def make_action_status_table(df: pd.DataFrame) -> pd.DataFrame:
+    """From TraceSet DataFrame, creates a table of Actions showing how many got Ok vs Error."""
+    ok = df[df.Status == 0].groupby("Action").size()
+    err = df[df.Status != 0].groupby("Action").size()
+    data = pd.DataFrame({"Ok": ok, "Err": err})
+    data.fillna(0, inplace=True, downcast="infer")
+    data["Total"] = data.Ok + data.Err
+    totals = data.sum().rename("Total")
+    # add Totals row at bottom
+    data = data.append(totals)
+    # total = df.shape[0]  # number of rows = total event count
+    # percents = (totals * 100.0 / total).rename("Percent")
+    # data = data.append(percents)
+    return data
+
+
 def main():
     """A command line program that gives an overview of a set of generated traces."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -71,14 +87,15 @@ def main():
     df = traceset.to_pandas()
     # print(df.head())
     print(f"Number of traces     : {len(traceset.traces)}")
-    print(f"Average trace length : {df.groupby('trace').count().action.mean()}")
+    print(f"Average trace length : {df.groupby('Trace').count().Action.mean()}")
     print(f"Number of events     : {df.shape[0]}")
     print(f"Number of event kinds: {len(actions)}")
+    print(textwrap.indent(str(make_action_status_table(df)), "    "))
     statuses = df.Status.value_counts()
     percent_ok = 100.0 * statuses[0] / df.shape[0]
+    print(f"Detailed error counts: ({100.0 - percent_ok:.2f}%)")
+    print(textwrap.indent(str(df.groupby("Error").count().Action), "    "))
     print(f"Percent of status ok : {percent_ok:.2f}%")
-    print(f"Detailed error frequencies:")
-    print(textwrap.indent(str(df.groupby("Error").count().action), "    "))
 
 
 if __name__ == "__main__":

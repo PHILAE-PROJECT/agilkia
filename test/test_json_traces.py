@@ -230,7 +230,7 @@ class TestTrace(unittest.TestCase):
         df = traces.to_pandas()
         self.assertEqual(4, df.shape[0])  # rows
         self.assertEqual(8, df.shape[1])  # columns
-        cols = ["trace", "event", "action", "Status", "Error", "Name", "Amount", "Size"]
+        cols = ["Trace", "Event", "Action", "Status", "Error", "Name", "Amount", "Size"]
         self.assertEqual(cols, list(df.columns))
 
     def test_default_meta_data(self):
