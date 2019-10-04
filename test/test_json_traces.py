@@ -12,10 +12,12 @@ import decimal
 import datetime
 import xml.etree.ElementTree as ET
 import os
+from pathlib import Path
+import pandas as pd
 import unittest
 import pytest
 
-THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+THIS_DIR = Path(__file__).parent
 
 
 class Dummy():
@@ -129,11 +131,11 @@ class TestJsonTraces(unittest.TestCase):
 
     def test_round_trip(self):
         """Test that load and save are the inverse of each other."""
-        traces_file = os.path.join(THIS_DIR, "fixtures/traces1.json")
-        data2 = agilkia.TraceSet.load_from_json(traces_file)
+        # traces_file = os.path.join(THIS_DIR, "fixtures/traces1.json")
+        data2 = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures/traces1.json")
         self.assertEqual(agilkia.TRACE_SET_VERSION, data2.version)
         data2.save_to_json("tmp2.json")
-        data3 = agilkia.TraceSet.load_from_json("tmp2.json")
+        data3 = agilkia.TraceSet.load_from_json(Path("tmp2.json"))
         self.assertEqual(agilkia.TRACE_SET_VERSION, data3.version)
         self.assertEqual(data2.meta_data, data3.meta_data)
         assert len(data2.traces) == len(data3.traces)
@@ -143,22 +145,23 @@ class TestJsonTraces(unittest.TestCase):
 
     def test_pickled_round_trip(self):
         """Loads some pickled zeep objects and checks that they save/load okay."""
-        traces_file = os.path.join(THIS_DIR, "fixtures/traces_pickled.json")
-        with open(traces_file, "r") as input:
-            data = jsonpickle.loads(input.read())
-            print(len(data), "traces loaded")
-            parent = agilkia.TraceSet([], {"date": "2019-10-02", "dataset": "test1"})
-            for tr in data:
-                parent.append(agilkia.Trace(tr))
-            parent.save_to_json("tmp.json")
-            parent2 = agilkia.TraceSet.load_from_json("tmp.json")
-            assert len(data) == len(parent2.traces)
+        # traces_file = os.path.join(THIS_DIR, "fixtures/traces_pickled.json")
+        pickled = THIS_DIR / "fixtures/traces_pickled.json"
+        # with open(traces_file, "r") as input:
+        data = jsonpickle.loads(pickled.read_text())
+        print(len(data), "traces loaded")
+        parent = agilkia.TraceSet([], {"date": "2019-10-02", "dataset": "test1"})
+        for tr in data:
+            parent.append(agilkia.Trace(tr))
+        parent.save_to_json("tmp.json")
+        parent2 = agilkia.TraceSet.load_from_json(Path("tmp.json"))
+        assert len(data) == len(parent2.traces)
 
-            parent2.save_to_json("tmp2.json")
-            parent3 = agilkia.TraceSet.load_from_json("tmp2.json")
-            assert len(data) == len(parent3.traces)
-            for i in range(len(parent3.traces)):
-                self.assertEqual(parent3.traces[i].events[0], parent2.traces[i].events[0])
+        parent2.save_to_json("tmp2.json")
+        parent3 = agilkia.TraceSet.load_from_json(Path("tmp2.json"))
+        assert len(data) == len(parent3.traces)
+        for i in range(len(parent3.traces)):
+            self.assertEqual(parent3.traces[i].events[0], parent2.traces[i].events[0])
 
 
 class TestTrace(unittest.TestCase):
@@ -239,6 +242,11 @@ class TestTrace(unittest.TestCase):
         self.assertEqual("pytest", md["source"].split("/")[-1])
         self.assertEqual(now[0:10], md["date"][0:10])  # same date, unless it is exactly midnight!
 
+    def test_arff_type(self):
+        traces = agilkia.TraceSet([])
+        i64 = pd.api.types.pandas_dtype("int64")
+        self.assertEquals("INTEGER", traces.arff_type(i64))
+
 
 class TestDefaultMapToChars(unittest.TestCase):
 
@@ -262,6 +270,13 @@ class TestDefaultMapToChars(unittest.TestCase):
         given = {"Save": "."}
         expect = {'Order': 'O', 'Pay': 'P', 'PayLate': 'L', 'Save': '.', 'Skip': 'S'}
         self.assertEqual(expect, agilkia.default_map_to_chars(actions, given=given))
+
+
+class TestSafeString(unittest.TestCase):
+
+    def test_safe_string(self):
+        self.assertEqual("Ab9", agilkia.safe_name("Ab9"))
+        self.assertEqual("_Ab9_etc_json", agilkia.safe_name("!Ab9 etc.json"))
 
 
 if __name__ == "__main__":

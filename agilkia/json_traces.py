@@ -4,16 +4,24 @@ Data structures for Traces and Sets of Traces.
 
 This defines the 'Trace' and 'TraceSet' classes, plus helper functions.
 
+TODO:
+    * add save_as_arff() method like to_pandas.
+    * split RandomTester into SmartTester subclass (better meta-data).
+    * add ActionChars class?  Store with .json.
+
 @author: utting@usc.edu.au
 """
 
 import os
 import sys
+from pathlib import Path  # object-oriented filenames!
 import json
 import decimal
 import datetime
+import re
 import xml.etree.ElementTree as ET
 import pandas as pd
+import arff   # liac-arff from https://pypi.org/project/liac-arff
 from typing import List, Set, Mapping, Dict, Union
 
 
@@ -25,6 +33,11 @@ Event = Dict[str, Union[str, Mapping[str, str]]]
 
 
 TRACE_SET_VERSION = "0.1.1"
+
+
+def safe_name(string: str) -> str:
+    """Returns 'string' with all non-alpha-numeric characters replaced by '_'."""
+    return re.sub("[^A-Za-z0-9]", "_", string)
 
 
 class Trace:
@@ -109,14 +122,18 @@ class TraceSet:
         self._event_chars = None  # recalculated if set of traces grows.
         self.given_event_chars = None  # records user preferences.
 
+    def __iter__(self):
+        return self.traces.__iter__()
+
     @classmethod
     def get_default_meta_data(cls):
-        # generate some partial meta-data.
+        """Generates some basic meta-data such as date, user and command line."""
         now = datetime.datetime.now().isoformat()
         user = os.path.expanduser('~').split('/')[-1]  # usually correct, but can be tricked.
-        meta_data = {"date": now, "author": user}
+        meta_data = {"date": now, "author": user, "dataset": "unknown"}
         if len(sys.argv) > 0:
             meta_data["source"] = sys.argv[0]  # the path to the running script/tool.
+            meta_data["cmdline"] = sys.argv
         return meta_data
 
     def append(self, trace: Trace):
@@ -153,45 +170,103 @@ class TraceSet:
             self.set_event_chars()
         return self._event_chars
 
-    def save_to_json(self, filename: str) -> None:
-        with open(filename, "w") as output:
+    def __str__(self):
+        name = self.meta_data["dataset"]
+        return f"TraceSet '{name}' with {len(self.traces)} traces."
+
+    def save_to_json(self, file: Path) -> None:
+        if isinstance(file, str):
+            print(f"WARNING: converting {file} to Path.  Please learn to speak pathlib.")
+            file = Path(file)
+        with file.open("w") as output:
             json.dump(self, output, indent=2, cls=TraceEncoder)
 
     @classmethod
-    def load_from_json(cls, filename) -> 'TraceSet':
-        with open(filename, "r") as input:
-            data = json.load(input)
-            # Now check version and upgrade if necessary.
-            if isinstance(data, list):
-                # this file was pre-TraceSet, so just a list of lists of events.
-                mtime = os.path.getmtime(filename)
-                meta = {"date": mtime, "dataset": filename, "source": "Upgraded from version 0.1"}
-                traces = cls([], meta)
-                for ev_list in data:
-                    traces.append(Trace(ev_list))
-                return traces
-            elif isinstance(data, dict) and data.get("__class__", None) == "TraceSet":
-                version = data["version"]
-                if version == TRACE_SET_VERSION:
-                    # Current version, so we convert raw data into TraceSet and Trace objects.
-                    traceset = TraceSet([], data["meta_data"])
-                    for tr_data in data["traces"]:
-                        assert tr_data["__class__"] == "Trace"
-                        rand = tr_data.get("random_state", None)
-                        traceset.append(Trace(tr_data["events"], random_state=rand))
-                    traceset.set_event_chars(data["given_event_chars"])
-                    return traceset
-                else:
-                    return cls.upgrade_from_version(version, data)
+    def load_from_json(cls, file: Path) -> 'TraceSet':
+        if isinstance(file, str):
+            print(f"WARNING: converting {file} to Path.  Please learn to speak pathlib.")
+            file = Path(file)
+        if not isinstance(file, Path):
+            raise Exception(f"load_from_json requires Path, not {file} (type={type(file)})")
+        # with open(filename, "r") as input:
+        data = json.loads(file.read_text())
+        # Now check version and upgrade if necessary.
+        if isinstance(data, list):
+            # this file was pre-TraceSet, so just a list of lists of events.
+            mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime)
+            print(type(mtime))
+            mtime = mtime.isoformat()
+            meta = {"date": mtime, "dataset": file.name, "source": "Upgraded from version 0.1"}
+            traces = cls([], meta)
+            for ev_list in data:
+                traces.append(Trace(ev_list))
+            return traces
+        elif isinstance(data, dict) and data.get("__class__", None) == "TraceSet":
+            version = data["version"]
+            if version == TRACE_SET_VERSION:
+                # Current version, so we convert raw data into TraceSet and Trace objects.
+                traceset = TraceSet([], data["meta_data"])
+                for tr_data in data["traces"]:
+                    assert tr_data["__class__"] == "Trace"
+                    rand = tr_data.get("random_state", None)
+                    traceset.append(Trace(tr_data["events"], random_state=rand))
+                traceset.set_event_chars(data["given_event_chars"])
+                return traceset
             else:
-                raise Exception("unknown JSON file format: " + str(data)[0:60])
+                return cls.upgrade_from_version(version, data)
+        else:
+            raise Exception("unknown JSON file format: " + str(data)[0:60])
 
     @classmethod
     def upgrade_from_version(cls, version: str, json_data: Dict) -> 'TraceSet':
         raise Exception(f"upgrade of TraceSet from version {version} not implemented yet.")
 
     def to_pandas(self) -> pd.DataFrame:
+        """Converts all the traces into a single Pandas DataFrame (one event/row).
+
+        The first three columns are 'Trace' and 'Event' which give the number of the
+        trace and the position of the event within that trace, and 'Action' which is
+        the name of the action of the event.
+        Each named input value is recorded in a separate column.
+        For outputs, by default there are just 'Status' (int) and 'Error' (str) columns.
+        """
         return traces_to_pandas(self.traces)
+
+    def arff_type(self, pandas_type: str) -> str:
+        """Maps each Pandas data type to the closest ARFF type."""
+        if pd.api.types.is_integer_dtype(pandas_type):
+            return "INTEGER"
+        if pd.api.types.is_float_dtype(pandas_type):
+            return "REAL"
+        if pd.api.types.is_bool_dtype(pandas_type):
+            return ["False", "True"]
+        return "STRING"
+        # TODO: check column to see if NOMINAL is better?
+        # raise Exception(f"do not know how to translate Pandas type {pandas_type} to ARFF.")
+
+    def save_to_arff(self, file: Path, name=None) -> None:
+        """Save all the events in all traces into an ARFF file for machine learning.
+
+        Args:
+            filename: the name of the file to save into.  Should end with '.arff'.
+            name: optional relation name to identify this data inside the ARFF file.
+                The default is the base name of 'file'.
+        """
+        if isinstance(file, str):
+            print(f"WARNING: converting {file} to Path.  Please learn to speak pathlib.")
+            file = Path(file)
+        if name is None:
+            name = file.stem
+        data = self.to_pandas()
+        attributes = [(n, self.arff_type(t)) for (n, t) in zip(data.columns, data.dtypes)]
+        with file.open("w") as output:
+            contents = {
+                "relation": safe_name(name),
+                "attributes": attributes,
+                "data": data.values,  # [[tr] for tr in trace_summaries],
+                "description": "Events from " + name
+                }
+            arff.dump(contents, output)
 
 
 class TraceEncoder(json.JSONEncoder):
@@ -387,6 +462,8 @@ def traces_to_pandas(traces: List[Trace]) -> pd.DataFrame:
 
     Columns include the trace number, the event number, the action name, each input parameter,
     the result status and error message.
+
+    TODO: we could convert complex values to strings before sending to Pandas?
     """
     rows = []
     for tr_num in range(len(traces)):

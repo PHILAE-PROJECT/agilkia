@@ -2,11 +2,11 @@
   [
     {
       "action": "Login",
-      "inputs": [
-        "TestUser",
-        "<GOOD_PASSWORD>",
-        "2.2.7"
-      ],
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "version": "2.2.7"
+      },
       "outputs": {
         "__class__": "LoginOutput",
         "__module__": "zeep.objects",
@@ -128,15 +128,15 @@
     },
     {
       "action": "SNSBulkCheckIn",
-      "inputs": [
-        "TestUser",
-        "<GOOD_PASSWORD>",
-        "[1, 2, 3]",
-        "BAD",
-        "13:33",
-        "-26.6015600000",
-        "152.9535000000"
-      ],
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "ids": "[1, 2, 3]",
+        "run": "BAD",
+        "time": "13:33",
+        "latitude": "-26.6015600000",
+        "longitude": "152.9535000000"
+      },
       "outputs": {
         "__class__": "StatusOutput",
         "__module__": "zeep.objects",
@@ -147,11 +147,11 @@
     },
     {
       "action": "ConfirmPreCheck",
-      "inputs": [
-        "TestUser",
-        "<GOOD_PASSWORD>",
-        "[{'Code': 'FIT', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}, {'Code': 'SOBER', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}, {'Code': 'SLEEP', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}]"
-      ],
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "codes": "[{'Code': 'FIT', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}, {'Code': 'SOBER', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}, {'Code': 'SLEEP', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}]"
+      },
       "outputs": {
         "__class__": "StatusOutput",
         "__module__": "zeep.objects",
@@ -162,17 +162,17 @@
     },
     {
       "action": "SaveGPS",
-      "inputs": [
-        "TestUser",
-        "<GOOD_PASSWORD>",
-        "420PM",
-        "-26.6115600000",
-        "152.9435000000",
-        "35.0",
-        "180",
-        "10",
-        "13:17"
-      ],
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "run": "420PM",
+        "latitude": "-26.6115600000",
+        "longitude": "152.9435000000",
+        "altitude": "35.0",
+        "heading": "180",
+        "speed": "10",
+        "time": "13:17"
+      },
       "outputs": {
         "__class__": "StatusOutput",
         "__module__": "zeep.objects",

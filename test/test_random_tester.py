@@ -11,6 +11,7 @@ TODO:
 
 import unittest
 import random
+from pathlib import Path
 
 import agilkia
 
@@ -80,7 +81,7 @@ class TestRandomTester(unittest.TestCase):
         # now test saving and loading those traces.
         traceset1 = tester.trace_set
         traceset1.save_to_json("tmp_dummy1.json")
-        traceset2 = agilkia.TraceSet.load_from_json("tmp_dummy1.json")
+        traceset2 = agilkia.TraceSet.load_from_json(Path("tmp_dummy1.json"))
         self.assertEqual(traceset2.meta_data, traceset1.meta_data)
         self.assertEqual(len(traceset2.traces), len(traceset1.traces))
         self.assertEqual(len(traceset2.traces[0].events[0]),

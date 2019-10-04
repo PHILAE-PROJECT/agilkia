@@ -10,6 +10,7 @@ Optionally, it can also report how many rows were added to each database table.
 
 import pandas as pd
 import argparse
+from pathlib import Path
 import textwrap
 
 import agilkia
@@ -61,7 +62,7 @@ def main():
     parser.add_argument("-a", "--after", help="database row counts after testing (*.csv)")
     parser.add_argument("-c", "--compress", help="compress repeats of this action")
     parser.add_argument("-m", "--map", help="name of action-to-char mapping file (*.csv)")
-    parser.add_argument("-s", "--status", help="show statusin color (red=error)",
+    parser.add_argument("-s", "--status", help="show status in color (red=error)",
                         action="store_true")
     parser.add_argument("traces", help="traces file (*.json)")
     args = parser.parse_args()
@@ -71,7 +72,7 @@ def main():
         nonzero = changes[changes.added > 0].sort_values(by="added", ascending=False)
         print("==== database changes ====")
         print(nonzero)
-    traceset = agilkia.TraceSet.load_from_json(args.traces)
+    traceset = agilkia.TraceSet.load_from_json(Path(args.traces))
     actions = agilkia.all_action_names(traceset.traces)
     if args.map:
         mapfile = pd.read_csv(args.map, header=None)
