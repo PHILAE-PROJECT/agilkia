@@ -29,7 +29,7 @@ def main():
     parser.add_argument("-c", "--chars", help="name of action-to-CHAR mapping file (*.csv)")
     parser.add_argument("-m", "--methods", help="METHODS to test (comma-separated)")
     parser.add_argument("--model", help="ML MODEL (*.joblib) to predict next action.")
-    parser.add_argument("-v", "--verbose", default="false",
+    parser.add_argument("-v", "--verbose",
                         help="print VERBOSE messages during testing", action="store_true")
     parser.add_argument("-s", "--seed", type=int, help="SEED for random generator")
     parser.add_argument("-o", "--output", type=str, default="out.json", help="name of OUTPUT file")
