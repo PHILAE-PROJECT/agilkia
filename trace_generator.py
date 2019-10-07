@@ -56,6 +56,10 @@ def main():
     tester = agilkia.RandomTester(args.url, args.service, rand=rand, verbose=args.verbose,
                                   action_chars=action_chars, input_rules=input_rules,
                                   methods_to_test=methods)
+    # get a password if needed
+    if input_rules is not None and "username" in input_rules:
+        # this will prompt for a password
+        tester.set_username(input_rules["username"])
     # TODO: methods_to_test=None,
     for i in range(args.tests):
         trace = tester.generate_trace(length=args.length, start=True)
