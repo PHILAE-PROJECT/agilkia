@@ -24,7 +24,8 @@ def main():
     parser.add_argument("-n", "--tests", type=int, default=2, help="number of tests to generate")
     parser.add_argument("-l", "--length", type=int, default=5, help="length of each test")
     parser.add_argument("-i", "--inputs", help="input values CSV file: (Input,Freq,Value) tuples")
-    parser.add_argument("-m", "--map", help="name of action-to-char mapping file (*.csv)")
+    parser.add_argument("-a", "--actionchars", help="name of action-to-char mapping file (*.csv)")
+    parser.add_argument("-m", "--methods", help="methods to test (comma-separated)")
     parser.add_argument("-v", "--verbose", default="true",
                         help="print each test after execution", action="store_true")
     parser.add_argument("-s", "--seed", type=int, help="seed for random generator")
@@ -32,7 +33,7 @@ def main():
     parser.add_argument("url", help="URL of web service server")
     parser.add_argument("service", nargs='*', help="name of a web service")
     args = parser.parse_args()
-    print(f"Args are:", args)
+    # print(f"Args are:", args)
 
     json_output = Path(args.output).with_suffix(".json")
     if json_output.exists():
@@ -46,11 +47,14 @@ def main():
     input_rules = None
     if args.inputs:
         input_rules = agilkia.read_input_rules(Path(args.inputs))
-
+    methods = None
+    if args.methods:
+        methods = args.methods.split(",")
     rand = random.Random(args.seed)  # seed can be None
     print(f"Starting to test {args.url} with services: {args.service}")
     tester = agilkia.RandomTester(args.url, args.service, rand=rand, verbose=args.verbose,
-                                  action_chars=action_chars, input_rules=input_rules)
+                                  action_chars=action_chars, input_rules=input_rules,
+                                  methods_to_test=methods)
     # TODO: methods_to_test=None,
     for i in range(args.tests):
         trace = tester.generate_trace(length=args.length, start=True)
