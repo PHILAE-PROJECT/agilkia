@@ -58,11 +58,11 @@ def make_action_status_table(df: pd.DataFrame) -> pd.DataFrame:
 def main():
     """A command line program that gives an overview of a set of generated traces."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("-b", "--before", help="database row counts before testing (*.csv)")
-    parser.add_argument("-a", "--after", help="database row counts after testing (*.csv)")
-    parser.add_argument("-c", "--compress", help="compress repeats of this action")
-    parser.add_argument("-m", "--map", help="name of action-to-char mapping file (*.csv)")
-    parser.add_argument("-s", "--status", help="show status in color (red=error)",
+    parser.add_argument("-a", "--after", help="database row counts AFTER testing (*.csv)")
+    parser.add_argument("-b", "--before", help="database row counts BEFORE testing (*.csv)")
+    parser.add_argument("-c", "--chars", help="name of action-to-CHAR mapping file (*.csv)")
+    parser.add_argument("-r", "--repeats", help="remove REPEATS of this action")
+    parser.add_argument("-s", "--status", help="show STATUS in color (red=error)",
                         action="store_true")
     parser.add_argument("traces", help="traces file (*.json)")
     args = parser.parse_args()
@@ -74,16 +74,16 @@ def main():
         print(nonzero)
     traceset = agilkia.TraceSet.load_from_json(Path(args.traces))
     actions = agilkia.all_action_names(traceset.traces)
-    if args.map:
-        mapfile = pd.read_csv(args.map, header=None)
+    if args.chars:
+        mapfile = pd.read_csv(args.chars, header=None)
         # we assume this has just two columns: 0=action_name and 1=char.
         char_map = dict(zip(mapfile.iloc[:, 0], mapfile.iloc[:, 1]))
         # print("given map=", char_map)
         traceset.set_event_chars(char_map)
     # print("final map=", char_map)
-    compress = [] if args.compress is None else [args.compress]
+    repeats = [] if args.repeats is None else [args.repeats]
     for tr in traceset.traces:
-        print(tr.to_string(compress=compress, color_status=args.status))
+        print(tr.to_string(compress=repeats, color_status=args.status))
     print("==== statistics ====")
     df = traceset.to_pandas()
     # print(df.head())

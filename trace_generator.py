@@ -21,15 +21,16 @@ def main():
     """A command line program to generate and execute test traces for a SOAP web service."""
     parser = argparse.ArgumentParser(description=__doc__)
     # parser.add_argument("-c", "--compress", help="compress repeats of this action")
-    parser.add_argument("-n", "--tests", type=int, default=2, help="number of tests to generate")
-    parser.add_argument("-l", "--length", type=int, default=5, help="length of each test")
-    parser.add_argument("-i", "--inputs", help="input values CSV file: (Input,Freq,Value) tuples")
-    parser.add_argument("-a", "--actionchars", help="name of action-to-char mapping file (*.csv)")
-    parser.add_argument("-m", "--methods", help="methods to test (comma-separated)")
+    parser.add_argument("-n", "--tests", type=int, default=2, help="number of TESTS to generate")
+    parser.add_argument("-l", "--length", type=int, default=5, help="LENGTH of each test")
+    fmt = "(CSV with Name,Frequency,Value columns)"
+    parser.add_argument("-i", "--inputs", help=f"INPUT values file: {fmt}")
+    parser.add_argument("-c", "--chars", help="name of action-to-CHAR mapping file (*.csv)")
+    parser.add_argument("-m", "--methods", help="METHODS to test (comma-separated)")
     parser.add_argument("-v", "--verbose", default="true",
-                        help="print each test after execution", action="store_true")
-    parser.add_argument("-s", "--seed", type=int, help="seed for random generator")
-    parser.add_argument("-o", "--output", type=str, default="out.json", help="name of output file")
+                        help="print VERBOSE messages during testing", action="store_true")
+    parser.add_argument("-s", "--seed", type=int, help="SEED for random generator")
+    parser.add_argument("-o", "--output", type=str, default="out.json", help="name of OUTPUT file")
     parser.add_argument("url", help="URL of web service server")
     parser.add_argument("service", nargs='*', help="name of a web service")
     args = parser.parse_args()
@@ -38,10 +39,10 @@ def main():
     json_output = Path(args.output).with_suffix(".json")
     if json_output.exists():
         raise Exception(f"do not want to overwrite {json_output}.")
-    # process arguments
+    # process each optional argument
     action_chars = None
-    if args.map:
-        mapfile = pd.read_csv(args.map, header=None)
+    if args.chars:
+        mapfile = pd.read_csv(args.chars, header=None)
         # we assume this has just two columns: 0=action_name and 1=char.
         action_chars = dict(zip(mapfile.iloc[:, 0], mapfile.iloc[:, 1]))
     input_rules = None

@@ -276,7 +276,7 @@ class RandomTester:
         Args:
             name (str): the name of the method to call.
             args (dict): the input values for the method.  If args=None, then this method uses
-                :code:choose_input_value to choose appropriate values for each argument
+                'choose_input_value' to choose appropriate values for each argument
                 value of the method.
         Returns:
         Before the call, this method replaces some symbolic inputs by actual concrete values.
@@ -290,6 +290,9 @@ class RandomTester:
         inputs = signature["input"]
         if args is None:
             args = {n: self.choose_input_value(n) for n in inputs.keys()}
+        if None in args.values():
+            print(f"skipping method {name}.  Please define missing input values.")
+            return None
         if self.verbose:
             print(f"    call {name}{args}")
         # insert special secret argument values if requested
