@@ -58,6 +58,25 @@ class TestRandomTester(unittest.TestCase):
         param1_details = "{'optional': False, 'type': 'String(value)'}"
         self.assertEqual(param1_details, str(msig["input"]["bstrParam1"]))
 
+    def test_dummy_client_meta(self):
+        """Test the dummy web service provided by soapresponder."""
+        tester = agilkia.RandomTester(WSDL_EG, ["soapresponder.wsdl"],
+                                      input_rules=test_input_rules,
+                                      rand=random.Random(1234))
+        meta_keys = ["date", "author", "dataset", "source",
+                     "services_to_test", "methods_to_test", "input_rules",
+                     "method_signatures"]
+        mdata = tester.trace_set.meta_data
+        for k in meta_keys:
+            self.assertTrue(k in mdata, msg=k + " expected in meta_data")
+        self.assertEqual("RandomTester for " + WSDL_EG, mdata["source"])
+        # check the signature
+        self.assertEqual(set(["Method1"]), set(mdata["method_signatures"].keys()))
+        sig = {'input': {
+               'bstrParam1': {'optional': False, 'type': 'String(value)'},
+               'bstrParam2': {'optional': False, 'type': 'String(value)'}}}
+        self.assertEqual(sig, mdata["method_signatures"]["Method1"])
+
     def test_dummy_client0(self):
         """Test the dummy web service provided by soapresponder."""
         tester = agilkia.RandomTester(WSDL_EG, ["soapresponder.wsdl"],

@@ -20,7 +20,7 @@ import unittest
 from pprint import pprint
 from typing import Tuple, List, Mapping
 
-from . json_traces import (Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION)
+from . json_traces import Trace, TraceSet
 
 
 # A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
@@ -128,10 +128,9 @@ class RandomTester:
     * supply the subset of method names that you want to focus on testing (default is all).
     * supply a set of default input values (or generation functions) for each data type.
     * supply a set of input values (or generation functions) for each named input parameter.
-    * TODO: supply a machine learning model for predicting the next best methods to try.
     """
     def __init__(self, base_url, services, methods_to_test=None, input_rules=None,
-                 rand=random.Random(), verbose=False):
+                 rand=random.Random(), action_chars=None, verbose=False):
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
@@ -141,6 +140,7 @@ class RandomTester:
             input_rules (Dict[str,List]): maps each input parameter name to a list of
                 possible values, one of which will be chosen randomly.
             rand (random.Random): the random number generator used to generate tests.
+            action_chars (Mapping[str, str]): optional action-to-character map, for visualisation.
             verbose (bool): True means print progress messages during test generation.
         """
         self.base_url = base_url
@@ -158,6 +158,8 @@ class RandomTester:
         meta["services_to_test"] = services
         meta["methods_to_test"] = methods_to_test
         meta["input_rules"] = input_rules
+        meta["method_signatures"] = {}  # see add_web_service
+        meta["action_chars"] = action_chars
         new_trace = Trace([], self.random.getstate())
         self.curr_events = new_trace.events  # mutable list to append to.
         self.trace_set = TraceSet([], meta)
@@ -195,6 +197,7 @@ class RandomTester:
         else:
             ops = uniq(uniq(interface))["operations"]
             self.clients_and_methods.append((client, ops))
+            self.trace_set.meta_data["method_signatures"].update(ops)
             if self.methods_to_test is None:
                 self.methods_allowed += list(ops.keys())
 

@@ -4,10 +4,28 @@ Data structures for Traces and Sets of Traces.
 
 This defines the 'Trace' and 'TraceSet' classes, plus helper functions.
 
+NOTE: private data fields (starting with '_') will not be stored in the JSON files.
+    For example, each Trace object has a '_parent' point to its TraceSet, but this
+    is not stored in the JSON file, since the hierarchical structure of the JSON
+    already captures the parent-child relationship between TraceSet and Trace.
+
+NOTE: file version upgrade policy:
+    JSON trace file version numbers follow the usual Semantic Versioning scheme:
+        (Major.Minor.Patch).
+    TraceSet.upgrade_json_data' currently just prints a warning message when a
+    program running older code reads a JSON file with a newer MINOR version number.
+    This allows graceful updating of one program at a time, but does
+    have the danger that a older program may read newer data (with a warning),
+    then SAVE that data in the slightly older format, thus losing some data.
+    But a strict version-equality means that all programs have to be updated
+    simultaneously, which is a pain.
+
 TODO:
-    * add save_as_arff() method like to_pandas.
+    * DONE: add save_as_arff() method like to_pandas.
+    * DONE: store event_chars into meta_data.
+    * DONE: store signatures into meta_data.
     * split RandomTester into SmartTester subclass (better meta-data).
-    * add ActionChars class?  Store with .json.
+    * add ActionChars class?
 
 @author: utting@usc.edu.au
 """
@@ -32,7 +50,7 @@ from typing import List, Set, Mapping, Dict, Union
 Event = Dict[str, Union[str, Mapping[str, str]]]
 
 
-TRACE_SET_VERSION = "0.1.1"
+TRACE_SET_VERSION = "0.1.2"
 
 
 def safe_name(string: str) -> str:
@@ -120,7 +138,6 @@ class TraceSet:
             else:
                 raise Exception("TraceSet expects List[Trace], not: " + str(type(tr)))
         self._event_chars = None  # recalculated if set of traces grows.
-        self.given_event_chars = None  # records user preferences.
 
     def __iter__(self):
         return self.traces.__iter__()
@@ -130,11 +147,18 @@ class TraceSet:
         """Generates some basic meta-data such as date, user and command line."""
         now = datetime.datetime.now().isoformat()
         user = os.path.expanduser('~').split('/')[-1]  # usually correct, but can be tricked.
-        meta_data = {"date": now, "author": user, "dataset": "unknown"}
+        meta_data = {"date": now, "author": user, "dataset": "unknown", "action_chars": None}
         if len(sys.argv) > 0:
             meta_data["source"] = sys.argv[0]  # the path to the running script/tool.
             meta_data["cmdline"] = sys.argv
         return meta_data
+
+    def get_meta(self, key: str) -> any:
+        """Returns requested meta data, or None if that key does not exist."""
+        if key in self.meta_data:
+            return self.meta_data[key]
+        else:
+            return None
 
     def append(self, trace: Trace):
         """Appends the given trace into this set.
@@ -156,7 +180,9 @@ class TraceSet:
             common actions should be mapped to 'small' characters like '.' or ','.
         """
         if given is not None:
-            self.given_event_chars = given
+            self.meta_data["action_chars"] = given  # override any previous given map.
+        else:
+            given = self.get_meta("action_chars")
         actions = all_action_names(self.traces)
         self._event_chars = default_map_to_chars(actions, given=given)
 
@@ -171,7 +197,7 @@ class TraceSet:
         return self._event_chars
 
     def __str__(self):
-        name = self.meta_data["dataset"]
+        name = self.meta_data["dataset"]  # required meta data
         return f"TraceSet '{name}' with {len(self.traces)} traces."
 
     def save_to_json(self, file: Path) -> None:
@@ -193,33 +219,41 @@ class TraceSet:
         # Now check version and upgrade if necessary.
         if isinstance(data, list):
             # this file was pre-TraceSet, so just a list of lists of events.
-            mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime)
-            print(type(mtime))
-            mtime = mtime.isoformat()
+            mtime = datetime.datetime.fromtimestamp(file.stat().st_mtime).isoformat()
             meta = {"date": mtime, "dataset": file.name, "source": "Upgraded from version 0.1"}
             traces = cls([], meta)
             for ev_list in data:
                 traces.append(Trace(ev_list))
             return traces
         elif isinstance(data, dict) and data.get("__class__", None) == "TraceSet":
-            version = data["version"]
-            if version == TRACE_SET_VERSION:
-                # Current version, so we convert raw data into TraceSet and Trace objects.
-                traceset = TraceSet([], data["meta_data"])
-                for tr_data in data["traces"]:
-                    assert tr_data["__class__"] == "Trace"
-                    rand = tr_data.get("random_state", None)
-                    traceset.append(Trace(tr_data["events"], random_state=rand))
-                traceset.set_event_chars(data["given_event_chars"])
-                return traceset
-            else:
-                return cls.upgrade_from_version(version, data)
+            return cls.upgrade_json_data(data)
         else:
             raise Exception("unknown JSON file format: " + str(data)[0:60])
 
     @classmethod
-    def upgrade_from_version(cls, version: str, json_data: Dict) -> 'TraceSet':
-        raise Exception(f"upgrade of TraceSet from version {version} not implemented yet.")
+    def upgrade_json_data(cls, json_data: Dict) -> 'TraceSet':
+        version = json_data["version"]
+        if version.startswith("0.1."):
+            # This JSON file is compatible with our code.
+            # First, convert json_data dicts to Trace and TraceSet objects.
+            traceset = TraceSet([], json_data["meta_data"])
+            for tr_data in json_data["traces"]:
+                assert tr_data["__class__"] == "Trace"
+                rand = tr_data.get("random_state", None)
+                traceset.append(Trace(tr_data["events"], random_state=rand))
+            # Next, see if any little updates are needed.
+            if version == TRACE_SET_VERSION:
+                pass  # nothing extra to do.
+            elif version == "0.1.1":
+                # Move given_event_chars into meta_data["action_chars"]
+                # Note: traceset["version"] has already been updated to the latest.
+                traceset.meta_data["actions_chars"] = json_data["given_event_chars"]
+            else:
+                # The JSON must be from a newer 0.1.x version, so give a warning.
+                print(f"WARNING: reading {version} TraceSet using {TRACE_SET_VERSION} code.")
+                print(f"         Some data may be lost.  Please upgrade this program.")
+            return traceset
+        raise Exception(f"upgrade of TraceSet v{version} to v{TRACE_SET_VERSION} not supported.")
 
     def to_pandas(self) -> pd.DataFrame:
         """Converts all the traces into a single Pandas DataFrame (one event/row).
