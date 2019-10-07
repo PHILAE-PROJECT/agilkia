@@ -245,7 +245,7 @@ class TestTrace(unittest.TestCase):
     def test_arff_type(self):
         traces = agilkia.TraceSet([])
         i64 = pd.api.types.pandas_dtype("int64")
-        self.assertEquals("INTEGER", traces.arff_type(i64))
+        self.assertEqual("INTEGER", traces.arff_type(i64))
 
 
 class TestDefaultMapToChars(unittest.TestCase):

@@ -15,7 +15,7 @@ from pathlib import Path
 
 import agilkia
 
-
+THIS_DIR = Path(__file__).parent
 WSDL_EG = "http://www.soapclient.com/xml"  # + "/soapresponder.wsdl"
 
 test_input_rules = {
@@ -25,6 +25,14 @@ test_input_rules = {
     "bstrParam1": ["VAL1"],
     "bstrParam2": ["p2AAA", "p2BBB"],
 }
+
+
+class TestReadInputRules(unittest.TestCase):
+
+    def test_1(self):
+        rules = agilkia.read_input_rules(THIS_DIR / "fixtures/inputs1.csv")
+        self.assertEqual(["one"], rules["bstrParam1"])
+        self.assertEqual(['two', 'two', 'two', 'TWO!'], rules["bstrParam2"])
 
 
 class TestRandomTester(unittest.TestCase):
@@ -108,4 +116,5 @@ class TestRandomTester(unittest.TestCase):
 
     def test_generate_trace(self):
         tr = self.tester.generate_trace()
-        self.assertEqual(20, len(tr))
+        self.assertTrue(isinstance(tr, agilkia.Trace))
+        self.assertEqual(20, len(tr.events))

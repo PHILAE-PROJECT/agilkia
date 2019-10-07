@@ -9,7 +9,8 @@
 
 __version__ = '0.1'
 
-from . random_tester import (RandomTester, uniq, build_interface, print_signatures,
+from . random_tester import (read_input_rules, RandomTester,
+                             uniq, build_interface, print_signatures,
                              DUMP_WSDL, DUMP_SIGNATURES, GOOD_PASSWORD)
 from . json_traces import (Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION, xml_decode,
                            all_action_names, event_status, safe_name,

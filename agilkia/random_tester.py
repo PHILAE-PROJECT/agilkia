@@ -9,6 +9,7 @@ TODO:
 """
 
 
+import csv
 import requests
 import zeep
 import zeep.helpers
@@ -17,6 +18,7 @@ import operator
 import random
 import numpy
 import unittest
+from pathlib import Path
 from pprint import pprint
 from typing import Tuple, List, Mapping
 
@@ -31,6 +33,31 @@ Signature = Mapping[str, Mapping[str, str]]
 DUMP_WSDL = False         # save each *.wsdl file into current directory.
 DUMP_SIGNATURES = True    # save summary of methods into *_signatures.txt
 GOOD_PASSWORD = "<GOOD_PASSWORD>"
+
+
+def read_input_rules(file: Path) -> Mapping[str, List[str]]:
+    """Reads a CSV file of input values.
+
+    The header line of the CSV file should contain headers: Name,Frequency,Value.
+    (but the Frequency column is optional, and missing frequencies default to 1).
+
+    For example if one line contains 'size,3,100' and another contains 'size,2,200',
+    then the resulting input rules will define a 3/5 chance of size being 100,
+    and a 2/5 chance of it being 200.
+    """
+    input_rules = {}
+    with open(file, "r") as input:
+        for row in csv.DictReader(input):
+            name = row["Name"]
+            freq = row.get("Frequency", "")
+            freq_int = int(freq) if freq else 1
+            value = row["Value"]
+            value_list = input_rules.get(name, [])
+            for i in range(freq_int):
+                value_list.append(value)
+            input_rules[name] = value_list  # update it after appending new values
+    print(input_rules)
+    return input_rules
 
 
 def summary(value) -> str:
@@ -274,7 +301,7 @@ class RandomTester:
             print(f"    -> {summary(out)}")
         return out
 
-    def generate_trace(self, start=True, length=20, methods=None):
+    def generate_trace(self, start=True, length=20, methods=None) -> Trace:
         """Generates the requested length of test steps, choosing methods at random.
 
         Args:
@@ -294,7 +321,7 @@ class RandomTester:
             methods = self.methods_allowed
         for i in range(length):  # TODO: continue while Status==0?
             self.call_method(self.random.choice(methods))
-        return self.curr_events
+        return self.trace_set.traces[-1]
 
     def setup_feature_data(self):
         """Must be called before the first call to get_trace_features."""
