@@ -31,7 +31,7 @@ Signature = Mapping[str, Mapping[str, str]]
 
 # TODO: make these user-configurable
 DUMP_WSDL = False         # save each *.wsdl file into current directory.
-DUMP_SIGNATURES = True    # save summary of methods into *_signatures.txt
+DUMP_SIGNATURES = False    # save summary of methods into *_signatures.txt
 GOOD_PASSWORD = "<GOOD_PASSWORD>"
 
 

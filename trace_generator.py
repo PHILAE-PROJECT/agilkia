@@ -10,6 +10,7 @@ import random
 import pandas as pd
 import argparse
 from pathlib import Path
+from joblib import load
 
 import agilkia
 
@@ -27,6 +28,7 @@ def main():
     parser.add_argument("-i", "--inputs", help=f"INPUT values file: {fmt}")
     parser.add_argument("-c", "--chars", help="name of action-to-CHAR mapping file (*.csv)")
     parser.add_argument("-m", "--methods", help="METHODS to test (comma-separated)")
+    parser.add_argument("--model", help="ML MODEL (*.joblib) to predict next action.")
     parser.add_argument("-v", "--verbose", default="true",
                         help="print VERBOSE messages during testing", action="store_true")
     parser.add_argument("-s", "--seed", type=int, help="SEED for random generator")
@@ -52,6 +54,9 @@ def main():
     if args.methods:
         methods = args.methods.split(",")
     rand = random.Random(args.seed)  # seed can be None
+    model = None
+    if args.model:
+        model = load(args.model)
     print(f"Starting to test {args.url} with services: {args.service}")
     tester = agilkia.RandomTester(args.url, args.service, rand=rand, verbose=args.verbose,
                                   action_chars=action_chars, input_rules=input_rules,
@@ -62,7 +67,10 @@ def main():
         tester.set_username(input_rules["username"])
     # TODO: methods_to_test=None,
     for i in range(args.tests):
-        trace = tester.generate_trace(length=args.length, start=True)
+        if args.model:
+            trace = tester.generate_trace_ml(model, length=args.length, start=True)
+        else:
+            trace = tester.generate_trace(length=args.length, start=True)
         if args.verbose:
             print(f"  {str(trace)}")
     tester.trace_set.save_to_json(json_output)
