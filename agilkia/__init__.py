@@ -1,4 +1,22 @@
-"""Automated smart testing strategies for web services."""
+"""Automated smart testing strategies for web services.
+
+This 'agilkia' package is for testing web services and managing set of traces.
+Traces may come from user interactions, or from automated test suites, etc.
+
+The main data structure for traces is the ``TraceSet``:
+* class TraceSet supports loading/saving traces as JSON, converting to Pandas, etc.
+* class Trace is used by TraceSet, and contains a list of Events.
+* Each Event is a dict that contains at least the following keys:
+    * "action" gives the name of the action (a string);
+    * "inputs" is a dict of input parameter names to values;
+    * "outputs" is a dict of output parameter names to values.
+
+Automated test generation facilities include:
+* RandomTester generates random test sequences.
+* SmartTester generates tests from an ML model
+  (Currently this is included in RandomTester.generate_trace_ml,
+  but this will be split into a separate class shortly.)
+"""
 
 # This package follows a 'Convenience Store' model.
 # That is, it directly exports all the features that will be useful to users.
