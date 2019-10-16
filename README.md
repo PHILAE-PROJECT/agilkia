@@ -34,8 +34,8 @@ during the Rosetta space mission.
 
 # Example Usage
 
-Here is a simple example of initial dumb random testing of a web service
-called "CASH" running on a server http://localhost/:
+Here is a simple example of initial random testing of a web service
+running on the URL http://localhost/cash:
 ```
 import agilkia
 
@@ -49,8 +49,7 @@ input_values = {
 }
 
 def first_test():
-    tester = agilkia.RandomTester("http://localhost",
-        services=["CASH"],
+    tester = agilkia.RandomTester("http://localhost/cash",
         parameters=input_values)
     tester.set_username("TestUser")   # will prompt for password
     for i in range(10):

@@ -11,13 +11,24 @@ description-file = "README.md"
 keywords = "automated testing, smart testing, machine learning test models, Philae"
 requires-python = ">= 3.7"
 requires = [
-    "requests >=2.22",
-    "zeep >= 3.4.0"
+    "fastcluster>=1.1.25",
+    "flit>=1.3",
+    "ipython>=7.8.0",
+    "jsonpickle>=1.2",
+    "matplotlib>=3.1.1",
+    "pandas>=0.25.1",
+    "pillow>=6.1.0",
+    "pip>=19.2.2",
+    "requests>=2.22.0",
+    "scikit-learn>=0.21.2",
+    "scipy>=1.3.1",
+    "zeep>=3.4.0",
+    "liac-arff>=2.4.0"
 ]
 [tool.flit.metadata.requires-extra]
 test = [
     "pytest >=5.1.0",
-    "pytest-cov",
+    "pytest-cov>=2.7.1",
 ]
 # doc = ["sphinx"]
 

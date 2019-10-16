@@ -16,7 +16,7 @@ from pathlib import Path
 import agilkia
 
 THIS_DIR = Path(__file__).parent
-WSDL_EG = "http://www.soapclient.com/xml"  # + "/soapresponder.wsdl"
+WSDL_EG = "http://www.soapclient.com/xml/soapresponder.wsdl"
 
 test_input_rules = {
     "username": ["User1"],
@@ -39,7 +39,7 @@ class TestRandomTester(unittest.TestCase):
 
     def setUp(self):
         self.tester = agilkia.RandomTester(
-                WSDL_EG, ["soapresponder.wsdl"],
+                WSDL_EG,
                 input_rules=test_input_rules,
                 rand=random.Random(1234))
 
@@ -68,16 +68,17 @@ class TestRandomTester(unittest.TestCase):
 
     def test_dummy_client_meta(self):
         """Test the dummy web service provided by soapresponder."""
-        tester = agilkia.RandomTester(WSDL_EG, ["soapresponder.wsdl"],
+        tester = agilkia.RandomTester(WSDL_EG,
                                       input_rules=test_input_rules,
                                       rand=random.Random(1234))
         meta_keys = ["date", "author", "dataset", "source",
-                     "services_to_test", "methods_to_test", "input_rules",
+                     "web_services", "methods_to_test", "input_rules",
                      "method_signatures"]
         mdata = tester.trace_set.meta_data
         for k in meta_keys:
             self.assertTrue(k in mdata, msg=k + " expected in meta_data")
-        self.assertEqual("RandomTester for " + WSDL_EG, mdata["source"])
+        self.assertEqual(f"RandomTester", mdata["source"])
+        self.assertEqual([WSDL_EG], mdata["web_services"])
         # check the signature
         self.assertEqual(set(["Method1"]), set(mdata["method_signatures"].keys()))
         sig = {'input': {
@@ -87,7 +88,7 @@ class TestRandomTester(unittest.TestCase):
 
     def test_dummy_client0(self):
         """Test the dummy web service provided by soapresponder."""
-        tester = agilkia.RandomTester(WSDL_EG, ["soapresponder.wsdl"],
+        tester = agilkia.RandomTester(WSDL_EG,
                                       input_rules=test_input_rules,
                                       rand=random.Random(1234))
         print("Methods:", tester.get_methods())

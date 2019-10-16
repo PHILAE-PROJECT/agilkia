@@ -146,7 +146,7 @@ def print_signatures(client: zeep.Client, out):
 class RandomTester:
     """Does random testing of a given web service.
 
-    Give it a URL to a server, plus the name(s) of your web service(s),
+    Give it a URL to a web service (or a list of URLs if there are several web services),
     and it will read the WSDL specifications from those web services and
     generate any number of random test sequences to test the methods.
 
@@ -156,13 +156,12 @@ class RandomTester:
     * supply a set of default input values (or generation functions) for each data type.
     * supply a set of input values (or generation functions) for each named input parameter.
     """
-    def __init__(self, base_url, services, methods_to_test=None, input_rules=None,
+    def __init__(self, urls, methods_to_test=None, input_rules=None,
                  rand=random.Random(), action_chars=None, verbose=False):
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
-            base_url (str): the URL to the server that is running the web services.
-            services (List[str]): the names of the web services, used to find the WSDL files.
+            urls (str or List[str]): URLs to the web services, used to find the WSDL files.
             methods_to_test (List[str]): only these methods will be tested (None means all).
             input_rules (Dict[str,List]): maps each input parameter name to a list of
                 possible values, one of which will be chosen randomly.
@@ -170,7 +169,7 @@ class RandomTester:
             action_chars (Mapping[str, str]): optional action-to-character map, for visualisation.
             verbose (bool): True means print progress messages during test generation.
         """
-        self.base_url = base_url
+        self.urls = [urls] if isinstance(urls, str) else urls
         self.username = None
         self.password = None
         self.random = rand
@@ -181,8 +180,8 @@ class RandomTester:
         # maps each parameter to list of possible 'values'
         self.named_input_rules = {} if input_rules is None else input_rules
         meta = TraceSet.get_default_meta_data()
-        meta["source"] = "RandomTester for " + base_url
-        meta["services_to_test"] = services
+        meta["source"] = "RandomTester"
+        meta["web_services"] = self.urls
         meta["methods_to_test"] = methods_to_test
         meta["input_rules"] = input_rules
         meta["method_signatures"] = {}  # see add_web_service
@@ -191,7 +190,7 @@ class RandomTester:
         self.curr_events = new_trace.events  # mutable list to append to.
         self.trace_set = TraceSet([], meta)
         self.trace_set.append(new_trace)
-        for w in services:
+        for w in self.urls:
             self.add_web_service(w)
 
     def set_username(self, username, password=None):
@@ -202,16 +201,17 @@ class RandomTester:
         self.trace_set.meta_data["username"] = username
         self.password = password or getpass.getpass(f"Please enter password for user {username}:")
 
-    def add_web_service(self, name):
-        """Add another web service, on the current server."""
-        url = self.base_url + "/" + name + ("" if name.upper().endswith("WSDL") else ".asmx?WSDL")
-        print("  loading WSDL: ", url)
+    def add_web_service(self, url):
+        """Add another web service using the given url."""
+        wsdl = url + ("" if url.upper().endswith("WSDL") else ".asmx?WSDL")
+        name = url.split("/")[-1]
+        print("  loading WSDL: ", wsdl)
         if DUMP_WSDL:
             # save the WSDL for reference
-            r = requests.get(url, allow_redirects=True)
+            r = requests.get(wsdl, allow_redirects=True)
             open(f"{name}.wsdl", 'wb').write(r.content)
         # now create the client interface for this web service
-        client = zeep.Client(wsdl=url)
+        client = zeep.Client(wsdl=wsdl)
         interface = build_interface(client)
         pprint([(k, len(v["operations"])) for k, v in uniq(interface).items()])
         if DUMP_SIGNATURES:

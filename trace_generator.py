@@ -33,8 +33,7 @@ def main():
                         help="print VERBOSE messages during testing", action="store_true")
     parser.add_argument("-s", "--seed", type=int, help="SEED for random generator")
     parser.add_argument("-o", "--output", type=str, default="out.json", help="name of OUTPUT file")
-    parser.add_argument("url", help="URL of web service server")
-    parser.add_argument("service", nargs='*', help="name of a web service")
+    parser.add_argument("url", nargs='*', help="URL of web service server")
     args = parser.parse_args()
     # print(f"Args are:", args)
 
@@ -57,8 +56,8 @@ def main():
     model = None
     if args.model:
         model = load(args.model)
-    print(f"Starting to test {args.url} with services: {args.service}")
-    tester = agilkia.RandomTester(args.url, args.service, rand=rand, verbose=args.verbose,
+    print(f"Starting to test {args.url}")
+    tester = agilkia.RandomTester(args.url, rand=rand, verbose=args.verbose,
                                   action_chars=action_chars, input_rules=input_rules,
                                   methods_to_test=methods)
     # get a password if needed
