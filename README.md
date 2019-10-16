@@ -2,9 +2,18 @@
 
 Automated smart testing tools for web services.
 
-This 'agilkia' library is part of the Philae research project.
+This 'agilkia' library is part of the Philae research project:
 
-It currently supports testing SOAP web services with WSDL descriptions.
+    http://projects.femto-st.fr/philae/en
+
+It is open source software under the MIT license.  See LICENSE.txt
+
+# Key Features:
+* Automated testing of SOAP web services with WSDL descriptions.
+* Manage sets of traces (load/save to JSON, etc.).
+* Convert traces to Pandas DataFrame for data analysis / machine learning.
+* Generate random tests, or 'smart' tests from an ML model.
+ 
 
 ## About the Name
 

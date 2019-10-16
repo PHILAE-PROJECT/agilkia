@@ -26,6 +26,8 @@ TODO:
     * DONE: store signatures into meta_data.
     * split RandomTester into SmartTester subclass (better meta-data).
     * add ActionChars class?
+    * extend to_pandas() to allow user-defined columns to be added.
+    * add support for clustering traces and visualising the clusters.
 
 @author: utting@usc.edu.au
 """
