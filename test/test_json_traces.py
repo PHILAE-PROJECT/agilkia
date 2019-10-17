@@ -130,8 +130,9 @@ class TestJsonTraces(unittest.TestCase):
         """Test that load and save are the inverse of each other."""
         data2 = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures/traces1.json")
         self.assertEqual(agilkia.TRACE_SET_VERSION, data2.version)
-        data2.save_to_json(Path("tmp2.json"))
-        data3 = agilkia.TraceSet.load_from_json(Path("tmp2.json"))
+        tmp2_json = Path("tmp2.json")
+        data2.save_to_json(tmp2_json)
+        data3 = agilkia.TraceSet.load_from_json(tmp2_json)
         self.assertEqual(agilkia.TRACE_SET_VERSION, data3.version)
         self.assertEqual(data2.meta_data, data3.meta_data)
         assert len(data2.traces) == len(data3.traces)
@@ -142,6 +143,8 @@ class TestJsonTraces(unittest.TestCase):
             self.assertEqual(ev3.action, ev2.action)
             self.assertEqual(ev3.inputs, ev2.inputs)
             self.assertEqual(ev3.status, ev2.status)
+        # if all went well, we can delete the temp file now.
+        tmp2_json.unlink()
 
     def test_pickled_round_trip(self):
         """Loads some pickled zeep objects and checks that they save/load okay."""
@@ -156,18 +159,23 @@ class TestJsonTraces(unittest.TestCase):
                 event = agilkia.Event(e["action"], e["inputs"], e["outputs"])
                 trace.append(event)
             parent.append(trace)
-        parent.save_to_json(Path("tmp.json"))
-        parent2 = agilkia.TraceSet.load_from_json(Path("tmp.json"))
+        tmp_json = Path("tmp.json")
+        tmp2_json = Path("tmp2.json")
+        parent.save_to_json(tmp_json)
+        parent2 = agilkia.TraceSet.load_from_json(tmp_json)
         assert len(data) == len(parent2.traces)
 
-        parent2.save_to_json(Path("tmp2.json"))
-        parent3 = agilkia.TraceSet.load_from_json(Path("tmp2.json"))
+        parent2.save_to_json(tmp2_json)
+        parent3 = agilkia.TraceSet.load_from_json(tmp2_json)
         assert len(data) == len(parent3.traces)
         for i in range(len(parent3.traces)):
             ev3 = parent3.traces[i].events[0]
             ev2 = parent2.traces[i].events[0]
             self.assertEqual(ev3.action, ev2.action)
             self.assertEqual(ev3.inputs, ev2.inputs)
+        # if all went well, we can delete the temp files now.
+        tmp_json.unlink()
+        tmp2_json.unlink()
 
 
 class TestTrace(unittest.TestCase):

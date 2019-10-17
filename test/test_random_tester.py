@@ -107,12 +107,14 @@ class TestRandomTester(unittest.TestCase):
         self.assertEqual(2, len(tester.trace_set.traces))
         # now test saving and loading those traces.
         traceset1 = tester.trace_set
-        traceset1.save_to_json("tmp_dummy1.json")
-        traceset2 = agilkia.TraceSet.load_from_json(Path("tmp_dummy1.json"))
+        tmp_json = Path("tmp_dummy1.json")
+        traceset1.save_to_json(tmp_json)
+        traceset2 = agilkia.TraceSet.load_from_json(tmp_json)
         self.assertEqual(traceset2.meta_data, traceset1.meta_data)
         self.assertEqual(len(traceset2.traces), len(traceset1.traces))
         self.assertEqual(traceset2.traces[0].events[0].action,
                          traceset1.traces[0].events[0].action)
+        tmp_json.unlink()
 
     def test_generate_trace(self):
         tr = self.tester.generate_trace()
