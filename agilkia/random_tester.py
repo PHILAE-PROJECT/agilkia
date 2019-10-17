@@ -11,22 +11,23 @@ TODO:
 
 import csv
 import requests
-import zeep
-import zeep.helpers
+import zeep   # type: ignore
+import zeep.helpers   # type: ignore
 import getpass
 import operator
 import random
-import numpy
+import numpy   # type: ignore
 import unittest
 from pathlib import Path
 from pprint import pprint
-from typing import Tuple, List, Mapping
+from typing import Tuple, List, Mapping, Dict, Any, Optional, Union
 
-from . json_traces import Trace, TraceSet
+from . json_traces import Event, Trace, TraceSet
 
 
 # A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
 Signature = Mapping[str, Mapping[str, str]]
+InputRules = Dict[str, List[str]]
 
 
 # TODO: make these user-configurable
@@ -35,7 +36,7 @@ DUMP_SIGNATURES = False    # save summary of methods into *_signatures.txt
 GOOD_PASSWORD = "<GOOD_PASSWORD>"
 
 
-def read_input_rules(file: Path) -> Mapping[str, List[str]]:
+def read_input_rules(file: Path) -> InputRules:
     """Reads a CSV file of input values.
 
     The header line of the CSV file should contain headers: Name,Frequency,Value.
@@ -45,7 +46,7 @@ def read_input_rules(file: Path) -> Mapping[str, List[str]]:
     then the resulting input rules will define a 3/5 chance of size being 100,
     and a 2/5 chance of it being 200.
     """
-    input_rules = {}
+    input_rules: InputRules = {}
     with open(file, "r") as input:
         for row in csv.DictReader(input):
             name = row["Name"]
@@ -105,18 +106,18 @@ def parse_elements(elements):
     return all_elements
 
 
-def build_interface(client: zeep.Client) -> Mapping[str, Mapping]:
+def build_interface(client: zeep.Client) -> Dict[str, Dict[str, Any]]:
     """Returns a nested dictionary structure for the methods of client.
 
     Typical usage to get a method called "Login" is:
     ```build_interface(client)[service][port]["operations"]["Login"]```
     """
-    interface = {}
+    interface: Dict[str, Dict[str, Any]] = {}
     for service in client.wsdl.services.values():
         interface[service.name] = {}
         for port in service.ports.values():
             interface[service.name][port.name] = {}
-            operations = {}
+            operations: Dict[str, Any] = {}
             for operation in port.binding._operations.values():
                 operations[operation.name] = {}
                 operations[operation.name]['input'] = {}
@@ -156,8 +157,13 @@ class RandomTester:
     * supply a set of default input values (or generation functions) for each data type.
     * supply a set of input values (or generation functions) for each named input parameter.
     """
-    def __init__(self, urls, methods_to_test=None, input_rules=None,
-                 rand=random.Random(), action_chars=None, verbose=False):
+    def __init__(self,
+                 urls: Union[str, List[str]],
+                 methods_to_test: List[str] = None,
+                 input_rules: Dict[str, List] = None,
+                 rand: random.Random = None,
+                 action_chars: Mapping[str, str] = None,
+                 verbose: bool = False):
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
@@ -170,11 +176,11 @@ class RandomTester:
             verbose (bool): True means print progress messages during test generation.
         """
         self.urls = [urls] if isinstance(urls, str) else urls
-        self.username = None
-        self.password = None
-        self.random = rand
+        self.username: Optional[str] = None
+        self.password: Optional[str] = None
+        self.random = random.Random() if rand is None else rand
         self.verbose = verbose
-        self.clients_and_methods = []  # List[(zeep.Service, Dict[str, Signature)]
+        self.clients_and_methods: List[Tuple[zeep.Service, Dict[str, Signature]]] = []
         self.methods_to_test = methods_to_test
         self.methods_allowed = [] if methods_to_test is None else methods_to_test
         # maps each parameter to list of possible 'values'
@@ -186,14 +192,14 @@ class RandomTester:
         meta["input_rules"] = input_rules
         meta["method_signatures"] = {}  # see add_web_service
         meta["action_chars"] = action_chars
-        new_trace = Trace([], self.random.getstate())
+        new_trace = Trace([], random_state=self.random.getstate())
         self.curr_events = new_trace.events  # mutable list to append to.
         self.trace_set = TraceSet([], meta)
         self.trace_set.append(new_trace)
         for w in self.urls:
             self.add_web_service(w)
 
-    def set_username(self, username, password=None):
+    def set_username(self, username: str, password: str = None):
         """Set the username and (optional) password to be used for the subsequent operations.
         If password is not supplied, this method will immediately interactively prompt for it.
         """
@@ -201,7 +207,7 @@ class RandomTester:
         self.trace_set.meta_data["username"] = username
         self.password = password or getpass.getpass(f"Please enter password for user {username}:")
 
-    def add_web_service(self, url):
+    def add_web_service(self, url: str):
         """Add another web service using the given url."""
         wsdl = url + ("" if url.upper().endswith("WSDL") else ".asmx?WSDL")
         name = url.split("/")[-1]
@@ -228,7 +234,7 @@ class RandomTester:
             if self.methods_to_test is None:
                 self.methods_allowed += list(ops.keys())
 
-    def _find_method(self, name) -> Tuple[zeep.Client, Mapping[str, Signature]]:
+    def _find_method(self, name: str) -> Tuple[zeep.Client, Signature]:
         """Find the given method in one of the web services and returns its signature."""
         for (client, interface) in self.clients_and_methods:
             if name in interface:
@@ -252,13 +258,15 @@ class RandomTester:
         val = self.random.choice(values)
         return val
 
-    def generate_input_value(self, arg_name: str) -> any:
+    def generate_input_value(self, arg_name: str) -> Any:
         """Can be overridden in subclasses to generate smart values for an input argument."""
         print(f"ERROR: please define possible parameter values for input {arg_name}")
         return None
 
     def _insert_password(self, arg_value: str) -> str:
         if arg_value == GOOD_PASSWORD:
+            if self.password is None:
+                raise Exception("Please call set_username before using " + GOOD_PASSWORD)
             return self.password
         else:
             return arg_value
@@ -270,7 +278,7 @@ class RandomTester:
             methods.update(interface)
         return methods
 
-    def call_method(self, name, args=None):
+    def call_method(self, name: str, args: Dict[str, Any] = None):
         """Call the web service name(args) and add the result to trace.
 
         Args:
@@ -299,12 +307,12 @@ class RandomTester:
         args_list = [self._insert_password(arg) for (n, arg) in args.items()]
         out = getattr(client.service, name)(*args_list)
         # we call it 'action' so it gets printed before 'inputs' (alphabetical order).
-        self.curr_events.append({"action": name, "inputs": args, "outputs": out})
+        self.curr_events.append(Event(name, args, out))
         if self.verbose:
             print(f"    -> {summary(out)}")
         return out
 
-    def generate_trace(self, start=True, length=20, methods=None) -> Trace:
+    def generate_trace(self, start=True, length=20, methods: List[str] = None) -> Trace:
         """Generates the requested length of test steps, choosing methods at random.
 
         Args:
@@ -317,7 +325,7 @@ class RandomTester:
         """
         if start:
             if len(self.curr_events) > 0:
-                new_trace = Trace([], self.random.getstate())
+                new_trace = Trace([], random_state=self.random.getstate())
                 self.curr_events = new_trace.events  # mutable list to append to.
                 self.trace_set.append(new_trace)
         if methods is None:
@@ -334,11 +342,11 @@ class RandomTester:
         if self.verbose:
             print("Action 2 num:", self.action2number)
 
-    def get_action_counts(self, trace) -> List[int]:
+    def get_action_counts(self, events: List[Event]) -> List[int]:
         """Returns an array of counts - how many times each event occurs in trace."""
         result = [0 for k in self.action2number.keys()]
-        for ev in trace:
-            action_num = self.action2number[ev["action"]]
+        for ev in events:
+            action_num = self.action2number[ev.action]
             result[action_num] += 1
         return result
 
@@ -356,7 +364,7 @@ class RandomTester:
         """Generates the requested length of test steps, choosing methods using the given model.
 
         Args:
-            model (any): the ML model to use to generate the next event.
+            model (Any): the ML model to use to generate the next event.
                 This model must support the 'predict_proba' method.
             start (bool): True means that a new trace is started, beginning with a "Login" call.
             length (int): The number of steps to generate (default=20).

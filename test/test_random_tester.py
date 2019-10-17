@@ -3,7 +3,6 @@
 Unit tests for the RandomTester class.
 
 TODO:
-    * test generating more than one trace.
     * test the ML test generator
 
 @author: utting@usc.edu.au
@@ -112,8 +111,8 @@ class TestRandomTester(unittest.TestCase):
         traceset2 = agilkia.TraceSet.load_from_json(Path("tmp_dummy1.json"))
         self.assertEqual(traceset2.meta_data, traceset1.meta_data)
         self.assertEqual(len(traceset2.traces), len(traceset1.traces))
-        self.assertEqual(len(traceset2.traces[0].events[0]),
-                         len(traceset1.traces[0].events[0]))
+        self.assertEqual(traceset2.traces[0].events[0].action,
+                         traceset1.traces[0].events[0].action)
 
     def test_generate_trace(self):
         tr = self.tester.generate_trace()

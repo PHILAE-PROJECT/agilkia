@@ -24,6 +24,7 @@ TODO:
     * DONE: add save_as_arff() method like to_pandas.
     * DONE: store event_chars into meta_data.
     * DONE: store signatures into meta_data.
+    * create Event class and make it dict-like.
     * split RandomTester into SmartTester subclass (better meta-data).
     * add ActionChars class?
     * extend to_pandas() to allow user-defined columns to be added.
@@ -40,24 +41,54 @@ import decimal
 import datetime
 import re
 import xml.etree.ElementTree as ET
-import pandas as pd
-import arff   # liac-arff from https://pypi.org/project/liac-arff
-from typing import List, Set, Mapping, Dict, Union
+import pandas as pd   # type: ignore
+# liac-arff from https://pypi.org/project/liac-arff (via pip)
+import arff   # type: ignore
+from typing import List, Set, Mapping, Dict, Union, Any, Optional, cast
 
 
-# Define some type synonyms
-# =========================
-# An event is a dictionary that maps string keys to either a string or a nested dictionary.
-# Every event has at least these keys: "action":str, "inputs":dict, "outputs":dict
-Event = Dict[str, Union[str, Mapping[str, str]]]
+TRACE_SET_VERSION = "0.1.3"
 
-
-TRACE_SET_VERSION = "0.1.2"
+MetaData = Optional[Dict[str, Any]]
 
 
 def safe_name(string: str) -> str:
     """Returns 'string' with all non-alpha-numeric characters replaced by '_'."""
     return re.sub("[^A-Za-z0-9]", "_", string)
+
+
+class Event:
+    """An Event is a dictionary-like object that records all the details of an event.
+
+    This includes at least:
+
+    * self.action (str): the full action name.
+    * self.inputs (Dict[str,Any]): the named inputs and their values.
+    * self.outputs (Dict[str,Any]): the named outputs and their values.
+    * self.properties (Dict[str,Any]): any extra properties such as "timestamp".
+      Note: if self.properties["timestamp"] is present, it should be in ISO 8601 format.
+    """
+
+    def __init__(self, action: str, inputs: Dict[str, Any], outputs: Dict[str, Any],
+                 properties: Optional[Dict[str, Any]] = None):
+        self.action = action
+        self.inputs = inputs
+        self.outputs = outputs
+        self.properties = {} if properties is None else properties
+
+    @property
+    def status(self) -> int:
+        """Read-only status of the operation, where 0 means success.
+        If no output 'Status' is available, this method always returns 0.
+        """
+        return int(self.outputs.get("Status", "0"))
+
+    @property
+    def error_message(self) -> str:
+        """Read-only error message output by this operation.
+        If no output['Error'] field is available, this method always returns "".
+        """
+        return self.outputs.get("Error", "")
 
 
 class Trace:
@@ -74,6 +105,8 @@ class Trace:
                 this optional parameter, to record the state of the random generator at the
                 start of the sequence.  For example, rand_state=rand.getstate().
         """
+        if events and not isinstance(events[0], Event):
+            raise Exception("Events required, not: " + str(events[0]) + " ...")
         self.events = events
         self._parent = parent
         self.random_state = random_state
@@ -85,8 +118,19 @@ class Trace:
     def __iter__(self):
         return self.events.__iter__()
 
+    def __len__(self):
+        return len(self.events)
+
+    def __getitem__(self, key):
+        return self.events[key]
+
+    def append(self, event: Event):
+        if not isinstance(event, Event):
+            raise Exception("Event required, not: " + str(event))
+        self.events.append(event)
+
     def to_string(self,
-                  to_char: Mapping[str, str] = None,
+                  to_char: Dict[str, str] = None,
                   compress: List[str] = None,
                   color_status: bool = False):
         """Return a one-line summary of this trace, one character per event.
@@ -115,7 +159,10 @@ class TraceSet:
         * self.meta_data is a dict with keys: date, source at least.
     """
 
-    def __init__(self, traces: List[Trace], meta_data: Mapping[str, str] = None):
+    meta_data: Dict[str, Any]
+    _event_chars: Optional[Dict[str, str]]
+
+    def __init__(self, traces: List[Trace], meta_data: Dict[str, Any] = None):
         """Create a TraceSet object from a list of Traces.
 
         Args:
@@ -131,8 +178,9 @@ class TraceSet:
         """
         self.version = TRACE_SET_VERSION
         if meta_data is None:
-            meta_data = self.get_default_meta_data()
-        self.meta_data = meta_data
+            self.meta_data = self.get_default_meta_data()
+        else:
+            self.meta_data = meta_data.copy()
         self.traces = traces
         for tr in self.traces:
             if isinstance(tr, Trace):
@@ -144,18 +192,29 @@ class TraceSet:
     def __iter__(self):
         return self.traces.__iter__()
 
+    def __len__(self):
+        return len(self.traces)
+
+    def __getitem__(self, key):
+        return self.traces[key]
+
     @classmethod
-    def get_default_meta_data(cls):
+    def get_default_meta_data(cls) -> Dict[str, Any]:
         """Generates some basic meta-data such as date, user and command line."""
         now = datetime.datetime.now().isoformat()
         user = os.path.expanduser('~').split('/')[-1]  # usually correct, but can be tricked.
-        meta_data = {"date": now, "author": user, "dataset": "unknown", "action_chars": None}
+        meta_data: Dict[str, Any] = {
+                "date": now,
+                "author": user,
+                "dataset": "unknown",
+                "action_chars": None
+                }
         if len(sys.argv) > 0:
             meta_data["source"] = sys.argv[0]  # the path to the running script/tool.
             meta_data["cmdline"] = sys.argv
         return meta_data
 
-    def get_meta(self, key: str) -> any:
+    def get_meta(self, key: str) -> Optional[MetaData]:
         """Returns requested meta data, or None if that key does not exist."""
         if key in self.meta_data:
             return self.meta_data[key]
@@ -166,6 +225,8 @@ class TraceSet:
         """Appends the given trace into this set.
         This also sets its parent to be this set.
         """
+        if not isinstance(trace, Trace):
+            raise Exception("Trace required, not: " + str(trace))
         trace._parent = self
         self.traces.append(trace)
         self._event_chars = None  # we will recalculate this later
@@ -181,12 +242,13 @@ class TraceSet:
             For good readability of the printed traces, it is recommended that extremely
             common actions should be mapped to 'small' characters like '.' or ','.
         """
-        if given is not None:
-            self.meta_data["action_chars"] = given  # override any previous given map.
+        if given is None:
+            new_given = self.get_meta("action_chars")
         else:
-            given = self.get_meta("action_chars")
+            self.meta_data["action_chars"] = given  # override any previous given map.
+            new_given = cast(Dict[str, str], given).copy()  # copy so we don't change orginal.
         actions = all_action_names(self.traces)
-        self._event_chars = default_map_to_chars(actions, given=given)
+        self._event_chars = default_map_to_chars(actions, given=new_given)
 
     def get_event_chars(self):
         """Gets the event-to-char map that is used to visualise traces.
@@ -200,7 +262,7 @@ class TraceSet:
 
     def __str__(self):
         name = self.meta_data["dataset"]  # required meta data
-        return f"TraceSet '{name}' with {len(self.traces)} traces."
+        return f"TraceSet '{name}' with {len(self)} traces."
 
     def save_to_json(self, file: Path) -> None:
         if isinstance(file, str):
@@ -225,7 +287,8 @@ class TraceSet:
             meta = {"date": mtime, "dataset": file.name, "source": "Upgraded from version 0.1"}
             traces = cls([], meta)
             for ev_list in data:
-                traces.append(Trace(ev_list))
+                events = [cls._create_event_objects("0.1", ev) for ev in ev_list]
+                traces.append(Trace(events))
             return traces
         elif isinstance(data, dict) and data.get("__class__", None) == "TraceSet":
             return cls.upgrade_json_data(data)
@@ -242,10 +305,11 @@ class TraceSet:
             for tr_data in json_data["traces"]:
                 assert tr_data["__class__"] == "Trace"
                 rand = tr_data.get("random_state", None)
-                traceset.append(Trace(tr_data["events"], random_state=rand))
+                events = [cls._create_event_objects(version, ev) for ev in tr_data["events"]]
+                traceset.append(Trace(events, random_state=rand))
             # Next, see if any little updates are needed.
-            if version == TRACE_SET_VERSION:
-                pass  # nothing extra to do.
+            if version == TRACE_SET_VERSION or version == "0.1.2":
+                pass  # nothing more to do.
             elif version == "0.1.1":
                 # Move given_event_chars into meta_data["action_chars"]
                 # Note: traceset["version"] has already been updated to the latest.
@@ -256,6 +320,18 @@ class TraceSet:
                 print(f"         Some data may be lost.  Please upgrade this program.")
             return traceset
         raise Exception(f"upgrade of TraceSet v{version} to v{TRACE_SET_VERSION} not supported.")
+
+    @classmethod
+    def _create_event_objects(cls, version: str, ev: Dict[str, Any]) -> Event:
+        special = ["action", "inputs", "outputs"]
+        action = ev["action"]
+        inputs = ev["inputs"]
+        outputs = ev["outputs"]
+        if version <= "0.1.2":
+            props = {key: ev[key] for key in ev if key not in special}
+        else:
+            props = ev["properties"]
+        return Event(action, inputs, outputs, props)
 
     def to_pandas(self) -> pd.DataFrame:
         """Converts all the traces into a single Pandas DataFrame (one event/row).
@@ -268,7 +344,7 @@ class TraceSet:
         """
         return traces_to_pandas(self.traces)
 
-    def arff_type(self, pandas_type: str) -> str:
+    def arff_type(self, pandas_type: str) -> Union[str, List[str]]:
         """Maps each Pandas data type to the closest ARFF type."""
         if pd.api.types.is_integer_dtype(pandas_type):
             return "INTEGER"
@@ -346,7 +422,7 @@ class TraceEncoder(json.JSONEncoder):
                 result[name] = value
 
 
-def xml_decode(obj: ET.Element) -> Union[str, Mapping[str, any]]:
+def xml_decode(obj: ET.Element) -> Union[str, Dict[str, Any]]:
     """Custom XML encoder to decode XML into a Python dictionary suitable for JSON encoding.
 
     This roughly follows the ideas from:
@@ -360,16 +436,16 @@ def xml_decode(obj: ET.Element) -> Union[str, Mapping[str, any]]:
     will return either a simple string, or a dictionary.
     """
     if len(obj) == 0 and len(obj.attrib) == 0:
-        return obj.text
+        return cast(str, obj.text)
     else:
         # return obj as a dictionary
-        result = {}
+        result: Dict[str, Any] = {}
         for (n, v) in obj.attrib.items():
             result[n] = v
         # child objects are more tricky, since some tags may appear multiple times.
         # If a tag appears multiple times, we map it to a list of child objects.
-        curr_tag = None
-        curr_list = []
+        curr_tag = ""
+        curr_list: List[Union[str, Dict[str, Any]]] = []
         for child in obj:
             if child.tag != curr_tag:
                 # save the child(ren) we have just finished
@@ -385,7 +461,7 @@ def xml_decode(obj: ET.Element) -> Union[str, Mapping[str, any]]:
         return result
 
 
-def default_map_to_chars(actions: List[str], given: Mapping[str, str] = None) -> Mapping[str, str]:
+def default_map_to_chars(actions: Set[str], given: Dict[str, str] = None) -> Dict[str, str]:
     """Tries to guess a useful default mapping from action names to single characters.
 
     Args:
@@ -396,8 +472,8 @@ def default_map_to_chars(actions: List[str], given: Mapping[str, str] = None) ->
     Returns:
         A map from every name in actions to a unique single character.
     """
-    names = sorted(actions)
-    result = {} if given is None else given
+    names: List[str] = sorted(list(actions))
+    result: Dict[str, str] = {} if given is None else given.copy()
     # TODO: a better algorithm might be to break up compound words and look for word prefixes?
     curr_prefix = ""
     pass2 = []
@@ -448,14 +524,9 @@ def all_action_names(traces: List[Trace]) -> Set[str]:
     result = set()
     for tr in traces:
         for ev in tr.events:
-            action = ev["action"]
+            action = ev.action
             result.add(action)
     return result
-
-
-def event_status(event: Event) -> int:
-    """Get the status result for the given event."""
-    return int(event["outputs"]["Status"])
 
 
 def trace_to_string(trace: List[Event], to_char: Mapping[str, str], compress: List[str] = None,
@@ -478,12 +549,12 @@ def trace_to_string(trace: List[Event], to_char: Mapping[str, str], compress: Li
     chars = []
     prev_action = None
     for ev in trace:
-        action = ev["action"]
+        action = ev.action
         if action == prev_action and action in compress_set:
             # NOTE: we color compressed output just based on the first event.
             pass
         else:
-            if color_status and event_status(ev) != 0:
+            if color_status and ev.status != 0:
                 chars.append("\033[91m")  # start RED
                 chars.append(to_char[action])
                 chars.append("\033[0m")  # turn off color
@@ -506,10 +577,10 @@ def traces_to_pandas(traces: List[Trace]) -> pd.DataFrame:
         events = traces[tr_num].events
         for ev_num in range(len(events)):
             event = events[ev_num]
-            row = {"Trace": tr_num, "Event": ev_num, "Action": event["action"]}
+            row = {"Trace": tr_num, "Event": ev_num, "Action": event.action}
             # we add "Status" and "Error" first, so that those columns come before inputs.
-            row["Status"] = event_status(event)
-            row["Error"] = event["outputs"].get("Error", None)
-            row.update(event["inputs"].items())
+            row["Status"] = event.status
+            row["Error"] = event.error_message
+            row.update(event.inputs.items())
             rows.append(row)
     return pd.DataFrame(rows)

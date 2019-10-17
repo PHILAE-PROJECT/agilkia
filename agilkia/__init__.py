@@ -30,6 +30,6 @@ __version__ = '0.2.2'
 from . random_tester import (read_input_rules, RandomTester,
                              uniq, build_interface, print_signatures,
                              DUMP_WSDL, DUMP_SIGNATURES, GOOD_PASSWORD)
-from . json_traces import (Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION, xml_decode,
-                           all_action_names, event_status, safe_name,
+from . json_traces import (Event, Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION,
+                           xml_decode, all_action_names, safe_name,
                            default_map_to_chars, trace_to_string, traces_to_pandas)

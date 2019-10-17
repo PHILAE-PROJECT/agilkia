@@ -29,6 +29,7 @@ requires = [
 test = [
     "pytest >=5.1.0",
     "pytest-cov>=2.7.1",
+    "mypy>=0.740"
 ]
 # doc = ["sphinx"]
 

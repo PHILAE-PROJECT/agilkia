@@ -2,20 +2,18 @@
 """
 Generate and execute tests for a Web Service.
 
-Example args: http://www.soapclient.com/xml  soapresponder.wsdl
+Example args: http://www.soapclient.com/xml/soapresponder.wsdl
+
 @author: utting@usc.edu.au
 """
 
 import random
-import pandas as pd
+import pandas as pd        # type: ignore
 import argparse
 from pathlib import Path
-from joblib import load
+from joblib import load    # type: ignore
 
 import agilkia
-
-WSDL_EG = "http://www.soapclient.com/xml"
-WS_EG = "soapresponder"
 
 
 def main():
@@ -33,7 +31,7 @@ def main():
                         help="print VERBOSE messages during testing", action="store_true")
     parser.add_argument("-s", "--seed", type=int, help="SEED for random generator")
     parser.add_argument("-o", "--output", type=str, default="out.json", help="name of OUTPUT file")
-    parser.add_argument("url", nargs='*', help="URL of web service server")
+    parser.add_argument("url", nargs='+', help="URL of web service server")
     args = parser.parse_args()
     # print(f"Args are:", args)
 

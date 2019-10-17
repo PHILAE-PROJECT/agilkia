@@ -6,16 +6,15 @@ Test JSON saving and loading.
 """
 
 import agilkia
-import jsonpickle
+import jsonpickle     # type: ignore
 import json
 import decimal
 import datetime
 import xml.etree.ElementTree as ET
-import os
 from pathlib import Path
-import pandas as pd
+import pandas as pd   # type: ignore
 import unittest
-import pytest
+import pytest         # type: ignore
 
 THIS_DIR = Path(__file__).parent
 
@@ -83,16 +82,14 @@ class TestTraceEncoder(unittest.TestCase):
         self.assertEqual(self.xml2, self.dumps(xml2))
 
     def test_trace(self):
-        ev1 = {"action": "Order", "inputs": {"Name": "Mark"}, "outputs": {"Status": 0}}
+        ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
         tr1 = agilkia.Trace([ev1])
-        s0 = "{'__class__': 'Trace', '__module__': 'agilkia.json_traces', 'events': ["
-        s1 = str(ev1)
-        s2 = "], 'parent': null, 'random_state': null}"
-
         s0 = '{"__class__": "Trace", "__module__": "agilkia.json_traces", "events": ['
-        s1 = '{"action": "Order", "inputs": {"Name": "Mark"}, "outputs": {"Status": 0}}'
+        s1a = '{"__class__": "Event", "__module__": "agilkia.json_traces", "action": "Order", '
+        s1b = '"inputs": {"Name": "Mark"}, "outputs": {"Status": 0}, "properties": {}}'
         s2 = '], "random_state": null}'
-        expect = s0 + s1 + s2
+        expect = s0 + s1a + s1b + s2
+        self.maxDiff = None
         self.assertEqual(expect, self.dumps(tr1))
 
 
@@ -127,50 +124,59 @@ class TestXMLDecode(unittest.TestCase):
 
 
 class TestJsonTraces(unittest.TestCase):
-    """Tests for loading and saving test-case traces."""
+    """Tests for loading and saving Event, Trace and TraceSet objects."""
 
     def test_round_trip(self):
         """Test that load and save are the inverse of each other."""
-        # traces_file = os.path.join(THIS_DIR, "fixtures/traces1.json")
         data2 = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures/traces1.json")
         self.assertEqual(agilkia.TRACE_SET_VERSION, data2.version)
-        data2.save_to_json("tmp2.json")
+        data2.save_to_json(Path("tmp2.json"))
         data3 = agilkia.TraceSet.load_from_json(Path("tmp2.json"))
         self.assertEqual(agilkia.TRACE_SET_VERSION, data3.version)
         self.assertEqual(data2.meta_data, data3.meta_data)
         assert len(data2.traces) == len(data3.traces)
         for i in range(len(data2.traces)):
             # we have not defined equality on Trace objects, so just compare first events.
-            self.assertEqual(data3.traces[i].events[0], data2.traces[i].events[0])
+            ev3 = data3.traces[i].events[0]
+            ev2 = data2.traces[i].events[0]
+            self.assertEqual(ev3.action, ev2.action)
+            self.assertEqual(ev3.inputs, ev2.inputs)
+            self.assertEqual(ev3.status, ev2.status)
 
     def test_pickled_round_trip(self):
         """Loads some pickled zeep objects and checks that they save/load okay."""
-        # traces_file = os.path.join(THIS_DIR, "fixtures/traces_pickled.json")
         pickled = THIS_DIR / "fixtures/traces_pickled.json"
         # with open(traces_file, "r") as input:
         data = jsonpickle.loads(pickled.read_text())
         print(len(data), "traces loaded")
         parent = agilkia.TraceSet([], {"date": "2019-10-02", "dataset": "test1"})
-        for tr in data:
-            parent.append(agilkia.Trace(tr))
-        parent.save_to_json("tmp.json")
+        for events in data:
+            trace = agilkia.Trace([])
+            for e in events:
+                event = agilkia.Event(e["action"], e["inputs"], e["outputs"])
+                trace.append(event)
+            parent.append(trace)
+        parent.save_to_json(Path("tmp.json"))
         parent2 = agilkia.TraceSet.load_from_json(Path("tmp.json"))
         assert len(data) == len(parent2.traces)
 
-        parent2.save_to_json("tmp2.json")
+        parent2.save_to_json(Path("tmp2.json"))
         parent3 = agilkia.TraceSet.load_from_json(Path("tmp2.json"))
         assert len(data) == len(parent3.traces)
         for i in range(len(parent3.traces)):
-            self.assertEqual(parent3.traces[i].events[0], parent2.traces[i].events[0])
+            ev3 = parent3.traces[i].events[0]
+            ev2 = parent2.traces[i].events[0]
+            self.assertEqual(ev3.action, ev2.action)
+            self.assertEqual(ev3.inputs, ev2.inputs)
 
 
 class TestTrace(unittest.TestCase):
     """Unit tests for agilkia.Trace and agilkia.TraceSet."""
 
-    ev1 = {"action": "Order", "inputs": {"Name": "Mark"}, "outputs": {"Status": 0}}
-    ev2 = {"action": "Skip", "inputs": {"Size": 3}, "outputs": {"Status": 1, "Error": "Too big"}}
-    ev3 = {"action": "Pay", "inputs": {"Name": "Mark", "Amount": 23.45}, "outputs": {"Status": 0}}
-    ev4 = {"action": "Ski", "inputs": {"Type": "downhill"}, "outputs": {"Status": 1}}
+    ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
+    ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
+    ev3 = agilkia.Event("Pay", {"Name": "Mark", "Amount": 23.45}, {"Status": 0})
+    ev4 = agilkia.Event("Ski", {"Type": "downhill"}, {"Status": 1})
     to_char = {"Order": "O", "Skip": ",", "Pay": "p"}
 
     def test_trace(self):
@@ -178,6 +184,9 @@ class TestTrace(unittest.TestCase):
         with self.assertRaises(Exception):
             tr1.to_string()
         self.assertEqual("...", str(tr1))
+        self.assertEqual(3, len(tr1))
+        self.assertEqual(self.ev2, tr1[0])
+        self.assertEqual(self.ev3, tr1[-1])
 
     def test_traceset(self):
         parent = agilkia.TraceSet([], {})
@@ -193,6 +202,9 @@ class TestTrace(unittest.TestCase):
         self.assertEqual("Sp", tr2.to_string())
         self.assertEqual("Sp", str(tr2))
         self.assertEqual("pOP", str(tr1))  # changed since to-char is recalculated
+        self.assertEqual(2, len(parent))
+        self.assertEqual(tr1, parent[0])
+        self.assertEqual(tr2, parent[-1])
 
     def test_trace_iter(self):
         tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])

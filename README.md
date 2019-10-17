@@ -56,4 +56,11 @@ def first_test():
         tr = tester.generate_trace(length=30)
         print(f"========== trace {i}:\n  {tr}")
 ```
- 
+
+# For Developers
+
+To type the source code (from in this directory) run:
+* ``mypy agilkia``
+* or ``mypy --html-report . -p agilkia``  # to generate index.html coverage report. 
+
+
