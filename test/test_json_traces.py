@@ -267,6 +267,54 @@ class TestTrace(unittest.TestCase):
         i64 = pd.api.types.pandas_dtype("int64")
         self.assertEqual("INTEGER", traces.arff_type(i64))
 
+    def test_split_none(self):
+        # each ev1 will start a new trace
+        trace = agilkia.Trace([self.ev2, self.ev1, self.ev3, self.ev1, self.ev1, self.ev2])
+        traces = agilkia.TraceSet([trace])
+        with self.assertRaises(Exception):
+            traces.with_traces_split()
+        traces2 = traces.with_traces_split(start_action="XYZ")
+        self.assertEqual(1, len(traces2))  # none split
+
+    def test_split_action(self):
+        # each ev1 will start a new trace
+        trace = agilkia.Trace([self.ev2, self.ev1, self.ev3, self.ev1, self.ev1, self.ev2])
+        traces = agilkia.TraceSet([trace])
+        traces2 = traces.with_traces_split(start_action="Order")
+        self.assertEqual(4, len(traces2))
+        self.assertEqual("Skip", traces2[0].events[0].action)
+        self.assertEqual("Order", traces2[1].events[0].action)
+        self.assertEqual("Order", traces2[2].events[0].action)
+        self.assertEqual("Order", traces2[3].events[0].action)
+
+    def test_split_input(self):
+        ev3b = agilkia.Event("Pay", {"Name": "Merry", "Amount": 23.45}, {"Status": 0})
+        # each change in the "Name" input will start a new trace
+        trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev2, self.ev1])
+        traces = agilkia.TraceSet([trace])
+        traces2 = traces.with_traces_split(input_name="Name")
+        for t in traces2:
+            print(t)
+        self.assertEqual(3, len(traces2))
+        self.assertEqual("Mark", traces2[0].events[0].inputs["Name"])
+        self.assertEqual("Merry", traces2[1].events[0].inputs["Name"])
+        self.assertEqual("Mark", traces2[2].events[0].inputs["Name"])
+        self.assertEqual(2, len(traces2[0]))
+        self.assertEqual(1, len(traces2[1]))
+        self.assertEqual(3, len(traces2[2]))
+
+    def test_group_input(self):
+        ev3b = agilkia.Event("Pay", {"Name": "Merry", "Amount": 23.45}, {"Status": 0})
+        # each different "Name" input will be grouped into a new trace
+        trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev2, self.ev1])
+        traces = agilkia.TraceSet([trace])
+        traces2 = traces.with_traces_grouped_by("Name")  # self.ev2 will be discarded
+        self.assertEqual(2, len(traces2))
+        self.assertEqual("Mark", traces2[0].events[0].inputs["Name"])
+        self.assertEqual("Merry", traces2[1].events[0].inputs["Name"])
+        self.assertEqual(4, len(traces2[0]))
+        self.assertEqual(1, len(traces2[1]))
+
 
 class TestDefaultMapToChars(unittest.TestCase):
 

@@ -36,6 +36,7 @@ TODO:
 import os
 import sys
 from pathlib import Path  # object-oriented filenames!
+from collections import defaultdict
 import json
 import decimal
 import datetime
@@ -379,6 +380,73 @@ class TraceSet:
                 "description": "Events from " + name
                 }
             arff.dump(contents, output)
+
+    def with_traces_split(self, start_action: str = None, input_name: str = None,
+                          comparator=None) -> 'TraceSet':
+        """Returns a new TraceSet with each trace in this set split into shorter traces.
+
+        It accepts several split criteria, and will start a new trace whenever any
+        of those criteria are true.  At least one criteria must be supplied.
+
+        Args:
+            start_action: the name of an action that starts a new trace.
+            input_name: the name of an input.  Whenever the value of this input
+                changes, then a new trace should be started.  Note that events
+                with this input missing are ignored for this splitting criteria.
+        TODO: comparator: a function that takes two events and returns True iff
+              the second event should start a new trace. (Not implemented yet)
+        TODO: add an end_action criteria?
+
+        Returns:
+            a new TraceSet, usually with more traces and shorter traces.
+        """
+        if start_action is None and input_name is None:
+            raise Exception("split_traces requires at least one split criteria.")
+        traces2 = TraceSet([], self.meta_data)
+        # TODO: update meta data with split info?
+        for old in self.traces:
+            curr_trace = Trace([])
+            traces2.append(curr_trace)
+            prev_input = None
+            for event in old:
+                input_value = event.inputs.get(input_name, None)
+                input_changed = input_value != prev_input and input_value is not None
+                if (event.action == start_action or input_changed) and len(curr_trace) > 0:
+                    curr_trace = Trace([])
+                    traces2.append(curr_trace)
+                curr_trace.append(event)
+                if input_value is not None:
+                    prev_input = input_value
+                # NOTE: we could check end_action here.
+        return traces2
+
+    def with_traces_grouped_by(self, name: str, property: bool = False) -> 'TraceSet':
+        """Returns a new TraceSet with each trace grouped into shorter traces.
+
+        It generates a new trace for each distinct value of the given input or property name.
+
+        Args:
+            name: the name of an input.  A new trace is started for each value of this input
+                (or property).  Note that events with this value missing are totally discarded.
+            property: True means group by the property called name, rather than an input.
+
+        Returns:
+            a new TraceSet, usually with more traces and shorter traces.
+        """
+        # TODO: update meta data with split info?
+        traces2 = TraceSet([], self.meta_data)
+        for old in self.traces:
+            groups = defaultdict(list)  # for each value this stores a list of Events.
+            for event in old:
+                if property:
+                    value = event.properties.get(name, None)
+                else:
+                    value = event.inputs.get(name, None)
+                if value is not None:
+                    groups[value].append(event)
+            for event_list in groups.values():
+                traces2.append(Trace(event_list))
+        return traces2
 
 
 class TraceEncoder(json.JSONEncoder):
