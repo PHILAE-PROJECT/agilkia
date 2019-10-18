@@ -24,11 +24,14 @@ TODO:
     * DONE: add save_as_arff() method like to_pandas.
     * DONE: store event_chars into meta_data.
     * DONE: store signatures into meta_data.
-    * create Event class and make it dict-like.
+    * DONE: create Event class and make it dict-like.
+    * DONE: add support for splitting traces into 'sessions' via splitting or grouping.
+    * add support for clustering traces
+    * add support for visualising the clusters.
     * split RandomTester into SmartTester subclass (better meta-data).
+    * add 'meta_data' to Trace and Event objects too (replace properties)
     * add ActionChars class?
     * extend to_pandas() to allow user-defined columns to be added.
-    * add support for clustering traces and visualising the clusters.
 
 @author: utting@usc.edu.au
 """
@@ -42,9 +45,14 @@ import decimal
 import datetime
 import re
 import xml.etree.ElementTree as ET
-import pandas as pd   # type: ignore
+import pandas as pd            # type: ignore
+import sklearn.cluster         # type: ignore
+import sklearn.preprocessing   # type: ignore
+import matplotlib.pyplot as plt
+import matplotlib.cm as pltcm
+from sklearn.manifold import TSNE
 # liac-arff from https://pypi.org/project/liac-arff (via pip)
-import arff   # type: ignore
+import arff                    # type: ignore
 from typing import List, Set, Mapping, Dict, Union, Any, Optional, cast
 
 
@@ -130,6 +138,29 @@ class Trace:
             raise Exception("Event required, not: " + str(event))
         self.events.append(event)
 
+    def action_counts(self) -> Dict[str, int]:
+        """Returns a dictionary of how many times each action occurs in this trace.
+
+        Returns:
+            A dictionary of counts that can be used for clustering traces.
+        """
+        result = defaultdict(int)
+        for ev in self.events:
+            result[ev.action] += 1
+        return result
+
+    def action_status_counts(self) -> Dict[str, int]:
+        """Counts how many times each action-status pair occurs in this trace.
+
+        Returns:
+            A dictionary of counts that can be used for clustering traces.
+        """
+        result = defaultdict(int)
+        for ev in self.events:
+            key = ev.action + "_" + str(ev.status)
+            result[key] += 1
+        return result
+
     def to_string(self,
                   to_char: Dict[str, str] = None,
                   compress: List[str] = None,
@@ -183,6 +214,7 @@ class TraceSet:
         else:
             self.meta_data = meta_data.copy()
         self.traces = traces
+        self.clusters: List[int] = None
         for tr in self.traces:
             if isinstance(tr, Trace):
                 tr._parent = self
@@ -198,6 +230,10 @@ class TraceSet:
 
     def __getitem__(self, key):
         return self.traces[key]
+
+    def message(self, msg: str):
+        """Print a progress message."""
+        print("   ", msg)
 
     @classmethod
     def get_default_meta_data(cls) -> Dict[str, Any]:
@@ -447,6 +483,119 @@ class TraceSet:
             for event_list in groups.values():
                 traces2.append(Trace(event_list))
         return traces2
+
+    def get_trace_data(self, method: str = "action_counts") -> pd.DataFrame:
+        """Returns a Pandas table of statistics/data about each trace.
+
+        This can gather data using any of the zero-parameter data-gathering methods
+        of the Trace class that returns a Dict[str, number] for some kind of number.
+        The default is the ``action_counts()`` method, which corresponds to the
+        `bag-of-words' algorithm.
+        Note: you can add more data-gathering methods by defining a subclass of Trace
+        and using that subclass when you create Trace objects.
+
+        Returns:
+            A table of data that can be used for clustering or machine learning.
+        """
+        trace_data = [getattr(tr, method)() for tr in self.traces]
+        data = pd.DataFrame(trace_data)
+        data.fillna(value=0, inplace=True)
+        return data
+
+    def create_clusters(self, data: pd.DataFrame, algorithm=None, normalize: bool = True) -> int:
+        """Runs a clustering algorithm on the given data and remembers the clusters.
+
+        Args:
+            data: a Pandas DataFrame, typically from get_trace_data().
+            algorithm: a clustering algorithm (default is MeanShift()).
+            normalize: False uses data unchanged, True uses a normalized copy of data,
+               using the sklearn.preprocessing.RobustScaler class, because it is more
+               robust in the presence of outlier values, and our trace data often has
+               very large outliers.  See the study:
+    https://schlieplab.org/Static/Publications/2008-IEEENeuralNets-ComparingNormalizations.pdf
+
+        Returns:
+            The number of clusters generated."""
+        if algorithm is None:
+            algorithm = sklearn.cluster.MeanShift()
+        if normalize:
+            # transformer = sklearn.preprocessing.RobustScaler().fit(data)
+            transformer = sklearn.preprocessing.MinMaxScaler().fit(data)
+            self._cluster_data = pd.DataFrame(transformer.transform(data), columns=data.columns)
+        else:
+            self._cluster_data = data
+        alg_name = str(algorithm).split("(")[0]
+        self.message(f"running {alg_name} on {len(data)} traces.")
+        algorithm.fit(self._cluster_data)
+        self.clusters = algorithm.labels_
+        return max(self.clusters) + 1
+
+    def visualize_clusters(self):
+        """Visualize the clusters from create_clusters() using TSNE."""
+        data = getattr(self, "_cluster_data")
+        if data is None or self.clusters is None:
+            raise Exception("You must call create_clusters() before visualizing them!")
+        self.message("running TSNE...")
+        model = TSNE()
+        tsne_obj = model.fit_transform(data)
+        print(tsne_obj[0:5])
+
+        # All the following complex stuff is for adding a 'show label on mouse over' feature
+        # to the TSNE display.  It works when run from command line, but not in Jupyter/Spyder!
+        # Surely there must be an easier way than doing all this...
+        # Code adapted from:
+        # https://stackoverflow.com/questions/55891285/how-to-make-labels-appear-
+        #     when-hovering-over-a-point-in-multiple-axis/55892690#55892690
+        fig, ax = plt.subplots()
+        # Choose a colormap.  See bottom of the matplotlib page:
+        #   https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
+        colors = pltcm.get_cmap('hsv')
+        print("colors=", colors)
+        sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters, cmap=colors)
+        names = [str(tr) for tr in self.traces]  # these are in same order as tsne_df rows.
+
+        annot = ax.annotate("",
+                            xy=(0, 0),
+                            xytext=(20, 20),
+                            textcoords="offset points",
+                            bbox=dict(boxstyle="round", fc="w"),
+                            arrowprops=dict(arrowstyle="->"),
+                            )
+        annot.set_visible(False)
+
+        def update_annot(ind):
+            pos = sc.get_offsets()[ind["ind"][0]]
+            annot.xy = pos
+            # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
+            #                        " ".join([str(names[n]) for n in ind["ind"]]))
+            text = "\n".join([f"{n}: {str(names[n])}" for n in ind["ind"]])
+            annot.set_text(text)
+            # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
+            # annot.get_bbox_patch().set_alpha(0.4)
+
+        def hover(event):
+            vis = annot.get_visible()
+            if event.inaxes == ax:
+                cont, ind = sc.contains(event)
+                if cont:
+                    update_annot(ind)
+                    annot.set_visible(True)
+                    fig.canvas.draw_idle()
+                else:
+                    if vis:
+                        annot.set_visible(False)
+                        fig.canvas.draw_idle()
+
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+        plt.show()
+
+    def get_cluster(self, num: int) -> List[Trace]:
+        """Gets a list of all the Trace objects that are in the given cluster."""
+        if self.clusters is None:
+            raise Exception("You must call create_clusters() before get_cluster(_)")
+        if len(self.clusters) != len(self.traces):
+            raise Exception("Traces have changed, so you must call create_clusters() again.")
+        return [tr for (i, tr) in zip(self.clusters, self.traces) if i == num]
 
 
 class TraceEncoder(json.JSONEncoder):
