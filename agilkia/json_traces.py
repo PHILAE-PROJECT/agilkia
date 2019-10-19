@@ -54,7 +54,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as pltcm
 from sklearn.manifold import TSNE
 # liac-arff from https://pypi.org/project/liac-arff (via pip)
-import arff                    # type: ignore
+# import arff                    # type: ignore
 from typing import List, Set, Mapping, Dict, Union, Any, Optional, cast
 
 
@@ -411,6 +411,12 @@ class TraceSet:
             name = file.stem
         data = self.to_pandas()
         attributes = [(n, self.arff_type(t)) for (n, t) in zip(data.columns, data.dtypes)]
+        try:
+            import arff
+        except ImportError:
+            print("Please install ARFF support before using save_to_arff.")
+            print("It is a pip only package:  pip install liac-arff")
+            return
         with file.open("w") as output:
             contents = {
                 "relation": safe_name(name),
