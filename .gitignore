@@ -1,0 +1,4 @@
+# ignore output coverage reports from mypi typechecker.
+html/
+index.html
+mypy-html.css
