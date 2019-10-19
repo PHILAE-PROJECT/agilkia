@@ -1,18 +1,17 @@
 # Agilkia: AGILe (K)Coverage with Intelligence Artificial
 
-Automated smart testing tools for web services.
+A Python toolkit for building smart testing tools for web services and web sites.
 
-This 'agilkia' library is part of the Philae research project:
-
-    http://projects.femto-st.fr/philae/en
-
-It is open source software under the MIT license.  See LICENSE.txt
 
 # Key Features:
+
 * Automated testing of SOAP web services with WSDL descriptions.
 * Manage sets of traces (load/save to JSON, etc.).
 * Convert traces to Pandas DataFrame for data analysis / machine learning.
 * Generate random tests, or 'smart' tests from an ML model.
+* Split traces into smaller traces (sessions).
+* Cluster traces on various criteria, to see common / rare behaviours.
+* Visualise clusters of tests.
  
 
 ## About the Name
@@ -30,6 +29,12 @@ Agilkia was also the name given to the first landing place of the
 Philae landing craft on the comet 67P/Churyumov–Gerasimenko,
 during the Rosetta space mission.
 
+This 'agilkia' library is part of the Philae research project:
+
+    http://projects.femto-st.fr/philae/en
+
+It is open source software under the MIT license.
+See LICENSE.txt
 
 
 # Example Usage
@@ -56,11 +61,4 @@ def first_test():
         tr = tester.generate_trace(length=30)
         print(f"========== trace {i}:\n  {tr}")
 ```
-
-# For Developers
-
-To type the source code (from in this directory) run:
-* ``mypy agilkia``
-* or ``mypy --html-report . -p agilkia``  # to generate index.html coverage report. 
-
 

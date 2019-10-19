@@ -8,6 +8,15 @@ author = "Mark Utting"
 author-email = "utting@usc.edu.au"
 home-page = "https://github.com/utting/bus-testing"
 description-file = "README.md"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.7",
+    "Topic :: Software Development :: Testing"
+]
 keywords = "automated testing, smart testing, machine learning test models, Philae"
 requires-python = ">= 3.7"
 requires = [
@@ -16,6 +25,7 @@ requires = [
     "ipython>=7.8.0",
     "jsonpickle>=1.2",
     "matplotlib>=3.1.1",
+    "numpy>=1.17.2",
     "pandas>=0.25.1",
     "pillow>=6.1.0",
     "pip>=19.2.2",
