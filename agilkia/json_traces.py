@@ -26,8 +26,10 @@ TODO:
     * DONE: store signatures into meta_data.
     * DONE: create Event class and make it dict-like.
     * DONE: add support for splitting traces into 'sessions' via splitting or grouping.
-    * add support for clustering traces
-    * add support for visualising the clusters.
+    * DONE: add support for clustering traces
+    * DONE: add support for visualising the clusters (TSNE).
+    * add unit tests for clustering...
+    * read/restore TraceSet.clusters field?  Or move into meta-data?
     * split RandomTester into SmartTester subclass (better meta-data).
     * add 'meta_data' to Trace and Event objects too (replace properties)
     * add ActionChars class?
@@ -215,6 +217,7 @@ class TraceSet:
             self.meta_data = meta_data.copy()
         self.traces = traces
         self.clusters: List[int] = None
+        self._cluster_data: pd.DataFrame = None
         for tr in self.traces:
             if isinstance(tr, Trace):
                 tr._parent = self
@@ -532,7 +535,7 @@ class TraceSet:
 
     def visualize_clusters(self):
         """Visualize the clusters from create_clusters() using TSNE."""
-        data = getattr(self, "_cluster_data")
+        data = self._cluster_data
         if data is None or self.clusters is None:
             raise Exception("You must call create_clusters() before visualizing them!")
         self.message("running TSNE...")
