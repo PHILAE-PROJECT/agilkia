@@ -25,7 +25,7 @@ Automated test generation facilities include:
 # See the article: "What’s __init__ for me?" by Jacob Deppen on TowardsDataScience.com:
 # https://towardsdatascience.com/whats-init-for-me-d70a312da583
 
-__version__ = '0.4.0'
+__version__ = '0.4.2'
 
 from . random_tester import (read_input_rules, RandomTester,
                              uniq, build_interface, print_signatures,
