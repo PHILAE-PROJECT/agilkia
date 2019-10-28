@@ -2,17 +2,17 @@
 """
 Data structures for Traces and Sets of Traces.
 
-This defines the 'Trace' and 'TraceSet' classes, plus helper functions.
+This defines the 'Event', 'Trace' and 'TraceSet' classes, plus helper functions.
 
-NOTE: private data fields (starting with '_') will not be stored in the JSON files.
+NOTES
+=====
+1.  *private data fields* (starting with '_') will not be stored in the JSON files.
     For example, each Trace object has a '_parent' point to its TraceSet, but this
     is not stored in the JSON file, since the hierarchical structure of the JSON
     already captures the parent-child relationship between TraceSet and Trace.
-
-NOTE: file version upgrade policy:
-    JSON trace file version numbers follow the usual Semantic Versioning scheme:
-        (Major.Minor.Patch).
-    TraceSet.upgrade_json_data' currently just prints a warning message when a
+2.  *JSON-traces file version numbers* follow the usual Semantic Versioning scheme:
+    *(Major.Minor.Patch)*.
+    ``TraceSet.upgrade_json_data`` currently just prints a warning message when a
     program running older code reads a JSON file with a newer MINOR version number.
     This allows graceful updating of one program at a time, but does
     have the danger that a older program may read newer data (with a warning),
@@ -20,7 +20,8 @@ NOTE: file version upgrade policy:
     But a strict version-equality means that all programs have to be updated
     simultaneously, which is a pain.
 
-TODO:
+Ideas / Tasks to do
+===================
     * DONE: add save_as_arff() method like to_pandas.
     * DONE: store event_chars into meta_data.
     * DONE: store signatures into meta_data.
@@ -28,10 +29,10 @@ TODO:
     * DONE: add support for splitting traces into 'sessions' via splitting or grouping.
     * DONE: add support for clustering traces
     * DONE: add support for visualising the clusters (TSNE).
+    * DONE: add 'meta_data' to Trace and Event objects too (replace properties)
     * add unit tests for clustering...
     * read/restore TraceSet.clusters field?  Or move into meta-data?
     * split RandomTester into SmartTester subclass (better meta-data).
-    * add 'meta_data' to Trace and Event objects too (replace properties)
     * add ActionChars class?
     * extend to_pandas() to allow user-defined columns to be added.
 
@@ -58,9 +59,9 @@ from sklearn.manifold import TSNE
 from typing import List, Set, Mapping, Dict, Union, Any, Optional, cast
 
 
-TRACE_SET_VERSION = "0.1.3"
+TRACE_SET_VERSION = "0.1.4"
 
-MetaData = Optional[Dict[str, Any]]
+MetaData = Dict[str, Any]
 
 
 def safe_name(string: str) -> str:
@@ -71,21 +72,21 @@ def safe_name(string: str) -> str:
 class Event:
     """An Event is a dictionary-like object that records all the details of an event.
 
-    This includes at least:
-
-    * self.action (str): the full action name.
-    * self.inputs (Dict[str,Any]): the named inputs and their values.
-    * self.outputs (Dict[str,Any]): the named outputs and their values.
-    * self.properties (Dict[str,Any]): any extra properties such as "timestamp".
-      Note: if self.properties["timestamp"] is present, it should be in ISO 8601 format.
+    Public data fields include:
+        * self.action (str): the full action name.
+        * self.inputs (Dict[str,Any]): the named inputs and their values.
+        * self.outputs (Dict[str,Any]): the named outputs and their values.
+        * self.meta_data (Dict[str,Any]): any extra properties such as "timestamp".
+          Note: if self.meta_data["timestamp"] is present, it should be in ISO 8601 format.
+          Or use get_meta(key) to get an individual meta-data value.
     """
 
     def __init__(self, action: str, inputs: Dict[str, Any], outputs: Dict[str, Any],
-                 properties: Optional[Dict[str, Any]] = None):
+                 meta_data: Optional[MetaData] = None):
         self.action = action
         self.inputs = inputs
         self.outputs = outputs
-        self.properties = {} if properties is None else properties
+        self.meta_data: MetaData = {} if meta_data is None else meta_data
 
     @property
     def status(self) -> int:
@@ -104,23 +105,35 @@ class Event:
 
 class Trace:
     """Represents a single trace, which contains a sequence of events.
+    
+    Public data fields include:
+        * self.events: List[Event].  However, the iteration, indexing, and len(_) methods
+          have been lifted from the events list up to this Trace object, so you
+          may not need to access self.events at all.
+        * self.meta_data: MetaData.  Or use get_meta(key) to get an individual meta-data value.
     """
 
-    def __init__(self, events: List[Event], parent: 'TraceSet' = None, random_state=None):
+    def __init__(self, events: List[Event], parent: 'TraceSet' = None,
+                 meta_data: Optional[MetaData] = None,
+                 random_state=None):
         """Create a Trace object from a list of events.
 
         Args:
             events: the sequence of Events that make up this trace.
             parent: the TraceSet that this trace is part of.
+            meta_data: any meta-data associated with this individual trace.
             random_state: If this trace was generated using some randomness, you should supply
                 this optional parameter, to record the state of the random generator at the
                 start of the sequence.  For example, rand_state=rand.getstate().
+                If this value is supplied, it is added into the meta-data.
         """
         if events and not isinstance(events[0], Event):
             raise Exception("Events required, not: " + str(events[0]) + " ...")
         self.events = events
         self._parent = parent
-        self.random_state = random_state
+        self.meta_data: MetaData = {} if meta_data is None else meta_data
+        if random_state is not None:
+            self.meta_data["random_state"] = random_state
 
     def trace_set(self):
         """Returns the TraceSet that this trace is part of, or None if not known."""
@@ -134,6 +147,13 @@ class Trace:
 
     def __getitem__(self, key):
         return self.events[key]
+
+    def get_meta(self, key: str) -> Optional[Any]:
+        """Returns requested meta data, or None if that key does not exist."""
+        if key in self.meta_data:
+            return self.meta_data[key]
+        else:
+            return None
 
     def append(self, event: Event):
         if not isinstance(event, Event):
@@ -191,9 +211,18 @@ class TraceSet:
         * forall tr:self.traces (tr._parent is self)
           (TODO: set _parent to None when a trace is removed?)
         * self.meta_data is a dict with keys: date, source at least.
+        
+    Public data fields include:
+        * self.traces: List[Trace].  However, the iteration, indexing, and len(_) methods
+          have been lifted from the trace list up to the top-level TraceSet object, so you
+          may not need to access self.traces at all.
+        * self.meta_data: MetaData.  Or use get_meta(key) to get an individual meta-data value.
+        * self.clusters: List[int].  After clustering, this stores the cluster number of
+          each trace.
+        * self.version: str.  Version number of this TraceSet object.
     """
 
-    meta_data: Dict[str, Any]
+    meta_data: MetaData
     _event_chars: Optional[Dict[str, str]]
 
     def __init__(self, traces: List[Trace], meta_data: Dict[str, Any] = None):
@@ -254,7 +283,7 @@ class TraceSet:
             meta_data["cmdline"] = sys.argv
         return meta_data
 
-    def get_meta(self, key: str) -> Optional[MetaData]:
+    def get_meta(self, key: str) -> Optional[Any]:
         """Returns requested meta data, or None if that key does not exist."""
         if key in self.meta_data:
             return self.meta_data[key]
@@ -327,7 +356,7 @@ class TraceSet:
             meta = {"date": mtime, "dataset": file.name, "source": "Upgraded from version 0.1"}
             traces = cls([], meta)
             for ev_list in data:
-                events = [cls._create_event_objects("0.1", ev) for ev in ev_list]
+                events = [cls._create_event_object("0.1", ev) for ev in ev_list]
                 traces.append(Trace(events))
             return traces
         elif isinstance(data, dict) and data.get("__class__", None) == "TraceSet":
@@ -343,12 +372,9 @@ class TraceSet:
             # First, convert json_data dicts to Trace and TraceSet objects.
             traceset = TraceSet([], json_data["meta_data"])
             for tr_data in json_data["traces"]:
-                assert tr_data["__class__"] == "Trace"
-                rand = tr_data.get("random_state", None)
-                events = [cls._create_event_objects(version, ev) for ev in tr_data["events"]]
-                traceset.append(Trace(events, random_state=rand))
-            # Next, see if any little updates are needed.
-            if version == TRACE_SET_VERSION or version == "0.1.2":
+                traceset.append(cls._create_trace_object(version, tr_data))
+            # Next, see if any more little updates are needed.
+            if version in ["0.1.2", "0.1.3", TRACE_SET_VERSION]:
                 pass  # nothing more to do.
             elif version == "0.1.1":
                 # Move given_event_chars into meta_data["action_chars"]
@@ -362,15 +388,27 @@ class TraceSet:
         raise Exception(f"upgrade of TraceSet v{version} to v{TRACE_SET_VERSION} not supported.")
 
     @classmethod
-    def _create_event_objects(cls, version: str, ev: Dict[str, Any]) -> Event:
+    def _create_trace_object(cls, version: str, tr_data: Dict[str, Any]) -> Trace:
+        assert tr_data["__class__"] == "Trace"
+        meta = tr_data.get("meta_data", {})
+        rand = tr_data.get("random_state", None)
+        if rand is not None:
+            meta["random_state"] = rand
+        events = [cls._create_event_object(version, ev) for ev in tr_data["events"]]
+        return Trace(events, meta_data=meta)
+
+    @classmethod
+    def _create_event_object(cls, version: str, ev: Dict[str, Any]) -> Event:
         special = ["action", "inputs", "outputs"]
         action = ev["action"]
         inputs = ev["inputs"]
         outputs = ev["outputs"]
         if version <= "0.1.2":
             props = {key: ev[key] for key in ev if key not in special}
-        else:
+        elif version <= "0.1.3":
             props = ev["properties"]
+        else:
+            props = ev["meta_data"]
         return Event(action, inputs, outputs, props)
 
     def to_pandas(self) -> pd.DataFrame:
@@ -438,9 +476,6 @@ class TraceSet:
             input_name: the name of an input.  Whenever the value of this input
                 changes, then a new trace should be started.  Note that events
                 with this input missing are ignored for this splitting criteria.
-        TODO: comparator: a function that takes two events and returns True iff
-              the second event should start a new trace. (Not implemented yet)
-        TODO: add an end_action criteria?
 
         Returns:
             a new TraceSet, usually with more traces and shorter traces.
@@ -484,7 +519,7 @@ class TraceSet:
             groups = defaultdict(list)  # for each value this stores a list of Events.
             for event in old:
                 if property:
-                    value = event.properties.get(name, None)
+                    value = event.meta_data.get(name, None)
                 else:
                     value = event.inputs.get(name, None)
                 if value is not None:
@@ -499,7 +534,7 @@ class TraceSet:
         This can gather data using any of the zero-parameter data-gathering methods
         of the Trace class that returns a Dict[str, number] for some kind of number.
         The default is the ``action_counts()`` method, which corresponds to the
-        `bag-of-words' algorithm.
+        *bag-of-words* algorithm.
         Note: you can add more data-gathering methods by defining a subclass of Trace
         and using that subclass when you create Trace objects.
 
@@ -511,42 +546,69 @@ class TraceSet:
         data.fillna(value=0, inplace=True)
         return data
 
-    def create_clusters(self, data: pd.DataFrame, algorithm=None, normalize: bool = True) -> int:
+    def create_clusters(self, data: pd.DataFrame, algorithm=None,
+                        normalizer=None, fit: bool = True) -> int:
         """Runs a clustering algorithm on the given data and remembers the clusters.
 
         Args:
             data: a Pandas DataFrame, typically from get_trace_data().
             algorithm: a clustering algorithm (default is MeanShift()).
-            normalize: False uses data unchanged, True uses a normalized copy of data,
-               using the sklearn.preprocessing.RobustScaler class, because it is more
-               robust in the presence of outlier values, and our trace data often has
-               very large outliers.  See the study:
-    https://schlieplab.org/Static/Publications/2008-IEEENeuralNets-ComparingNormalizations.pdf
+            normalizer: a normalization algorithm (default is MinMaxScaler).
+            fit: True means fit the data into clusters, False means just predict clusters
+                assuming that the algorithm and normalizer have already been trained.
 
         Returns:
-            The number of clusters generated."""
+            The number of clusters generated.
+        """
         if algorithm is None:
+            if not fit:
+                raise Exception("You must supply pre-fitted algorithm when fit=False")
             algorithm = sklearn.cluster.MeanShift()
-        if normalize:
-            # transformer = sklearn.preprocessing.RobustScaler().fit(data)
-            transformer = sklearn.preprocessing.MinMaxScaler().fit(data)
-            self._cluster_data = pd.DataFrame(transformer.transform(data), columns=data.columns)
-        else:
-            self._cluster_data = data
+        if normalizer is None:
+            if not fit:
+                raise Exception("You must supply pre-fitted normalizer when fit=False")
+            normalizer = sklearn.preprocessing.MinMaxScaler()
+            # normalizer = sklearn.preprocessing.RobustScaler()
+
         alg_name = str(algorithm).split("(")[0]
         self.message(f"running {alg_name} on {len(data)} traces.")
-        algorithm.fit(self._cluster_data)
-        self.clusters = algorithm.labels_
+        if fit:
+            normalizer.fit(data)
+        self._cluster_data = pd.DataFrame(normalizer.transform(data), columns=data.columns)
+        if fit:
+            algorithm.fit(self._cluster_data)
+            self.clusters = algorithm.labels_
+        else:
+            print(" pre predict len=", len(algorithm.labels_))
+            self.clusters = algorithm.predict(self._cluster_data)
+            print("post predict len=", len(algorithm.labels_), len(self.clusters))
         return max(self.clusters) + 1
 
-    def visualize_clusters(self):
-        """Visualize the clusters from create_clusters() using TSNE."""
+    def visualize_clusters(self, algorithm=None, fit: bool = True):
+        """Visualize the clusters from create_clusters().
+        
+        Args:
+            algorithm: the visualization algorithm to map data into 2D (default TSNE).
+            fit: True means fit the data, False means algorithm is pre-trained, so use it
+                to just transform the data into 2D without fitting the data first.
+                Note that TSNE does not support fit=False yet.
+                If you want fit=False, use another dimension-reduction algorithm like PCA(...).
+        """
         data = self._cluster_data
         if data is None or self.clusters is None:
             raise Exception("You must call create_clusters() before visualizing them!")
-        self.message("running TSNE...")
-        model = TSNE()
-        tsne_obj = model.fit_transform(data)
+        if algorithm is None:
+            if not fit:
+                raise Exception("You must supply pre-fitted algorithm when fit=False")
+            model = TSNE()
+        else:
+            model = algorithm
+        alg_name = str(algorithm).split("(")[0]
+        self.message(f"running {alg_name} on {len(data)} traces.")
+        if fit:
+            tsne_obj = model.fit_transform(data)
+        else:
+            tsne_obj = model.transform(data)
         print(tsne_obj[0:5])
 
         # All the following complex stuff is for adding a 'show label on mouse over' feature
@@ -559,13 +621,12 @@ class TraceSet:
         # Choose a colormap.  See bottom of the matplotlib page:
         #   https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
         colors = pltcm.get_cmap('hsv')
-        print("colors=", colors)
         sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters, cmap=colors)
         names = [str(tr) for tr in self.traces]  # these are in same order as tsne_df rows.
 
         annot = ax.annotate("",
                             xy=(0, 0),
-                            xytext=(20, 20),
+                            xytext=(0, 20),
                             textcoords="offset points",
                             bbox=dict(boxstyle="round", fc="w"),
                             arrowprops=dict(arrowstyle="->"),
@@ -797,6 +858,7 @@ def traces_to_pandas(traces: List[Trace]) -> pd.DataFrame:
     the result status and error message.
 
     TODO: we could convert complex values to strings before sending to Pandas?
+    TODO: we could have an option to encode strings into integer properties?
     """
     rows = []
     for tr_num in range(len(traces)):

@@ -86,8 +86,8 @@ class TestTraceEncoder(unittest.TestCase):
         tr1 = agilkia.Trace([ev1])
         s0 = '{"__class__": "Trace", "__module__": "agilkia.json_traces", "events": ['
         s1a = '{"__class__": "Event", "__module__": "agilkia.json_traces", "action": "Order", '
-        s1b = '"inputs": {"Name": "Mark"}, "outputs": {"Status": 0}, "properties": {}}'
-        s2 = '], "random_state": null}'
+        s1b = '"inputs": {"Name": "Mark"}, "outputs": {"Status": 0}, "meta_data": {}}'
+        s2 = '], "meta_data": {}}'
         expect = s0 + s1a + s1b + s2
         self.maxDiff = None
         self.assertEqual(expect, self.dumps(tr1))

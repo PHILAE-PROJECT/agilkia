@@ -7,15 +7,15 @@ The main data structure for traces is the ``TraceSet``:
 * class TraceSet supports loading/saving traces as JSON, converting to Pandas, etc.
 * class Trace is used by TraceSet, and contains a list of Events.
 * Each Event is a dict that contains at least the following keys:
-    * "action" gives the name of the action (a string);
-    * "inputs" is a dict of input parameter names to values;
-    * "outputs" is a dict of output parameter names to values.
+  - "action" gives the name of the action (a string);
+  - "inputs" is a dict of input parameter names to values;
+  - "outputs" is a dict of output parameter names to values.
 
 Automated test generation facilities include:
 * RandomTester generates random test sequences.
 * SmartTester generates tests from an ML model
   (Currently this is included in RandomTester.generate_trace_ml,
-  but this will be split into a separate class shortly.)
+  but this will be split into a separate class shortly).
 """
 
 # This package follows a 'Convenience Store' model.
@@ -25,7 +25,7 @@ Automated test generation facilities include:
 # See the article: "What’s __init__ for me?" by Jacob Deppen on TowardsDataScience.com:
 # https://towardsdatascience.com/whats-init-for-me-d70a312da583
 
-__version__ = '0.3.1'
+__version__ = '0.4.0'
 
 from . random_tester import (read_input_rules, RandomTester,
                              uniq, build_interface, print_signatures,
