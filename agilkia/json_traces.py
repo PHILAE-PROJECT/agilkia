@@ -30,6 +30,7 @@ Ideas / Tasks to do
     * DONE: add support for clustering traces
     * DONE: add support for visualising the clusters (TSNE).
     * DONE: add 'meta_data' to Trace and Event objects too (replace properties)
+    * provide an easy way of copying meta-data across, or cloning a Trace[Set] with new traces.
     * add unit tests for clustering...
     * read/restore TraceSet.clusters field?  Or move into meta-data?
     * split RandomTester into SmartTester subclass (better meta-data).
@@ -240,18 +241,29 @@ class TraceSet:
                     and any other meta-data that is available.
         """
         self.version = TRACE_SET_VERSION
-        if meta_data is None:
-            self.meta_data = self.get_default_meta_data()
-        else:
-            self.meta_data = meta_data.copy()
         self.traces = traces
         self.clusters: List[int] = None
         self._cluster_data: pd.DataFrame = None
+        trace_parents = set()
+        # add all the trace to this set.
         for tr in self.traces:
             if isinstance(tr, Trace):
+                if tr._parent:
+                    trace_parents.add(tr._parent)
                 tr._parent = self
             else:
                 raise Exception("TraceSet expects List[Trace], not: " + str(type(tr)))
+        if meta_data is None:
+            if len(trace_parents) == 1:
+                # copy across meta-data, since all traces come from same place.
+                self.meta_data = next(iter(trace_parents)).meta_data.copy()
+                print("copyied meta-data from traces:", self.meta_data)
+                now = datetime.datetime.now().isoformat()
+                self.meta_data["date"] = now
+            else:
+                self.meta_data = self.get_default_meta_data()
+        else:
+            self.meta_data = meta_data.copy()
         self._event_chars = None  # recalculated if set of traces grows.
 
     def __iter__(self):
@@ -290,9 +302,17 @@ class TraceSet:
         else:
             return None
 
+    def set_meta(self, key: str, value:Any) -> Optional[Any]:
+        """Sets the requested meta data, and returns the old value if any."""
+        old = None
+        if key in self.meta_data:
+            old = self.meta_data[key] 
+        self.meta_data[key] = value
+        return old
+
     def append(self, trace: Trace):
-        """Appends the given trace into this set.
-        This also sets its parent to be this set.
+        """Appends the given trace into this set of traces.
+        This also sets its parent to be this trace set.
         """
         if not isinstance(trace, Trace):
             raise Exception("Trace required, not: " + str(trace))
@@ -528,21 +548,39 @@ class TraceSet:
                 traces2.append(Trace(event_list))
         return traces2
 
-    def get_trace_data(self, method: str = "action_counts") -> pd.DataFrame:
+    def get_sorted_columns(self, data: List[Dict[str,Any]]):
+        """Returns a sorted list (with duplicates removed) of all the keys in data."""
+        cols = set()
+        for tr in data:
+            cols.update(tr.keys())
+        return sorted(list(cols))
+    
+    def get_trace_data(self, method: str = "action_counts",
+                       columns:List[str]=None) -> pd.DataFrame:
         """Returns a Pandas table of statistics/data about each trace.
 
         This can gather data using any of the zero-parameter data-gathering methods
-        of the Trace class that returns a Dict[str, number] for some kind of number.
-        The default is the ``action_counts()`` method, which corresponds to the
-        *bag-of-words* algorithm.
+        of the Trace class.  Any missing data values are replaced by zeroes.
+
         Note: you can add more data-gathering methods by defining a subclass of Trace
         and using that subclass when you create Trace objects.
+        
+        Args:
+            method: the name of one of the methods in the Trace objects.
+                This method must return a Dict[str, number] for some kind of number.
+                The default is the ``action_counts()`` method, which corresponds to the
+                *bag-of-words* algorithm.
+            columns: optional list of column names.  This can be used to reorder or remove
+                or add columns.  (Any added columns will be filled with zeroes).
 
         Returns:
             A table of data that can be used for clustering or machine learning.
+            The i'th row of the table is the data for the i'th trace in this set.
         """
         trace_data = [getattr(tr, method)() for tr in self.traces]
-        data = pd.DataFrame(trace_data)
+        if columns is None:
+            columns = self.get_sorted_columns(trace_data)
+        data = pd.DataFrame(trace_data, columns=columns)
         data.fillna(value=0, inplace=True)
         return data
 
@@ -551,7 +589,8 @@ class TraceSet:
         """Runs a clustering algorithm on the given data and remembers the clusters.
 
         Args:
-            data: a Pandas DataFrame, typically from get_trace_data().
+            data: a Pandas DataFrame, typically from get_trace_data(), with the i'th row
+                of the DataFrame being for the i'th trace in this set of traces.
             algorithm: a clustering algorithm (default is MeanShift()).
             normalizer: a normalization algorithm (default is MinMaxScaler).
             fit: True means fit the data into clusters, False means just predict clusters

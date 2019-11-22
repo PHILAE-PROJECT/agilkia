@@ -316,6 +316,35 @@ class TestTrace(unittest.TestCase):
         self.assertEqual(1, len(traces2[1]))
 
 
+class TestTraceSet(unittest.TestCase):
+    """Unit tests specifically for agilkia.TraceSet.
+    
+    TODO: move some of the above tests into this class too.
+    """
+
+    ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
+    ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
+    
+    def test_get_sorted_columns(self):
+        data = [{'x': 24}, {'a': 1, 'b': 2}, {'c': 3, 'b': 4}]
+        traces = agilkia.TraceSet([])
+        cols = traces.get_sorted_columns(data)
+        self.assertEqual(['a', 'b', 'c', 'x'], cols)
+
+    def test_meta_data_copy(self):
+        tr1 = agilkia.Trace([self.ev1])
+        tr2 = agilkia.Trace([self.ev2])
+        traces1 = agilkia.TraceSet([tr1, tr2])
+        traces1.set_meta("dataset", "Copy Test")
+        traces2 = agilkia.TraceSet([tr1, tr2])
+        self.assertEqual("Copy Test", traces2.get_meta("dataset"))
+        # but now move tr2 into a different trace set.
+        traces3 = agilkia.TraceSet([tr2])
+        self.assertEqual("Copy Test", traces3.set_meta("dataset", "Different Parent"))
+        traces4 = agilkia.TraceSet([tr1, tr2])  # different parents
+        self.assertEqual("unknown", traces4.get_meta("dataset"))
+
+
 class TestDefaultMapToChars(unittest.TestCase):
 
     def test_default_map_to_chars(self):
