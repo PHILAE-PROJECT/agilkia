@@ -584,15 +584,22 @@ class TraceSet:
             print("post predict len=", len(algorithm.labels_), len(self.clusters))
         return max(self.clusters) + 1
 
-    def visualize_clusters(self, algorithm=None, fit: bool = True):
+    def visualize_clusters(self, algorithm=None, fit: bool = True,
+                           xlim=None, ylim=None, cmap=None, marker=None,
+                           filename:str = None):
         """Visualize the clusters from create_clusters().
-        
+
         Args:
             algorithm: the visualization algorithm to map data into 2D (default TSNE).
             fit: True means fit the data, False means algorithm is pre-trained, so use it
                 to just transform the data into 2D without fitting the data first.
                 Note that TSNE does not support fit=False yet.
                 If you want fit=False, use another dimension-reduction algorithm like PCA(...).
+            xlim (Pair[float,float]): optional axis limits for the X axis.
+            ylim (Pair[float,float]): optional axis limits for the Y axis.
+            cmap (ColorMap): optional color map for the cluster colors.
+            marker (matplotlib.markers.MarkerStyle): optional marker style for clusters.
+            filename (str): optional file name to save image into, instead of displaying.
         """
         data = self._cluster_data
         if data is None or self.clusters is None:
@@ -617,47 +624,61 @@ class TraceSet:
         # Code adapted from:
         # https://stackoverflow.com/questions/55891285/how-to-make-labels-appear-
         #     when-hovering-over-a-point-in-multiple-axis/55892690#55892690
-        fig, ax = plt.subplots()
-        # Choose a colormap.  See bottom of the matplotlib page:
-        #   https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
-        colors = pltcm.get_cmap('hsv')
-        sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters, cmap=colors)
-        names = [str(tr) for tr in self.traces]  # these are in same order as tsne_df rows.
-
-        annot = ax.annotate("",
-                            xy=(0, 0),
-                            xytext=(0, 20),
-                            textcoords="offset points",
-                            bbox=dict(boxstyle="round", fc="w"),
-                            arrowprops=dict(arrowstyle="->"),
-                            )
-        annot.set_visible(False)
-
-        def update_annot(ind):
-            pos = sc.get_offsets()[ind["ind"][0]]
-            annot.xy = pos
-            # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
-            #                        " ".join([str(names[n]) for n in ind["ind"]]))
-            text = "\n".join([f"{n}: {str(names[n])}" for n in ind["ind"]])
-            annot.set_text(text)
-            # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
-            # annot.get_bbox_patch().set_alpha(0.4)
-
-        def hover(event):
-            vis = annot.get_visible()
-            if event.inaxes == ax:
-                cont, ind = sc.contains(event)
-                if cont:
-                    update_annot(ind)
-                    annot.set_visible(True)
-                    fig.canvas.draw_idle()
-                else:
-                    if vis:
-                        annot.set_visible(False)
+        fig, ax = plt.subplots()  # figsize=(8, 6))  # 25% larger, for better printing
+        if xlim:
+            ax.set_xlim(xlim)
+        if ylim:
+            ax.set_ylim(ylim)
+        if cmap is None:            
+            # Choose a default colormap.  See bottom of the matplotlib page:
+            #   https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
+            cmap = pltcm.get_cmap('viridis')  # sequential map with nice linear b&w printing.
+        elif isinstance(cmap, str):
+            cmap = pltcm.get_cmap(cmap)  # it is the name of a matplotlib color map
+        if marker is None:
+            marker = "o"
+        sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters,
+                         cmap=cmap, marker=marker)
+        
+        if filename:
+            plt.savefig(filename)
+        else:
+            names = [str(tr) for tr in self.traces]  # these are in same order as tsne_df rows.
+    
+            annot = ax.annotate("",
+                                xy=(0, 0),
+                                xytext=(0, 20),
+                                textcoords="offset points",
+                                bbox=dict(boxstyle="round", fc="w"),
+                                arrowprops=dict(arrowstyle="->"),
+                                )
+            annot.set_visible(False)
+    
+            def update_annot(ind):
+                pos = sc.get_offsets()[ind["ind"][0]]
+                annot.xy = pos
+                # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
+                #                        " ".join([str(names[n]) for n in ind["ind"]]))
+                text = "\n".join([f"{n}: {str(names[n])}" for n in ind["ind"]])
+                annot.set_text(text)
+                # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
+                # annot.get_bbox_patch().set_alpha(0.4)
+    
+            def hover(event):
+                vis = annot.get_visible()
+                if event.inaxes == ax:
+                    cont, ind = sc.contains(event)
+                    if cont:
+                        update_annot(ind)
+                        annot.set_visible(True)
                         fig.canvas.draw_idle()
-
-        fig.canvas.mpl_connect("motion_notify_event", hover)
-        plt.show()
+                    else:
+                        if vis:
+                            annot.set_visible(False)
+                            fig.canvas.draw_idle()
+    
+            fig.canvas.mpl_connect("motion_notify_event", hover)
+            plt.show()
 
     def get_cluster(self, num: int) -> List[Trace]:
         """Gets a list of all the Trace objects that are in the given cluster."""
