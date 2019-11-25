@@ -77,32 +77,29 @@ def read_traces_csv(path: Path) -> agilkia.TraceSet:
 
 traceset = read_traces_csv(Path("127.0.0.1-1571403244552.csv"))
 traceset.set_event_chars({"scanner": ".", "abandon": "a", "supprimer": "s", "ajouter": "+"})
+
+print("Event chars:\n  ", traceset.get_event_chars())  # default summary char for each kind of event.
+
+print(f"One long trace, saved to log_one.json.  Length={len(traceset[0])} events.")
 traceset.save_to_json(Path("log_one.json"))
-
-print(traceset.get_event_chars())  # default summary char for each kind of event.
-
-print(str(traceset[0])[:1000], "...")  # everything is in one big trace initially.
+print(str(traceset[0])[:200], "...")  # everything is in one big trace initially.
 
 
 # %% Split into separate traces, first based on Scanette number.
 
 print("\n\n==== grouped by sessionID number ====")
 traceset2 = traceset.with_traces_grouped_by("sessionID", property=True)
-for tr in traceset2:
+for tr in traceset2[0:10]:
     print("   ", tr)
-
-# %% Split into smaller traces, starting a new trace each Debloquer event.
-
-#print("\n\n==== split before each S.debloquer ====")
-traceset3 = traceset2  #.with_traces_split(start_action="S.debloquer")
-#for tr in traceset3:
-#    print("    ", tr)
-print(len(traceset3))
-
-# %% Looks good, so save these split-up traces.
-
+print(f"    etc")
+print(f"{len(traceset2)} traces now, saved into log_split.json")
 traceset2.save_to_json(Path("log_split.json"))
 
+# %% Sometimes one needs to split into smaller traces each time an event happens.
+
+#print("\n\n==== split before each S.debloquer ====")
+# traceset3 = traceset2.with_traces_split(start_action="S.debloquer")
+traceset3 = traceset2
 
 # %% Get some data about each trace, to use for clustering traces.
 
@@ -125,7 +122,12 @@ with Path("clusters_out.txt").open("w") as out:
 
 counts = Counter(traceset3.clusters)
 count_pairs = sorted(list(counts.items()))
-plt.bar([x for (x,y) in count_pairs], [y for (x,y) in count_pairs], log=True)
+print("cluster sizes:")
+for c,n in count_pairs:
+    print(f"    {c:2d}  {n:4d}")
+    
+# or graph them:
+# plt.bar([x for (x,y) in count_pairs], [y for (x,y) in count_pairs], log=True)
 
 # %% Visualise clusters (using default TSNE)
 
@@ -156,14 +158,14 @@ print("Total explained variance ratio:", sum(vis.explained_variance_ratio_))
 
 tests = read_traces_csv(Path("tests_1571927354131.csv"))
 tests.set_event_chars(traceset3.get_event_chars())
-print("Number of test traces read:", len(tests))
+print(f"Reading system tests - one trace, {len(tests[0])} events.")
 
 # %% Split tests into separate traces
 
 tests2 = tests.with_traces_grouped_by("sessionID", property=True)
 for tr in tests2:
     print("   ", tr)
-print("Number of test traces:", len(tests2))
+print(f"Split into {len(tests2)} test traces, saved into tests_split.json")
 tests2.save_to_json(Path("tests_split.json"))
 
 # %% Do some statistical analysis about action frequencies
@@ -182,7 +184,7 @@ test_data = tests2.get_trace_data(method="action_counts")
 
 # add the missing 'ajouter' column (all zeroes) before 'fermerSession' (5)
 if len(data.columns) < 10:
-    test_data.insert(5, 'ajouter', 0)
+    test_data.insert(1, 'ajouter', 0)
 else:
     test_data.insert(0, 'none', 0)
     keep = ['debloquer_0', 'scanner_0', 'scanner_-2', 'transmission_0', 'abandon_0',
@@ -244,17 +246,19 @@ tests2.visualize_clusters(algorithm=vis, fit=False, marker="x",
                           xlim=(-1.0,+2.5), ylim=(-0.4, +0.6), 
                           cmap="brg", filename="test_clusters.pdf")
 
-# %%
-
-plot_data = vis.transform(normalizer.transform(data))
-print(plot_data[:10])
-
-plot_test = vis.transform(normalizer.transform(test_data))
-print(plot_test[:10])
 
 # %%
 
 print("Trying 3D plot...")
+vis3 = PCA(n_components=3)
+traceset3.visualize_clusters(algorithm=vis3)
+
+plot_data = vis3.transform(normalizer.transform(data))
+print(plot_data[:10])
+
+plot_test = vis3.transform(normalizer.transform(test_data))
+print(plot_test[:10])
+
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 colors = pltcm.get_cmap('hsv')
