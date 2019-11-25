@@ -5,6 +5,8 @@ Author: Mark Utting, 2019
 
 TODO:
 * provide a way of generating related inputs like (lat,long) together.
+* improve SmartSequenceGenerator to pass scikit-learn estimator tests?
+  See sklearn.utils.estimator_checks.check_estimator(Estimator)
 
 """
 
@@ -16,8 +18,11 @@ import zeep.helpers   # type: ignore
 import getpass
 import operator
 import random
-import numpy   # type: ignore
+import collections
 import unittest
+import sklearn.base
+import pandas as pd
+from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
 from pprint import pprint
 from typing import Tuple, List, Mapping, Dict, Any, Optional, Union
@@ -303,10 +308,12 @@ class RandomTester:
             return None
         if self.verbose:
             print(f"    call {name}{args}")
-        # insert special secret argument values if requested
-        args_list = [self._insert_password(arg) for (n, arg) in args.items()]
-        out = getattr(client.service, name)(*args_list)
-        # we call it 'action' so it gets printed before 'inputs' (alphabetical order).
+        if client is None:
+            out = {"Status": 0}  # dummy results, always succeeds.
+        else:
+            # insert special secret argument values if requested
+            args_list = [self._insert_password(arg) for (n, arg) in args.items()]
+            out = getattr(client.service, name)(*args_list)
         self.curr_events.append(Event(name, args, out))
         if self.verbose:
             print(f"    -> {summary(out)}")
@@ -334,57 +341,157 @@ class RandomTester:
             self.call_method(self.random.choice(methods))
         return self.trace_set.traces[-1]
 
-    def setup_feature_data(self):
-        """Must be called before the first call to get_trace_features."""
-        actions = self.methods_allowed
-        nums = len(actions)
-        self.action2number = dict(zip(actions, range(nums)))
-        if self.verbose:
-            print("Action 2 num:", self.action2number)
 
-    def get_action_counts(self, events: List[Event]) -> List[int]:
-        """Returns an array of counts - how many times each event occurs in trace."""
-        result = [0 for k in self.action2number.keys()]
-        for ev in events:
-            action_num = self.action2number[ev.action]
-            result[action_num] += 1
-        return result
+class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerMixin):
+    """Extracts prefixes of traces so that the next action can be predicted.
+    
+    Attributes:
+        vocabulary_ (dict): A dictionary mapping feature names to feature indices.
+        feature_names_ (list): A list of length n_features containing the feature names.
+    """
 
-    def get_trace_features(self) -> List[int]:
-        """Returns a vector of numeric features suitable for input to an ML model.
-        The results returned by this function must match the training set of the ML model.
-        Currently this returns an array of counts - how many times each event occurs
-        in the whole current trace, and how many times in the most recent 8 events.
+    def __init__(self):
+        self._traces = None
+        pass
+
+    def end_action(self):
+        """Special action name to represent the end of a trace."""
+        return "<end>"
+
+    def get_feature_names(self):
+        """Gets the list of column names for the generated data tables."""
+        check_is_fitted(self, 'is_fitted_')
+        return self.feature_names_
+
+    def set_feature_names(self, names:List[str]):
+        """Sets self.feature_names_ to the given list of feature names.
+        And sets self.vocabulary_ to the inverse mapping - names to position.
         """
-        prefix = self.get_action_counts(self.curr_events)
-        suffix = self.get_action_counts(self.curr_events[-8:])
-        return prefix+suffix
+        self.feature_names_ = names
+        self.vocabulary_ = {(col,i) for (i,col) in enumerate(self.feature_names_)}
 
-    def generate_trace_ml(self, model, start=True, length=20):
-        """Generates the requested length of test steps, choosing methods using the given model.
+    def get_prefix_features(self, events:List[Event]) -> Dict[str, float]:
+        """Converts a sequence of events into numeric training data to predict next action.
+        
+        Subclasses could override this to change the feature encoding.
+        (If they want to change the feature names, they should also override set_feature_names)
+        """
+        counts = collections.Counter([ev.action for ev in events])
+        # TODO: add 'recent' event counts if that is desired.
+        return counts
+
+    def fit(self, X:TraceSet, y=None):
+        """Fit remembers the given TraceSet and calculates the feature names.
 
         Args:
-            model (Any): the ML model to use to generate the next event.
+            X (TraceSet): the set of traces to be fitted.
+            y (None): unused.
+
+        Returns:
+            self
+
+        Note that fit() must be called before transform() or get_feature_names().
+        """
+        if not isinstance(X, TraceSet):
+            raise Exception("TracePrefixExtractor.fit input must be TraceSet.")
+        self._traceset = X
+        self.set_feature_names(X.get_all_actions())
+        self.is_fitted_ = True
+        return self
+
+    def transform(self, X:Union[TraceSet, List[Event]]):
+        """Transforms a set of traces, or an event sequence, into a Pandas DataFrame
+        of training data.  Note that the columns of the resulting DataFrame are fixed
+        during the fit() method, so any new kinds of actions appearing in this X
+        input will be ignored.
+
+        There are two different behaviors, depending upon the input type of X.
+            * if traces is a TraceSet, all prefixes of all traces are converted into
+              training data, and the corresponding expected y labels (action name) for
+              all those prefixes are available from get_labels().
+            * if traces is a list of events, then the result will contain just
+              a single row, which will be the data for that whole trace.
+        """
+        check_is_fitted(self, 'is_fitted_')
+        data = []
+        self._y = []
+        if isinstance(X, TraceSet):
+            for tr in X.traces:
+                for size in range(len(tr) + 1):  # every prefix, plus the whole trace.
+                    events = tr.events[0:size]
+                    features = self.get_prefix_features(events)
+                    action = tr[size].action if size < len(tr) else self.end_action()
+                    data.append(features)
+                    self._y.append(action)
+        elif isinstance(X, list) and (X == [] or isinstance(X[0], Event)):
+            features = self.get_prefix_features(X)
+            data = [features]
+            self._y = [self.end_action()]
+        else:
+            raise Exception("TracePrefixExtractor.transform input must be TraceSet or [Events].")
+        df = pd.DataFrame(data, columns=self.feature_names_)
+        df.fillna(0, inplace=True)
+        return df
+
+    def get_labels(self):
+        """Get the output labels (action names) corresponding to the last transform() call."""
+        check_is_fitted(self, 'is_fitted_')
+        return self._y
+
+
+class SmartSequenceGenerator(RandomTester):
+    """Generates test sequences from an ML model that suggests what actions can come next."""
+    
+    def __init__(self,
+                 methods:Dict[str, Signature],
+                 input_rules: Dict[str, List] = None,
+                 rand: random.Random = None,
+                 action_chars: Mapping[str, str] = None,
+                 verbose: bool = False):
+        """A test sequence generator that uses a machine learning model to predict next action.
+        
+        Args:
+            model: the ML model to use to generate the next event.
                 This model must support the 'predict_proba' method.
+        """
+        super().__init__([], methods_to_test=list(methods.keys()), input_rules=input_rules,
+                         rand=rand, action_chars=action_chars, verbose=verbose)
+        # Quick hack to get some dummy signatures set up
+        self.clients_and_methods.append((None, methods))
+        self.trace_set.meta_data["method_signatures"].update(methods)
+        if self.methods_to_test is None:
+            self.methods_allowed += sorted(list(methods.keys()))
+
+    def generate_trace_with_model(self, model, start=True, length=20):
+        """Generates one sequence test steps, choosing actions using the given model.
+        The generated trace terminates either when the model says <end> or after length steps.
+
+        Args:
+            model (Classifier): ML model that takes an Event list and predicts next action name.
             start (bool): True means that a new trace is started, beginning with a "Login" call.
-            length (int): The number of steps to generate (default=20).
+            length (int): The maximum number of steps to generate in one trace (default=20).
 
         Returns:
             the whole of the current trace that has been generated so far.
         """
-        self.setup_feature_data()
         # start a new (empty) trace if requested.
         self.generate_trace(start=start, length=0)
+        result = self.curr_events
         for i in range(length):
-            features = self.get_trace_features()
-            [proba] = model.predict_proba([features])
-            [action_num] = numpy.random.choice(len(proba), p=proba, size=1)
-            action = self.methods_allowed[action_num]
+            [proba] = model.predict_proba(self.curr_events)
+            [action_num] = self.random.choices(range(len(proba)), proba, k=1) 
+            action = model.classes_[action_num] # WAS: self.methods_allowed[action_num]
             if self.verbose:
-                print(i, features, action, ",".join([f"{int(p*100)}" for p in proba]))
-            self.call_method(action)
-        return self.curr_events
+                probs = ",".join([f"{int(p*100)}" for p in proba])
+                print(f"{i:3d}: {action:20s} {probs}")
+            if action == "<end>":
+                self.generate_trace(start=True, length=0)
+                break  # we view length as a maximum...
+            else:
+                self.call_method(action)
+        return result
 
 
 if __name__ == "__main__":
     unittest.main()
+

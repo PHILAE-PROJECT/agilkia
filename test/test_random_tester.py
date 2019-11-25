@@ -11,6 +11,7 @@ TODO:
 import unittest
 import random
 from pathlib import Path
+import sklearn.utils.estimator_checks
 
 import agilkia
 
@@ -120,3 +121,32 @@ class TestRandomTester(unittest.TestCase):
         tr = self.tester.generate_trace()
         self.assertTrue(isinstance(tr, agilkia.Trace))
         self.assertEqual(20, len(tr.events))
+
+
+class TestTracePrefixExtractor(unittest.TestCase):
+
+    ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
+    ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
+    ev3 = agilkia.Event("Pay", {"Name": "Mark", "Amount": 23.45}, {"Status": 0})
+    
+    def test_bag_of_words(self):
+        tr1 = agilkia.Trace([self.ev1, self.ev2])
+        tr2 = agilkia.Trace([self.ev3])
+        traces = agilkia.TraceSet([tr1, tr1, tr2])
+        self.assertEquals(3, len(traces))
+        sut = agilkia.TracePrefixExtractor()
+        sut.fit(traces)
+        self.assertEqual(["Order", "Pay", "Skip"], sut.get_feature_names())
+        X = sut.transform(traces)
+        y = sut.get_labels()
+        self.assertEqual((8, 3), X.shape)
+        self.assertEqual(8, len(y))
+        for row in [0, 3, 6]:
+            self.assertEqual([0.0, 0.0, 0.0], X.iloc[row, :].tolist())
+            self.assertEqual("Order" if row < 6 else "Pay", y[row])
+        for row in [2, 5]:
+            self.assertEqual([1.0, 0.0, 1.0], X.iloc[row, :].tolist())
+            self.assertEqual("<end>", y[row])
+        self.assertEqual([0.0, 1.0, 0.0], X.iloc[7, :].tolist())
+        
+        

@@ -27,8 +27,8 @@ Automated test generation facilities include:
 
 __version__ = '0.4.2'
 
-from . random_tester import (read_input_rules, RandomTester,
-                             uniq, build_interface, print_signatures,
+from . random_tester import (read_input_rules, uniq, build_interface, print_signatures,
+                             TracePrefixExtractor, RandomTester, SmartSequenceGenerator,
                              DUMP_WSDL, DUMP_SIGNATURES, GOOD_PASSWORD)
 from . json_traces import (Event, Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION,
                            xml_decode, all_action_names, safe_name,

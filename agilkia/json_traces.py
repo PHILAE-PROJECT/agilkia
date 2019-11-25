@@ -248,7 +248,7 @@ class TraceSet:
         # add all the trace to this set.
         for tr in self.traces:
             if isinstance(tr, Trace):
-                if tr._parent:
+                if tr._parent and tr._parent != self:
                     trace_parents.add(tr._parent)
                 tr._parent = self
             else:
@@ -257,7 +257,7 @@ class TraceSet:
             if len(trace_parents) == 1:
                 # copy across meta-data, since all traces come from same place.
                 self.meta_data = next(iter(trace_parents)).meta_data.copy()
-                print("copyied meta-data from traces:", self.meta_data)
+                # print("DEBUG: copyied meta-data from traces:", self.meta_data)
                 now = datetime.datetime.now().isoformat()
                 self.meta_data["date"] = now
             else:
@@ -548,13 +548,14 @@ class TraceSet:
                 traces2.append(Trace(event_list))
         return traces2
 
-    def get_sorted_columns(self, data: List[Dict[str,Any]]):
+    def get_all_actions(self):
         """Returns a sorted list (with duplicates removed) of all the keys in data."""
-        cols = set()
-        for tr in data:
-            cols.update(tr.keys())
-        return sorted(list(cols))
-    
+        actions = set()
+        for tr in self.traces:
+            for ev in tr.events:
+                actions.add(ev.action)
+        return sorted(list(actions))
+
     def get_trace_data(self, method: str = "action_counts",
                        columns:List[str]=None) -> pd.DataFrame:
         """Returns a Pandas table of statistics/data about each trace.
@@ -575,11 +576,12 @@ class TraceSet:
 
         Returns:
             A table of data that can be used for clustering or machine learning.
+            If columns is not specified, the columns of the table will be in alphabetical order.
             The i'th row of the table is the data for the i'th trace in this set.
         """
         trace_data = [getattr(tr, method)() for tr in self.traces]
         if columns is None:
-            columns = self.get_sorted_columns(trace_data)
+            columns = self.get_all_actions()
         data = pd.DataFrame(trace_data, columns=columns)
         data.fillna(value=0, inplace=True)
         return data

@@ -325,12 +325,6 @@ class TestTraceSet(unittest.TestCase):
     ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
     ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
     
-    def test_get_sorted_columns(self):
-        data = [{'x': 24}, {'a': 1, 'b': 2}, {'c': 3, 'b': 4}]
-        traces = agilkia.TraceSet([])
-        cols = traces.get_sorted_columns(data)
-        self.assertEqual(['a', 'b', 'c', 'x'], cols)
-
     def test_meta_data_copy(self):
         tr1 = agilkia.Trace([self.ev1])
         tr2 = agilkia.Trace([self.ev2])
