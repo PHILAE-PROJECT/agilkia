@@ -75,8 +75,22 @@ def read_traces_csv(path: Path) -> agilkia.TraceSet:
 
 # %% Read traces and save in the Agilkia JSON format.
 
+french_chars = {'scanner': '.', 'abandon': 'a', 'supprimer': 's',
+                'ajouter': '+', 'debloquer': 'd', 'fermerSession': 'f',
+                'ouvrirSession': 'o', 'payer': 'p', 'transmission': 't'}
+english_chars = {'scanner': '.',        # 'scan'
+                 'abandon': 'a',        # 'abandon'
+                 'supprimer': 'd',      # 'delete'
+                 'ajouter': '+',        # 'add'
+                 'debloquer': 'u',      # 'unlock'
+                 'fermerSession': 'c',  # 'closeSession'
+                 'ouvrirSession': 'o',  # 'openSession'
+                 'payer': 'p',          # 'pay'
+                 'transmission': 't'    # 'transmit'
+                 }
 traceset = read_traces_csv(Path("127.0.0.1-1571403244552.csv"))
-traceset.set_event_chars({"scanner": ".", "abandon": "a", "supprimer": "s", "ajouter": "+"})
+traceset.set_event_chars(english_chars)
+    # was: {"scanner": ".", "abandon": "a", "supprimer": "s", "ajouter": "+"}
 
 print("Event chars:\n  ", traceset.get_event_chars())  # default summary char for each kind of event.
 

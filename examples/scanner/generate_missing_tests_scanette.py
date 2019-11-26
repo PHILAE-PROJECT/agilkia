@@ -88,38 +88,50 @@ for n in missing:
     print(f"========== cluster {n} has {len(cluster)} traces ============")
 
     # Learn a test-generation model for this cluster.
-    fex = agilkia.TracePrefixExtractor()
-    X = fex.fit_transform(cluster)
-    y = fex.get_labels()
+    ex = agilkia.TracePrefixExtractor()
+    X = ex.fit_transform(cluster)
+    y = ex.get_labels()
     #print(X.head())
     #print(f"y: {y[0:20]}...")
 
     # Evaluate various classifiers
-    mm = MinMaxScaler()
-    tree = DecisionTreeClassifier()
-    pipe = Pipeline([
-        ("normalize", mm),
-        ("tree", tree)   # fast, 0.951
-        #("gbc", GradientBoostingClassifier())  # slower, 0.951
-        #("forest", RandomForestClassifier(n_estimators=100))  # med 0.951
-        #("adaboost", AdaBoostClassifier())  # 0.421, some labels have no predictions
-        #("gaussian", GaussianProcessClassifier(max_iter_predict=10))   # VERY slow, 0.886
-        #("neural-net", MLPClassifier(solver='lbfgs'))  # adam solver doesn't converge. 0.924
-        #("KNeighbors", KNeighborsClassifier())  # fast, 0.948
-        #("NaiveBayes", GaussianNB())  # fast, F1 undef. 0.839
-        #("LinearSVC", LinearSVC())  # fast, 0.886
-        #("dummy", DummyClassifier())  # fast, 0.130
-        #("logreg", LogisticRegression(solver='lbfgs', max_iter=200, multi_class='auto'))  # med 0.89
-        ])
-    scores = cross_val_score(pipe, X, y, cv=10, scoring='f1_macro')
-    # print(scores)
-    print(f"F1: {scores.mean():0.3f} (+/- {scores.std() * 2:0.3f})")
+    for name,alg in [
+                ("Tree", DecisionTreeClassifier()),   # fast, 0.951
+                ("GBC", GradientBoostingClassifier()),  # slower, 0.951
+                ("RandForest", RandomForestClassifier(n_estimators=100)),  # med 0.951
+                ("AdaBoost", AdaBoostClassifier()),  # 0.421, some labels have no predictions
+                #("Gaussian", GaussianProcessClassifier(max_iter_predict=10)),   # VERY slow, 0.886
+                ("NeuralNet", MLPClassifier(solver='lbfgs')),  # adam solver doesn't converge. 0.924
+                ("KNeighbors", KNeighborsClassifier()),  # fast, 0.948
+                ("NaiveBayes", GaussianNB()),  # fast, F1 undef. 0.839
+                ("LinearSVC", LinearSVC()),  # fast, 0.886
+                ("Dummy", DummyClassifier()),  # fast, 0.130
+                ("LogReg", LogisticRegression(solver='lbfgs', max_iter=200, multi_class='auto'))  # med 0.89
+            ]:
+        pipe = Pipeline([
+            ("Normalize", MinMaxScaler()),
+            (name, alg)
+            ])
+        scores = cross_val_score(pipe, X, y, cv=10, scoring='f1_macro')
+        # print(scores)
+        print(f"{name:20s} & {scores.mean():0.3f} (+/- {scores.std() * 2:0.3f})")
 
-    # Train the model on this cluster
+
+# %% Now use Decision Tree to generate some tests.
+for n in missing:
+    cluster = agilkia.TraceSet(cust.get_cluster(n))
+    print(f"========== cluster {n} has {len(cluster)} traces ============")
+
+    # Learn a test-generation model for this cluster.
+    ex = agilkia.TracePrefixExtractor()
+    X = ex.fit_transform(cluster)
+    y = ex.get_labels()
+    print(f"len(y) = {len(y)}")
+    # Train a decision tree model on this cluster
     model = Pipeline([
-        ("extractor", fex),
-        ("normalize", mm),
-        ("tree", tree)   # fast, 0.951
+        ("Extractor", ex),
+        ("Normalize", MinMaxScaler()),
+        ("Tree", DecisionTreeClassifier())   # fast, 0.951
         ])
     model.fit(cluster, y)
     
@@ -127,7 +139,7 @@ for n in missing:
     smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False, rand=rand)
     smart.trace_set.set_event_chars(cluster.get_event_chars())
     # generate some tests
-    for i in range(10):
+    for i in range(5):
         smart.generate_trace_with_model(model, length=100)
     for tr in smart.trace_set:
         print(f"    {tr}")
