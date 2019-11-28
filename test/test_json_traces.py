@@ -191,7 +191,7 @@ class TestTrace(unittest.TestCase):
         tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])  # no parent initially
         with self.assertRaises(Exception):
             tr1.to_string()
-        self.assertEqual("...", str(tr1))
+        self.assertEqual("???", str(tr1))
         self.assertEqual(3, len(tr1))
         self.assertEqual(self.ev2, tr1[0])
         self.assertEqual(self.ev3, tr1[-1])

@@ -39,6 +39,7 @@ InputRules = Dict[str, List[str]]
 DUMP_WSDL = False         # save each *.wsdl file into current directory.
 DUMP_SIGNATURES = False    # save summary of methods into *_signatures.txt
 GOOD_PASSWORD = "<GOOD_PASSWORD>"
+TRACE_END = "<END>"
 
 
 def read_input_rules(file: Path) -> InputRules:
@@ -354,10 +355,6 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         self._traces = None
         pass
 
-    def end_action(self):
-        """Special action name to represent the end of a trace."""
-        return "<end>"
-
     def get_feature_names(self):
         """Gets the list of column names for the generated data tables."""
         check_is_fitted(self, 'is_fitted_')
@@ -420,13 +417,13 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
                 for size in range(len(tr) + 1):  # every prefix, plus the whole trace.
                     events = tr.events[0:size]
                     features = self.get_prefix_features(events)
-                    action = tr[size].action if size < len(tr) else self.end_action()
+                    action = tr[size].action if size < len(tr) else TRACE_END
                     data.append(features)
                     self._y.append(action)
         elif isinstance(X, list) and (X == [] or isinstance(X[0], Event)):
             features = self.get_prefix_features(X)
             data = [features]
-            self._y = [self.end_action()]
+            self._y = [TRACE_END]
         else:
             raise Exception("TracePrefixExtractor.transform input must be TraceSet or [Events].")
         df = pd.DataFrame(data, columns=self.feature_names_)
@@ -479,17 +476,51 @@ class SmartSequenceGenerator(RandomTester):
         result = self.curr_events
         for i in range(length):
             [proba] = model.predict_proba(self.curr_events)
-            [action_num] = self.random.choices(range(len(proba)), proba, k=1) 
+            [action_num] = self.random.choices(range(len(proba)), proba) 
             action = model.classes_[action_num] # WAS: self.methods_allowed[action_num]
             if self.verbose:
                 probs = ",".join([f"{int(p*100)}" for p in proba])
                 print(f"{i:3d}: {action:20s} {probs}")
-            if action == "<end>":
+            if action == TRACE_END:
                 self.generate_trace(start=True, length=0)
                 break  # we view length as a maximum...
             else:
                 self.call_method(action)
         return result
+
+    def generate_all_traces(self, model, length=5, action_prob=0.01, path_prob=1.0e-12,
+                            partial=True) -> List:
+        """Generate all traces that satisfy the given constraints.
+        
+        Args:
+            model: the trained ML model used to predict the next action.
+            length (int): maximum length of each generated trace.
+            action_prob (float): only do actions with at least this probability.
+            path_prob (float): only include paths with at least this total probability.
+            partial (bool): True means include partial traces.  False gives complete traces only.
+                Note that all complete traces will have len(tr)<length, but all partial
+                traces will have len(tr)==length.
+        """
+        results = []
+        def depth_first_search(prefix, prob):
+            indent = ">" * len(prefix)
+            # print(indent + ",".join([ev.action for ev in prefix]))
+            if len(prefix) >= length:
+                if partial:
+                    results.append(Trace(events=prefix))
+            else:
+                [proba] = model.predict_proba(prefix)
+                for i, p in enumerate(proba):
+                    if p >= action_prob and prob * p >= path_prob:
+                        action = model.classes_[i]
+                        if action == TRACE_END:
+                            results.append(Trace(events=prefix))
+                        else:
+                            if self.verbose:
+                                print(indent + f" trying {action}")
+                            depth_first_search(prefix + [Event(action,{},{})], prob * p)
+        depth_first_search([], 1.0)
+        return results
 
 
 if __name__ == "__main__":

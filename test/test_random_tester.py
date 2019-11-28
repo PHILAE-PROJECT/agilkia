@@ -146,7 +146,7 @@ class TestTracePrefixExtractor(unittest.TestCase):
             self.assertEqual("Order" if row < 6 else "Pay", y[row])
         for row in [2, 5]:
             self.assertEqual([1.0, 0.0, 1.0], X.iloc[row, :].tolist())
-            self.assertEqual("<end>", y[row])
+            self.assertEqual(agilkia.TRACE_END, y[row])
         self.assertEqual([0.0, 1.0, 0.0], X.iloc[7, :].tolist())
         
         

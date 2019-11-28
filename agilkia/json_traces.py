@@ -202,7 +202,7 @@ class Trace:
         try:
             return self.to_string()
         except Exception:
-            return "..."
+            return "???"
 
 
 class TraceSet:
@@ -638,7 +638,8 @@ class TraceSet:
                 If you want fit=False, use another dimension-reduction algorithm like PCA(...).
             xlim (Pair[float,float]): optional axis limits for the X axis.
             ylim (Pair[float,float]): optional axis limits for the Y axis.
-            cmap (ColorMap): optional color map for the cluster colors.
+            cmap (Union[ColorMap,str]): optional color map for the cluster colors, 
+                or the name of a color map.
             marker (matplotlib.markers.MarkerStyle): optional marker style for clusters.
             filename (str): optional file name to save image into, instead of displaying.
         """
@@ -648,19 +649,18 @@ class TraceSet:
         if algorithm is None:
             if not fit:
                 raise Exception("You must supply pre-fitted algorithm when fit=False")
-            model = TSNE()
-        else:
-            model = algorithm
+            algorithm = TSNE()
         alg_name = str(algorithm).split("(")[0]
         self.message(f"running {alg_name} on {len(data)} traces.")
         if fit:
-            tsne_obj = model.fit_transform(data)
+            tsne_obj = algorithm.fit_transform(data)
         else:
-            tsne_obj = model.transform(data)
+            tsne_obj = algorithm.transform(data)
         print(tsne_obj[0:5])
 
         # All the following complex stuff is for adding a 'show label on mouse over' feature
-        # to the TSNE display.  It works when run from command line, but not in Jupyter/Spyder!
+        # to the visualisation scatter graph.
+        # It works when run from command line, but not in Jupyter/Spyder!
         # Surely there must be an easier way than doing all this...
         # Code adapted from:
         # https://stackoverflow.com/questions/55891285/how-to-make-labels-appear-
@@ -680,46 +680,46 @@ class TraceSet:
             marker = "o"
         sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters,
                          cmap=cmap, marker=marker)
-        
+
         if filename:
             plt.savefig(filename)
-        else:
-            names = [str(tr) for tr in self.traces]  # these are in same order as tsne_df rows.
-    
-            annot = ax.annotate("",
-                                xy=(0, 0),
-                                xytext=(0, 20),
-                                textcoords="offset points",
-                                bbox=dict(boxstyle="round", fc="w"),
-                                arrowprops=dict(arrowstyle="->"),
-                                )
-            annot.set_visible(False)
-    
-            def update_annot(ind):
-                pos = sc.get_offsets()[ind["ind"][0]]
-                annot.xy = pos
-                # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
-                #                        " ".join([str(names[n]) for n in ind["ind"]]))
-                text = "\n".join([f"{n}: {str(names[n])}" for n in ind["ind"]])
-                annot.set_text(text)
-                # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
-                # annot.get_bbox_patch().set_alpha(0.4)
-    
-            def hover(event):
-                vis = annot.get_visible()
-                if event.inaxes == ax:
-                    cont, ind = sc.contains(event)
-                    if cont:
-                        update_annot(ind)
-                        annot.set_visible(True)
+        names = [str(tr) for tr in self.traces]  # these are in same order as tsne_df rows.
+
+        annot = ax.annotate("",
+                            xy=(0, 0),
+                            xytext=(0, 20),
+                            textcoords="offset points",
+                            bbox=dict(boxstyle="round", fc="w"),
+                            arrowprops=dict(arrowstyle="->"),
+                            )
+        annot.set_visible(False)
+
+        def update_annot(ind):
+            pos = sc.get_offsets()[ind["ind"][0]]
+            annot.xy = pos
+            # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
+            #                        " ".join([str(names[n]) for n in ind["ind"]]))
+            anns = [f"{n} ({self.clusters[n]}): {str(names[n])}" for n in ind["ind"]]
+            text = "\n".join(anns)
+            annot.set_text(text)
+            # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
+            # annot.get_bbox_patch().set_alpha(0.4)
+
+        def hover(event):
+            vis = annot.get_visible()
+            if event.inaxes == ax:
+                cont, ind = sc.contains(event)
+                if cont:
+                    update_annot(ind)
+                    annot.set_visible(True)
+                    fig.canvas.draw_idle()
+                else:
+                    if vis:
+                        annot.set_visible(False)
                         fig.canvas.draw_idle()
-                    else:
-                        if vis:
-                            annot.set_visible(False)
-                            fig.canvas.draw_idle()
-    
-            fig.canvas.mpl_connect("motion_notify_event", hover)
-            plt.show()
+
+        fig.canvas.mpl_connect("motion_notify_event", hover)
+        plt.show()
 
     def get_cluster(self, num: int) -> List[Trace]:
         """Gets a list of all the Trace objects that are in the given cluster."""

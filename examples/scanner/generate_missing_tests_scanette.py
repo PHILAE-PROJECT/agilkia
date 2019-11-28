@@ -22,6 +22,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import Pipeline
+from sklearn.tree import export_graphviz, export_text
 import matplotlib.pyplot as plt
 from pathlib import Path
 import random
@@ -62,7 +63,7 @@ for i in range(num_clusters):
 vis = PCA(n_components=2)
 cust.visualize_clusters(algorithm=vis)
 
-# %% Generate tests for cluster 3, which has no tests.
+# %%
 
 print(cust.meta_data)
 
@@ -144,23 +145,44 @@ for n in missing:
     for tr in smart.trace_set:
         print(f"    {tr}")
 
+# %% Experiment with generating ALL likely sequences.
+
+# Learn a test-generation model for all the customer traces.
+ex = agilkia.TracePrefixExtractor()
+X = ex.fit_transform(cust)
+y = ex.get_labels()
+# Train a decision tree model on this cluster
+tree = DecisionTreeClassifier()
+model = Pipeline([
+    ("Extractor", ex),
+    ("Normalize", MinMaxScaler()),
+    ("Tree", tree)
+    ])
+model.fit(cust, y)
+print(tree)
+
 # %%
 
-# print("cluster:", cluster.get_all_actions())
-# print("features:", fex.get_feature_names())
-# print(fex.transform(cluster).tail())
+chars = cust.get_event_chars()
+smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False,
+                                       action_chars=chars)
+seqs = smart.generate_all_traces(model, length=14, action_prob=0.01, path_prob=1e-2,
+                                 partial=False)
+print(f"generated {len(seqs)} sequences")
+for tr in seqs:
+    print(f"    {tr.to_string(to_char=chars)}")
 
 # %% 
-from sklearn.tree import export_graphviz, export_text
+
 # Export as dot file
 export_graphviz(tree, out_file='tree.dot', 
-                feature_names = fex.get_feature_names(),
+                feature_names = ex.get_feature_names(),
                 class_names = model.classes_,
                 rounded = True, proportion = False, 
                 precision = 2, filled = True)
 
 # %% print as text
-tree_str = export_text(tree, feature_names=fex.get_feature_names())
+tree_str = export_text(tree, feature_names=ex.get_feature_names())
 print(tree_str)
 
 # %%

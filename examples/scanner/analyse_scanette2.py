@@ -96,7 +96,7 @@ print("Event chars:\n  ", traceset.get_event_chars())  # default summary char fo
 
 print(f"One long trace, saved to log_one.json.  Length={len(traceset[0])} events.")
 traceset.save_to_json(Path("log_one.json"))
-print(str(traceset[0])[:200], "...")  # everything is in one big trace initially.
+print(str(traceset[0])[:200], "etc")  # everything is in one big trace initially.
 
 
 # %% Split into separate traces, first based on Scanette number.
@@ -151,7 +151,8 @@ traceset3.visualize_clusters()
 
 vis = PCA(n_components=2)
 traceset3.visualize_clusters(algorithm=vis, xlim=(-1.0,+2.5), ylim=(-0.4, +0.6), 
-                             cmap="brg", filename="scanette_clusters.pdf")
+                             cmap="brg",
+                             filename="scanette_clusters.pdf")
 
 # TODO: it would be nice to have a different marker for each cluster.
 # But the matplotlib lib api makes that hard - must do multiple scatters in the one graph.
@@ -234,8 +235,10 @@ with Path("test_clusters_out.txt").open("w") as out:
             if cluster == i:
                 out.write(f"    {tests2[pos]}\n")
 
-# %%
+# %% Check that the tests are using the same event_chars for display.
+
 print(tests2.get_event_chars())
+
 # %% Count the tests in each cluster and graph them vs customer clusters
 
 test_counts = Counter(test_clusters)
@@ -258,7 +261,8 @@ print(len(tests2.clusters))
 
 tests2.visualize_clusters(algorithm=vis, fit=False, marker="x",
                           xlim=(-1.0,+2.5), ylim=(-0.4, +0.6), 
-                          cmap="brg", filename="test_clusters.pdf")
+                          cmap="brg",
+                          filename="test_clusters.pdf")
 
 
 # %%
