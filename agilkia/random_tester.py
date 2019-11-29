@@ -498,7 +498,10 @@ class SmartSequenceGenerator(RandomTester):
             action_prob (float): only do actions with at least this probability.
             path_prob (float): only include paths with at least this total probability.
             partial (bool): True means include partial traces.  False gives complete traces only.
-                Note that all complete traces will have len(tr)<length, but all partial
+
+        Returns:
+            A list of all the Trace objects that satisfy the given constraints.
+                Note that all complete traces will have len(tr)<length, whereas all partial
                 traces will have len(tr)==length.
         """
         results = []

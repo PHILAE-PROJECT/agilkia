@@ -143,19 +143,23 @@ for c,n in count_pairs:
 # or graph them:
 # plt.bar([x for (x,y) in count_pairs], [y for (x,y) in count_pairs], log=True)
 
-# %% Visualise clusters (using default TSNE)
+# %% Visualise clusters (using default TSNE) - not great for this example
 
 traceset3.visualize_clusters()
 
 # %% Visualise cluster using PCA to map them into 2D.
 
+# Here is a reasonably good choice of markers for the 13 Scanner clusters.
+# (good choice depends upon how many clusters, how many points in each cluster, overlap, etc.)
+markers = "1234+x*.<^>vo" # "sphPXd"
+xlim = (-1.0,+3.0)
+ylim = (-0.65, +0.9)
 vis = PCA(n_components=2)
-traceset3.visualize_clusters(algorithm=vis, xlim=(-1.0,+2.5), ylim=(-0.4, +0.6), 
-                             cmap="brg",
+traceset3.visualize_clusters(algorithm=vis, xlim=xlim, ylim=ylim,
+                             markers=markers,
+                             markersize=9,
                              filename="scanette_clusters.pdf")
 
-# TODO: it would be nice to have a different marker for each cluster.
-# But the matplotlib lib api makes that hard - must do multiple scatters in the one graph.
 # marker="o<^>vsphPXd*."
 
 # %% Print PCA dimensions
@@ -259,9 +263,9 @@ print(len(tests2.clusters))
 
 # %%
 
-tests2.visualize_clusters(algorithm=vis, fit=False, marker="x",
-                          xlim=(-1.0,+2.5), ylim=(-0.4, +0.6), 
-                          cmap="brg",
+tests2.visualize_clusters(algorithm=vis, fit=False,
+                          xlim=xlim, ylim=ylim,
+                          markers=markers, markersize=9,
                           filename="test_clusters.pdf")
 
 

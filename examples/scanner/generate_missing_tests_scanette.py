@@ -81,9 +81,11 @@ signature = {
     "transmission": {"input":{}, "output":{"Status":"int"}}
     }
     
-# %% Generate smart tests for several missing clusters.
+# %% Some largish clusters that are missing system tests.
 
 missing = [3, 4, 5]
+
+# %% Build models for those clusters and evaluate the models.
 for n in missing:
     cluster = agilkia.TraceSet(cust.get_cluster(n))
     print(f"========== cluster {n} has {len(cluster)} traces ============")
@@ -118,32 +120,42 @@ for n in missing:
         print(f"{name:20s} & {scores.mean():0.3f} (+/- {scores.std() * 2:0.3f})")
 
 
-# %% Now use Decision Tree to generate some tests.
-for n in missing:
-    cluster = agilkia.TraceSet(cust.get_cluster(n))
-    print(f"========== cluster {n} has {len(cluster)} traces ============")
+# %% Now use Decision Tree model to generate some tests.
+        
+def gen_tests_for(traceset, name, traces=5):
+    print(f"========== {name} has {len(traceset)} traces ============")
 
     # Learn a test-generation model for this cluster.
     ex = agilkia.TracePrefixExtractor()
-    X = ex.fit_transform(cluster)
+    X = ex.fit_transform(traceset)
     y = ex.get_labels()
-    print(f"len(y) = {len(y)}")
+    print(f"  it has {len(y)} trace prefixes")
     # Train a decision tree model on this cluster
     model = Pipeline([
         ("Extractor", ex),
         ("Normalize", MinMaxScaler()),
         ("Tree", DecisionTreeClassifier())   # fast, 0.951
         ])
-    model.fit(cluster, y)
+    model.fit(traceset, y)
     
     rand = random.Random(1234)
     smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False, rand=rand)
-    smart.trace_set.set_event_chars(cluster.get_event_chars())
+    smart.trace_set.set_event_chars(traceset.get_event_chars())
     # generate some tests
-    for i in range(5):
+    for i in range(traces):
         smart.generate_trace_with_model(model, length=100)
     for tr in smart.trace_set:
         print(f"    {tr}")
+
+# %%
+
+for n in missing:
+    cluster = agilkia.TraceSet(cust.get_cluster(n))
+    gen_tests_for(cluster, f"cluster {n}")
+
+# %%
+    
+gen_tests_for(cust, "all customer traces", traces=30)
 
 # %% Experiment with generating ALL likely sequences.
 

@@ -50,6 +50,7 @@ import datetime
 import re
 import xml.etree.ElementTree as ET
 import pandas as pd            # type: ignore
+import numpy as np             # type: ignore
 import sklearn.cluster         # type: ignore
 import sklearn.preprocessing   # type: ignore
 import matplotlib.pyplot as plt
@@ -626,7 +627,8 @@ class TraceSet:
         return max(self.clusters) + 1
 
     def visualize_clusters(self, algorithm=None, fit: bool = True,
-                           xlim=None, ylim=None, cmap=None, marker=None,
+                           xlim=None, ylim=None, cmap=None,
+                           markers=None, markersize=None,
                            filename:str = None):
         """Visualize the clusters from create_clusters().
 
@@ -639,13 +641,34 @@ class TraceSet:
             xlim (Pair[float,float]): optional axis limits for the X axis.
             ylim (Pair[float,float]): optional axis limits for the Y axis.
             cmap (Union[ColorMap,str]): optional color map for the cluster colors, 
-                or the name of a color map.
-            marker (matplotlib.markers.MarkerStyle): optional marker style for clusters.
-            filename (str): optional file name to save image into, instead of displaying.
+                or the name of a color map.  
+                See https://matplotlib.org/3.1.1/tutorials/colors/colormaps.html.
+                Default is 'brg', which has a wide range of
+                colors going from blue through red to green, and prints in black and white
+                okay - though very non-linear - because it does not go all the way to white.
+            markers (matplotlib.markers.MarkerStyle): optional marker styles for clusters.
+                If this is a string, then the i'th character in the string will be used for
+                the i'th marker style.  See https://matplotlib.org/3.1.1/api/markers_api.html
+                for the available marker characters.  Note that clusters will be drawn from 0
+                up to n-1, so later clusters will be on top.  Also, the earlier clusters tend
+                to have more elements.  One approach to improve readability is to use line-based
+                shapes (from "1234+x|_") for the first few clusters (which have many points),
+                and then filled shapes (from ".o<^>vsphPXd*") for the later clusters
+                (which have few points).  Note also that you can use a space for the marker
+                character of a cluster if you want to not display that cluster at all.
+                However, if your markers string is shorter than the number of clusters,
+                all remaining clusters will be displayed using the "o" marker.
+            markersize (float): size of the markers in points (only when markers is a str).
+                The default seems to be about 6 points.
+            filename (str): optional file name to save image into, as well as displaying it.
+
+            Limitations: if you call this multiple times with different numbers of clusters,
+                the color map will not be exactly the same.
         """
         data = self._cluster_data
         if data is None or self.clusters is None:
             raise Exception("You must call create_clusters() before visualizing them!")
+        num_clusters = max(self.clusters) + 1
         if algorithm is None:
             if not fit:
                 raise Exception("You must supply pre-fitted algorithm when fit=False")
@@ -673,13 +696,32 @@ class TraceSet:
         if cmap is None:            
             # Choose a default colormap.  See bottom of the matplotlib page:
             #   https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
-            cmap = pltcm.get_cmap('viridis')  # sequential map with nice linear b&w printing.
+            cmap = pltcm.get_cmap('brg')  # sequential map with nice b&w printing.
         elif isinstance(cmap, str):
             cmap = pltcm.get_cmap(cmap)  # it is the name of a matplotlib color map
-        if marker is None:
-            marker = "o"
-        sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters,
-                         cmap=cmap, marker=marker)
+        if markers is None:
+            markers = "o"
+        if isinstance(markers, str) and len(markers) > 1:
+            # loop through the marker styles
+            clusters = np.ma.array(self.clusters)
+            markchars = markers + "o" * num_clusters
+            for curr in range(max(num_clusters, len(markers))):
+                #prepare for masking arrays - 'conventional' arrays won't do it
+                mask = clusters != curr  # False means unmasked
+                x_masked = np.ma.array(tsne_obj[:, 0], mask=mask)
+                y_masked = np.ma.array(tsne_obj[:, 1], mask=mask)
+                c_masked = np.ma.array(clusters, mask=mask)
+                color = cmap(curr / num_clusters)
+                print(f"  mark {curr} is '{markers[curr]}' x={x_masked[0:10]} cl={c_masked[0:10]} color={color}")
+                sc = ax.plot(x_masked, y_masked, color=color, linewidth=0, 
+                             label=f"c{curr}",
+                             marker=markchars[curr],
+                             markersize=markersize)
+            leg = ax.legend(loc='best') #, ncol=2, mode="expand", shadow=True, fancybox=True)
+            leg.get_frame().set_alpha(0.5)
+        else:
+            sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters,
+                             cmap=cmap, marker=markers)
 
         if filename:
             plt.savefig(filename)
