@@ -13,6 +13,7 @@ import datetime
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import pandas as pd   # type: ignore
+import numpy.testing as nptest
 import unittest
 import pytest         # type: ignore
 
@@ -293,8 +294,8 @@ class TestTrace(unittest.TestCase):
         trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev2, self.ev1])
         traces = agilkia.TraceSet([trace])
         traces2 = traces.with_traces_split(input_name="Name")
-        for t in traces2:
-            print(t)
+        #for t in traces2:
+        #    print(t)
         self.assertEqual(3, len(traces2))
         self.assertEqual("Mark", traces2[0].events[0].inputs["Name"])
         self.assertEqual("Merry", traces2[1].events[0].inputs["Name"])
@@ -337,6 +338,27 @@ class TestTraceSet(unittest.TestCase):
         self.assertEqual("Copy Test", traces3.set_meta("dataset", "Different Parent"))
         traces4 = agilkia.TraceSet([tr1, tr2])  # different parents
         self.assertEqual("unknown", traces4.get_meta("dataset"))
+
+    def test_clustering(self):
+        tr1 = agilkia.Trace([self.ev2, self.ev2, self.ev1]) # in cluster 1
+        tr2 = agilkia.Trace([self.ev1, self.ev1, self.ev2]) # in cluster 0
+        tr3 = agilkia.Trace([self.ev1, self.ev2, self.ev1]) # in cluster 0
+        traces1 = agilkia.TraceSet([tr1, tr2, tr3])
+        data = traces1.get_trace_data()
+        nptest.assert_array_equal(["Order", "Skip"], data.columns)
+        self.assertFalse(traces1.is_clustered())
+        n = traces1.create_clusters(data)
+        self.assertEqual(2, n)
+        self.assertTrue(traces1.is_clustered())
+        nptest.assert_array_equal([tr2, tr3], traces1.get_cluster(0))
+        nptest.assert_array_equal([tr1], traces1.get_cluster(1))
+        #
+        # Now test save then load - clusters should be lost, since they are currently transient.
+        tmp3_json = Path("tmp3.json")
+        traces1.save_to_json(tmp3_json)
+        traces2 = agilkia.TraceSet.load_from_json(tmp3_json)
+        self.assertFalse(traces2.is_clustered())
+        tmp3_json.unlink()
 
 
 class TestDefaultMapToChars(unittest.TestCase):

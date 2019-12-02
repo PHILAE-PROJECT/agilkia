@@ -489,9 +489,9 @@ class SmartSequenceGenerator(RandomTester):
         return result
 
     def generate_all_traces(self, model, length=5, action_prob=0.01, path_prob=1.0e-12,
-                            partial=True) -> List:
+                            partial=True) -> List[Trace]:
         """Generate all traces that satisfy the given constraints.
-        
+
         Args:
             model: the trained ML model used to predict the next action.
             length (int): maximum length of each generated trace.
@@ -510,14 +510,14 @@ class SmartSequenceGenerator(RandomTester):
             # print(indent + ",".join([ev.action for ev in prefix]))
             if len(prefix) >= length:
                 if partial:
-                    results.append(Trace(events=prefix))
+                    results.append(Trace(events=prefix, meta_data={"freq":prob}))
             else:
                 [proba] = model.predict_proba(prefix)
                 for i, p in enumerate(proba):
                     if p >= action_prob and prob * p >= path_prob:
                         action = model.classes_[i]
                         if action == TRACE_END:
-                            results.append(Trace(events=prefix))
+                            results.append(Trace(events=prefix, meta_data={"freq":prob * p}))
                         else:
                             if self.verbose:
                                 print(indent + f" trying {action}")

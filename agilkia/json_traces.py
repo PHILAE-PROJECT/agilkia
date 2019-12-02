@@ -30,12 +30,12 @@ Ideas / Tasks to do
     * DONE: add support for clustering traces
     * DONE: add support for visualising the clusters (TSNE).
     * DONE: add 'meta_data' to Trace and Event objects too (replace properties)
+    * DONE: add unit tests for clustering...  (Note: not saved in JSON!)
+    * DONE: split RandomTester into SmartSequenceGenerator subclass (better meta-data).
     * provide an easy way of copying meta-data across, or cloning a Trace[Set] with new traces.
-    * add unit tests for clustering...
-    * read/restore TraceSet.clusters field?  Or move into meta-data?
-    * split RandomTester into SmartTester subclass (better meta-data).
-    * add ActionChars class?
     * extend to_pandas() to allow user-defined columns to be added.
+    * split the test execution methods out of RandomTester into a delegate class,
+        so that we can generate tests without executing them, and execute without generating.
 
 @author: utting@usc.edu.au
 """
@@ -219,8 +219,6 @@ class TraceSet:
           have been lifted from the trace list up to the top-level TraceSet object, so you
           may not need to access self.traces at all.
         * self.meta_data: MetaData.  Or use get_meta(key) to get an individual meta-data value.
-        * self.clusters: List[int].  After clustering, this stores the cluster number of
-          each trace.
         * self.version: str.  Version number of this TraceSet object.
     """
 
@@ -243,7 +241,7 @@ class TraceSet:
         """
         self.version = TRACE_SET_VERSION
         self.traces = traces
-        self.clusters: List[int] = None
+        self._clusters: List[int] = None
         self._cluster_data: pd.DataFrame = None
         trace_parents = set()
         # add all the trace to this set.
@@ -619,12 +617,15 @@ class TraceSet:
         self._cluster_data = pd.DataFrame(normalizer.transform(data), columns=data.columns)
         if fit:
             algorithm.fit(self._cluster_data)
-            self.clusters = algorithm.labels_
+            self._clusters = algorithm.labels_
         else:
             print(" pre predict len=", len(algorithm.labels_))
-            self.clusters = algorithm.predict(self._cluster_data)
-            print("post predict len=", len(algorithm.labels_), len(self.clusters))
-        return max(self.clusters) + 1
+            self._clusters = algorithm.predict(self._cluster_data)
+            print("post predict len=", len(algorithm.labels_), len(self._clusters))
+        return max(self._clusters) + 1
+
+    def is_clustered(self) -> bool:
+        return self._clusters is not None
 
     def visualize_clusters(self, algorithm=None, fit: bool = True,
                            xlim=None, ylim=None, cmap=None,
@@ -666,9 +667,9 @@ class TraceSet:
                 the color map will not be exactly the same.
         """
         data = self._cluster_data
-        if data is None or self.clusters is None:
+        if data is None or self._clusters is None:
             raise Exception("You must call create_clusters() before visualizing them!")
-        num_clusters = max(self.clusters) + 1
+        num_clusters = max(self._clusters) + 1
         if algorithm is None:
             if not fit:
                 raise Exception("You must supply pre-fitted algorithm when fit=False")
@@ -703,7 +704,7 @@ class TraceSet:
             markers = "o"
         if isinstance(markers, str) and len(markers) > 1:
             # loop through the marker styles
-            clusters = np.ma.array(self.clusters)
+            clusters = np.ma.array(self._clusters)
             markchars = markers + "o" * num_clusters
             for curr in range(max(num_clusters, len(markers))):
                 #prepare for masking arrays - 'conventional' arrays won't do it
@@ -720,7 +721,7 @@ class TraceSet:
             leg = ax.legend(loc='best') #, ncol=2, mode="expand", shadow=True, fancybox=True)
             leg.get_frame().set_alpha(0.5)
         else:
-            sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.clusters,
+            sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self._clusters,
                              cmap=cmap, marker=markers)
 
         if filename:
@@ -741,7 +742,7 @@ class TraceSet:
             annot.xy = pos
             # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
             #                        " ".join([str(names[n]) for n in ind["ind"]]))
-            anns = [f"{n} ({self.clusters[n]}): {str(names[n])}" for n in ind["ind"]]
+            anns = [f"{n} ({self._clusters[n]}): {str(names[n])}" for n in ind["ind"]]
             text = "\n".join(anns)
             annot.set_text(text)
             # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
@@ -765,11 +766,11 @@ class TraceSet:
 
     def get_cluster(self, num: int) -> List[Trace]:
         """Gets a list of all the Trace objects that are in the given cluster."""
-        if self.clusters is None:
+        if self._clusters is None:
             raise Exception("You must call create_clusters() before get_cluster(_)")
-        if len(self.clusters) != len(self.traces):
+        if len(self._clusters) != len(self.traces):
             raise Exception("Traces have changed, so you must call create_clusters() again.")
-        return [tr for (i, tr) in zip(self.clusters, self.traces) if i == num]
+        return [tr for (i, tr) in zip(self._clusters, self.traces) if i == num]
 
 
 class TraceEncoder(json.JSONEncoder):
