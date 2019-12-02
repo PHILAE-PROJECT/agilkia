@@ -26,6 +26,7 @@ from sklearn.tree import export_graphviz, export_text
 import matplotlib.pyplot as plt
 from pathlib import Path
 import random
+import timeit
 
 import agilkia
 
@@ -117,7 +118,7 @@ for n in missing:
             ])
         scores = cross_val_score(pipe, X, y, cv=10, scoring='f1_macro')
         # print(scores)
-        print(f"{name:20s} & {scores.mean():0.3f} (+/- {scores.std() * 2:0.3f})")
+        print(f"{name:20s} & {scores.mean():0.3f} (+/- {scores.std() * 2:0.3f})\\\\")
 
 
 # %% Now use Decision Tree model to generate some tests.
@@ -146,6 +147,7 @@ def gen_tests_for(traceset, name, traces=5):
         smart.generate_trace_with_model(model, length=100)
     for tr in smart.trace_set:
         print(f"    {tr}")
+    return model
 
 # %%
 
@@ -155,34 +157,48 @@ for n in missing:
 
 # %%
     
-gen_tests_for(cust, "all customer traces", traces=30)
+model = gen_tests_for(cust, "all customer traces", traces=30)
 
-# %% Experiment with generating ALL likely sequences.
+# %% Get frequency of a generated trace (maybe partial)
 
-# Learn a test-generation model for all the customer traces.
-ex = agilkia.TracePrefixExtractor()
-X = ex.fit_transform(cust)
-y = ex.get_labels()
-# Train a decision tree model on this cluster
-tree = DecisionTreeClassifier()
-model = Pipeline([
-    ("Extractor", ex),
-    ("Normalize", MinMaxScaler()),
-    ("Tree", tree)
-    ])
-model.fit(cust, y)
-print(tree)
+max_length = 35
+chars = cust.get_event_chars()
+
 
 # %%
 
-chars = cust.get_event_chars()
-smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False,
-                                       action_chars=chars)
-seqs = smart.generate_all_traces(model, length=14, action_prob=0.01, path_prob=1e-2,
-                                 partial=False)
+def freq(trace:agilkia.Trace) -> float:
+    return trace.meta_data["freq"]
+    
+def gen_all():
+    smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False,
+                                           action_chars=chars)
+    seqs = smart.generate_all_traces(model, length=max_length, action_prob=0.01, path_prob=0.01,
+                                     partial=True)
+    return seqs
+
+# %% Time the test suite generation
+    
+duration = timeit.timeit(gen_all, number=10)
+print(f"duration = {duration}")
+
+# %%
+
+seqs = gen_all()
+sorted_seqs = sorted(seqs, key=freq, reverse=True)
 print(f"generated {len(seqs)} sequences")
-for tr in seqs:
-    print(f"    {tr.to_string(to_char=chars)}")
+total = 0.0
+for tr in sorted_seqs:
+    etc = "" if len(tr) < max_length else "???"
+    percent = freq(tr) * 100
+    total += percent
+    print(f"  {percent:5.2f}% {tr.to_string(to_char=chars)}{etc}")
+print(f" {total:6.2f}% total")
+
+# %%
+
+tree = model[-1]
+print(tree)
 
 # %% 
 
