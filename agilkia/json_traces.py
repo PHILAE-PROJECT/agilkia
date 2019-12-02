@@ -588,6 +588,9 @@ class TraceSet:
     def create_clusters(self, data: pd.DataFrame, algorithm=None,
                         normalizer=None, fit: bool = True) -> int:
         """Runs a clustering algorithm on the given data and remembers the clusters.
+        
+        Note that clustering results are viewed as transient, so are currently not saved
+        into JSON files.  Clustering must be repeated after loading a TraceSet.
 
         Args:
             data: a Pandas DataFrame, typically from get_trace_data(), with the i'th row
