@@ -27,7 +27,7 @@ from pathlib import Path
 from pprint import pprint
 from typing import Tuple, List, Mapping, Dict, Any, Optional, Union
 
-from . json_traces import Event, Trace, TraceSet, xml_decode, MetaData
+from . json_traces import Event, Trace, TraceSet, TraceEncoder, MetaData
 
 
 # A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
@@ -293,20 +293,15 @@ class RandomTester:
         # Since raw comes from a zeep call, it should be XML.
         if isinstance(raw, dict):
             out = raw.copy()
-            if "Status" not in out:
-                out["Status"] = 0
-            return out
-        if isinstance(raw, int):
-            return {"Status": raw}
-        if isinstance(raw, str):
-            return {"Status": 0, "string": raw}
-        out = xml_decode(raw)
-        if isinstance(out, str):
-            return {"Status": 0, "string": out}
+        elif isinstance(raw, str):
+            out = {"value": raw}
         else:
-            if "Status" not in out:
-                out["Status"] = 0
-            return out
+            out = TraceEncoder().default(raw)
+            if not isinstance(out, dict):
+                out = {"value": out}
+        if "Status" not in out:
+            out["Status"] = 0
+        return out
 
     def call_method(self, name: str, args: Dict[str, Any] = None,
                     meta_data: Optional[MetaData] = None):
