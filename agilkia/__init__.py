@@ -31,5 +31,5 @@ from . random_tester import (read_input_rules, uniq, build_interface, print_sign
                              TracePrefixExtractor, RandomTester, SmartSequenceGenerator,
                              DUMP_WSDL, DUMP_SIGNATURES, GOOD_PASSWORD, TRACE_END)
 from . json_traces import (Event, Trace, TraceSet, TraceEncoder, TRACE_SET_VERSION,
-                           xml_decode, all_action_names, safe_name,
+                           MetaData, xml_decode, all_action_names, safe_name,
                            default_map_to_chars, trace_to_string, traces_to_pandas)

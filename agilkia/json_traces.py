@@ -88,7 +88,7 @@ class Event:
         self.action = action
         self.inputs = inputs
         self.outputs = outputs
-        self.meta_data: MetaData = {} if meta_data is None else meta_data
+        self.meta_data: MetaData = {} if meta_data is None else meta_data.copy()
 
     @property
     def status(self) -> int:

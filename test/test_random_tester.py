@@ -93,13 +93,15 @@ class TestRandomTester(unittest.TestCase):
                                       rand=random.Random(1234))
         print("Methods:", tester.get_methods())
         out1 = tester.call_method("Method1")
-        self.assertEqual("Your input parameters are VAL1 and p2AAA", out1)
+        expect = {"Status": 0, "string": "Your input parameters are VAL1 and p2AAA"}
+        self.assertEqual(expect, out1.outputs)
         out1 = tester.call_method("Method1")
-        self.assertEqual("Your input parameters are VAL1 and p2AAA", out1)
+        self.assertEqual(expect, out1.outputs)
         out1 = tester.call_method("Method1")
-        self.assertEqual("Your input parameters are VAL1 and p2AAA", out1)
+        self.assertEqual(expect, out1.outputs)
         out1 = tester.call_method("Method1")
-        self.assertEqual("Your input parameters are VAL1 and p2BBB", out1)
+        expect["string"] = "Your input parameters are VAL1 and p2BBB"
+        self.assertEqual(expect, out1.outputs)
         self.assertEqual(4, len(tester.curr_events))
         self.assertEqual(1, len(tester.trace_set.traces))
         # now generate a second trace
@@ -121,6 +123,12 @@ class TestRandomTester(unittest.TestCase):
         tr = self.tester.generate_trace()
         self.assertTrue(isinstance(tr, agilkia.Trace))
         self.assertEqual(20, len(tr.events))
+
+    def test_decode_outputs(self):
+        self.assertEqual({'Status': 3}, self.tester.decode_outputs(3))
+        self.assertEqual({'Status': 0, "string": "abc"}, self.tester.decode_outputs("abc"))
+        self.assertEqual({'Status': 0, "a": 2}, self.tester.decode_outputs({"a": 2}))
+        # Also, zeep XML object outputs are tested in test_dummy_client0 above.
 
 
 class TestTracePrefixExtractor(unittest.TestCase):

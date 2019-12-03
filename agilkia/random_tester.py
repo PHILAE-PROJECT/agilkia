@@ -27,7 +27,7 @@ from pathlib import Path
 from pprint import pprint
 from typing import Tuple, List, Mapping, Dict, Any, Optional, Union
 
-from . json_traces import Event, Trace, TraceSet
+from . json_traces import Event, Trace, TraceSet, xml_decode, MetaData
 
 
 # A signature of a method maps "input"/"output" to the dictionary of input/output names and types.
@@ -284,7 +284,32 @@ class RandomTester:
             methods.update(interface)
         return methods
 
-    def call_method(self, name: str, args: Dict[str, Any] = None):
+    def decode_outputs(self, raw) -> Dict[str, Any]:
+        """Decode the outputs from a web service/site call into a dictionary.
+        
+        This adds a 'Status' entry in the output dictionary,
+        to say if the operation was successful (0) or not (non-zero).
+        """
+        # Since raw comes from a zeep call, it should be XML.
+        if isinstance(raw, dict):
+            out = raw.copy()
+            if "Status" not in out:
+                out["Status"] = 0
+            return out
+        if isinstance(raw, int):
+            return {"Status": raw}
+        if isinstance(raw, str):
+            return {"Status": 0, "string": raw}
+        out = xml_decode(raw)
+        if isinstance(out, str):
+            return {"Status": 0, "string": out}
+        else:
+            if "Status" not in out:
+                out["Status"] = 0
+            return out
+
+    def call_method(self, name: str, args: Dict[str, Any] = None,
+                    meta_data: Optional[MetaData] = None):
         """Call the web service name(args) and add the result to trace.
 
         Args:
@@ -292,13 +317,14 @@ class RandomTester:
             args (dict): the input values for the method.  If args=None, then this method uses
                 'choose_input_value' to choose appropriate values for each argument
                 value of the method.
+            meta_data: optional meta data to add to the resulting Event.
         Returns:
         Before the call, this method replaces some symbolic inputs by actual concrete values.
         For example the correct password token is replaced by the real password --
         this avoids recording the real password in the inputs of the trace.
 
         Returns:
-            all the data returned by the method.
+            The whole Event object created by this method call.
         """
         (client, signature) = self._find_method(name)
         inputs = signature["input"]
@@ -314,11 +340,13 @@ class RandomTester:
         else:
             # insert special secret argument values if requested
             args_list = [self._insert_password(arg) for (n, arg) in args.items()]
-            out = getattr(client.service, name)(*args_list)
-        self.curr_events.append(Event(name, args, out))
+            raw_out = getattr(client.service, name)(*args_list)
+            out = self.decode_outputs(raw_out)
+        event = Event(name, args, out, meta_data=meta_data)
+        self.curr_events.append(event)
         if self.verbose:
-            print(f"    -> {summary(out)}")
-        return out
+            print(f"      -> {summary(event.output)}")
+        return event
 
     def generate_trace(self, start=True, length=20, methods: List[str] = None) -> Trace:
         """Generates the requested length of test steps, choosing methods at random.
@@ -553,8 +581,8 @@ class SmartSequenceGenerator(RandomTester):
         self.generate_trace(start=True, length=0)
         for ev in trace:
             for i in range(1 + max_retry):
-                out = self.call_method(ev.action, ev.inputs)
-                if out.get('Status', 0) == 0:
+                ev2 = self.call_method(ev.action, ev.inputs, meta_data=ev.meta_data)
+                if ev2.status == 0:
                     break
                 else:
                     if self.verbose and i < max_retry:
