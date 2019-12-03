@@ -302,7 +302,7 @@ class RandomTester:
         """
         (client, signature) = self._find_method(name)
         inputs = signature["input"]
-        if args is None:
+        if args is None or (len(args) == 0 and len(inputs) > 0):
             args = {n: self.choose_input_value(n) for n in inputs.keys()}
         if None in args.values():
             print(f"skipping method {name}.  Please define missing input values.")
