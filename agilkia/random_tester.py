@@ -538,16 +538,27 @@ class SmartSequenceGenerator(RandomTester):
         depth_first_search([], 1.0)
         return results
 
-    def execute_test(self, trace:Trace):
+    def execute_test(self, trace:Trace, max_retry:int=0):
         """Executes the given test trace and adds the resulting trace to this set.
         
         Note that if the given trace contains events with missing input values, then
         suitable input values will be generated using 'choose_input_value'.
         Progress messages will be printed if self.verbose is True.
+        
+        Args:
+            trace: the trace to execute (with or without input values).
+            max_retry: retry failed operations up to this number of times,
+                choosing different random input values each time.
         """
         self.generate_trace(start=True, length=0)
         for ev in trace:
-            self.call_method(ev.action, ev.inputs)
+            for i in range(1 + max_retry):
+                out = self.call_method(ev.action, ev.inputs)
+                if out.get('Status', 0) == 0:
+                    break
+                else:
+                    if self.verbose and i < max_retry:
+                        print(f"    retry {i+1} ...")
 
 
 if __name__ == "__main__":
