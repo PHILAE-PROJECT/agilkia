@@ -88,7 +88,7 @@ class TestRandomTester(unittest.TestCase):
 
     def test_dummy_client0(self):
         """Test the dummy web service provided by soapresponder."""
-        tester = agilkia.RandomTester(WSDL_EG,
+        tester = agilkia.RandomTester(WSDL_EG, verbose=True,
                                       input_rules=test_input_rules,
                                       rand=random.Random(1234))
         print("Methods:", tester.get_methods())

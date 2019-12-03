@@ -67,12 +67,6 @@ def read_input_rules(file: Path) -> InputRules:
     return input_rules
 
 
-def summary(value) -> str:
-    """Returns a one-line summary of the given value."""
-    s = str(value).replace("\n", "").replace(" ", "")
-    return s[:60]
-
-
 def uniq(d):
     """Returns the unique value of a dictionary, else an empty dictionary."""
     result = {}
@@ -284,6 +278,11 @@ class RandomTester:
             methods.update(interface)
         return methods
 
+    def summary(self, value) -> str:
+        """Returns a one-line summary of the given value."""
+        s = str(value).replace("\n", "").replace(" ", "")
+        return s[:95]
+
     def decode_outputs(self, raw) -> Dict[str, Any]:
         """Decode the outputs from a web service/site call into a dictionary.
         
@@ -340,7 +339,7 @@ class RandomTester:
         event = Event(name, args, out, meta_data=meta_data)
         self.curr_events.append(event)
         if self.verbose:
-            print(f"      -> {summary(event.outputs)}")
+            print(f"      -> {self.summary(event.outputs)}")
         return event
 
     def generate_trace(self, start=True, length=20, methods: List[str] = None) -> Trace:
