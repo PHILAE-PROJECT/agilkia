@@ -440,7 +440,9 @@ class SmartSequenceGenerator(RandomTester):
     """Generates test sequences from an ML model that suggests what actions can come next."""
     
     def __init__(self,
-                 methods:Dict[str, Signature],
+                 urls: Union[str, List[str]],
+                 method_signatures:Dict[str, Signature] = None,
+                 methods_to_test: List[str] = None,
                  input_rules: Dict[str, List] = None,
                  rand: random.Random = None,
                  action_chars: Mapping[str, str] = None,
@@ -448,16 +450,27 @@ class SmartSequenceGenerator(RandomTester):
         """A test sequence generator that uses a machine learning model to predict next action.
         
         Args:
-            model: the ML model to use to generate the next event.
-                This model must support the 'predict_proba' method.
+            urls: Optional list of WSDL URLs.  If this is the empty list, then
+                method_signatures must be provided.
+            method_signatures: Optional mapping from method names to input/output signatures.
+                This will be inferred automatically if urls is provided.
+            methods_to_test (List[str]): only these methods will be tested (None means all).
+            input_rules (Dict[str,List]): maps each input parameter name to a list of
+                possible values, one of which will be chosen randomly.
+            rand (random.Random): the random number generator used to generate tests.
+            action_chars (Mapping[str, str]): optional action-to-character map, for visualisation.
+            verbose (bool): True means print progress messages during test generation.
         """
-        super().__init__([], methods_to_test=list(methods.keys()), input_rules=input_rules,
+        if methods_to_test is None and method_signatures is not None:
+            methods_to_test = list(method_signatures.keys())
+        super().__init__(urls, methods_to_test=methods_to_test, input_rules=input_rules,
                          rand=rand, action_chars=action_chars, verbose=verbose)
-        # Quick hack to get some dummy signatures set up
-        self.clients_and_methods.append((None, methods))
-        self.trace_set.meta_data["method_signatures"].update(methods)
+        # Quick hack to get some dummy signatures set up when running offline (no web service)
+        if not urls:
+            self.clients_and_methods.append((None, method_signatures))
+            self.trace_set.meta_data["method_signatures"].update(method_signatures)
         if self.methods_to_test is None:
-            self.methods_allowed += sorted(list(methods.keys()))
+            self.methods_allowed += sorted(list(method_signatures.keys()))
 
     def generate_trace_with_model(self, model, start=True, length=20):
         """Generates one sequence test steps, choosing actions using the given model.
@@ -524,6 +537,17 @@ class SmartSequenceGenerator(RandomTester):
                             depth_first_search(prefix + [Event(action,{},{})], prob * p)
         depth_first_search([], 1.0)
         return results
+
+    def execute_test(self, trace:Trace):
+        """Executes the given test trace and adds the resulting trace to this set.
+        
+        Note that if the given trace contains events with missing input values, then
+        suitable input values will be generated using 'choose_input_value'.
+        Progress messages will be printed if self.verbose is True.
+        """
+        self.generate_trace(start=True, length=0)
+        for ev in trace:
+            self.call_method(ev.action, ev.inputs)
 
 
 if __name__ == "__main__":

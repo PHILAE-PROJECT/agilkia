@@ -171,8 +171,8 @@ def freq(trace:agilkia.Trace) -> float:
     return trace.meta_data["freq"]
     
 def gen_all():
-    smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False,
-                                           action_chars=chars)
+    smart = agilkia.SmartSequenceGenerator(urls=[], method_signatures=signature, 
+                                           verbose=False, action_chars=chars)
     seqs = smart.generate_all_traces(model, length=max_length, action_prob=0.01, path_prob=0.01,
                                      partial=True)
     return seqs
