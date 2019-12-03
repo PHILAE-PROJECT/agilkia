@@ -340,7 +340,7 @@ class RandomTester:
         event = Event(name, args, out, meta_data=meta_data)
         self.curr_events.append(event)
         if self.verbose:
-            print(f"      -> {summary(event.output)}")
+            print(f"      -> {summary(event.outputs)}")
         return event
 
     def generate_trace(self, start=True, length=20, methods: List[str] = None) -> Trace:
