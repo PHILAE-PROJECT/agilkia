@@ -31,8 +31,16 @@ import matplotlib.markers as pltmarkers
 # This import registers the 3D projection, but is otherwise unused.
 from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 from collections import Counter
+import sys
 
 import agilkia
+
+# %%
+
+DISPLAY_TIME = 3
+TEST_MODE = "--test" in sys.argv
+if TEST_MODE:
+    print(f"Running in test mode - all figures will close after {DISPLAY_TIME} seconds.")
 
 # %%
 
@@ -134,7 +142,7 @@ with Path("clusters_out.txt").open("w") as out:
 
 # %% Count number of traces in each cluster
 
-counts = Counter(traceset3.clusters)
+counts = Counter(traceset3.get_clusters())
 count_pairs = sorted(list(counts.items()))
 print("cluster sizes:")
 for c,n in count_pairs:
@@ -145,7 +153,7 @@ for c,n in count_pairs:
 
 # %% Visualise clusters (using default TSNE) - not great for this example
 
-traceset3.visualize_clusters()
+traceset3.visualize_clusters(block=(not TEST_MODE))
 
 # %% Visualise cluster using PCA to map them into 2D.
 
@@ -158,9 +166,8 @@ vis = PCA(n_components=2)
 traceset3.visualize_clusters(algorithm=vis, xlim=xlim, ylim=ylim,
                              markers=markers,
                              markersize=9,
-                             filename="scanette_clusters.pdf")
-
-# marker="o<^>vsphPXd*."
+                             filename="scanette_clusters.pdf",
+                             block=(not TEST_MODE))
 
 # %% Print PCA dimensions
 
@@ -250,7 +257,7 @@ test_pairs = sorted(list(test_counts.items()))
 plt.bar([x for (x,y) in count_pairs], [y for (x,y) in count_pairs], width=0.4, log=True)
 plt.bar([x+0.4 for (x,y) in test_pairs], [y for (x,y) in test_pairs], width=0.4, log=True)
 plt.savefig("cust_vs_tests_log.pdf")
-plt.show()
+plt.show(block=(not TEST_MODE))
 print("Number of tests =", sum([v for (_,v) in test_pairs]))
 
 # %% Visualise them into the SAME clusters by passing in the pre-fitted models
@@ -258,22 +265,23 @@ print("Number of tests =", sum([v for (_,v) in test_pairs]))
 #print(vis.transform(test_data))
 n = tests2.create_clusters(test_data, algorithm=clusterer, normalizer=normalizer, fit=False)
 print("clusters=", n)
-print(tests2.clusters)
-print(len(tests2.clusters))
+print(tests2.get_clusters())
+print(len(tests2.get_clusters()))
 
 # %%
 
 tests2.visualize_clusters(algorithm=vis, fit=False,
                           xlim=xlim, ylim=ylim,
                           markers=markers, markersize=9,
-                          filename="test_clusters.pdf")
+                          filename="test_clusters.pdf",
+                          block=(not TEST_MODE))
 
 
 # %%
 
 print("Trying 3D plot...")
 vis3 = PCA(n_components=3)
-traceset3.visualize_clusters(algorithm=vis3)
+traceset3.visualize_clusters(algorithm=vis3, block=(not TEST_MODE))
 
 plot_data = vis3.transform(normalizer.transform(data))
 print(plot_data[:10])
@@ -285,6 +293,8 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 colors = pltcm.get_cmap('hsv')
 
-ax.scatter(plot_data[:, 0], plot_data[:, 1], plot_data[:, 2], c=traceset3.clusters, cmap=colors)
-ax.scatter(plot_test[:, 0], plot_test[:, 1], plot_test[:, 2], c=tests.clusters, cmap=colors, marker="+")
-plt.show()
+ax.scatter(plot_data[:, 0], plot_data[:, 1], plot_data[:, 2],
+           c=traceset3.get_clusters(), cmap=colors)
+ax.scatter(plot_test[:, 0], plot_test[:, 1], plot_test[:, 2],
+           c=tests.get_clusters(), cmap=colors, marker="+")
+plt.show(block=(not TEST_MODE))

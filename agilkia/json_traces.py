@@ -630,10 +630,17 @@ class TraceSet:
     def is_clustered(self) -> bool:
         return self._clusters is not None
 
+    def get_clusters(self) -> List[int]:
+        """Get the list of cluster numbers for each trace.
+        
+        Precondition: self.is_clustered()
+        """
+        return self._clusters
+
     def visualize_clusters(self, algorithm=None, fit: bool = True,
                            xlim=None, ylim=None, cmap=None,
                            markers=None, markersize=None,
-                           filename:str = None):
+                           filename:str = None, block:bool=True):
         """Visualize the clusters from create_clusters().
 
         Args:
@@ -665,6 +672,8 @@ class TraceSet:
             markersize (float): size of the markers in points (only when markers is a str).
                 The default seems to be about 6 points.
             filename (str): optional file name to save image into, as well as displaying it.
+            block (bool): True (the default) means wait for user to close figure before
+                returning.  False means non-blocking.
 
             Limitations: if you call this multiple times with different numbers of clusters,
                 the color map will not be exactly the same.
@@ -765,7 +774,7 @@ class TraceSet:
                         fig.canvas.draw_idle()
 
         fig.canvas.mpl_connect("motion_notify_event", hover)
-        plt.show()
+        plt.show(block=block)
 
     def get_cluster(self, num: int) -> List[Trace]:
         """Gets a list of all the Trace objects that are in the given cluster."""

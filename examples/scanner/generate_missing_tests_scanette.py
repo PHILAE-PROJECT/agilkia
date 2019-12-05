@@ -27,8 +27,16 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import random
 import timeit
+import sys
 
 import agilkia
+
+# %%
+
+DISPLAY_TIME = 3
+TEST_MODE = "--test" in sys.argv
+if TEST_MODE:
+    print(f"Running in test mode - all figures will close after {DISPLAY_TIME} seconds.")
 
 # %%
 
@@ -62,7 +70,10 @@ for i in range(num_clusters):
 # %% Visualise clusters (using TSNE)
 
 vis = PCA(n_components=2)
-cust.visualize_clusters(algorithm=vis)
+cust.visualize_clusters(algorithm=vis, block=(not TEST_MODE))
+if TEST_MODE:
+    plt.pause(3)
+    plt.close()
 
 # %%
 
@@ -130,7 +141,7 @@ def gen_tests_for(traceset, name, traces=5):
     ex = agilkia.TracePrefixExtractor()
     X = ex.fit_transform(traceset)
     y = ex.get_labels()
-    print(f"  it has {len(y)} trace prefixes")
+    print(f"  it has {len(X)} trace prefixes")
     # Train a decision tree model on this cluster
     model = Pipeline([
         ("Extractor", ex),
@@ -140,7 +151,7 @@ def gen_tests_for(traceset, name, traces=5):
     model.fit(traceset, y)
     
     rand = random.Random(1234)
-    smart = agilkia.SmartSequenceGenerator(methods=signature, verbose=False, rand=rand)
+    smart = agilkia.SmartSequenceGenerator([], method_signatures=signature, rand=rand)
     smart.trace_set.set_event_chars(traceset.get_event_chars())
     # generate some tests
     for i in range(traces):
@@ -179,8 +190,8 @@ def gen_all():
 
 # %% Time the test suite generation
     
-duration = timeit.timeit(gen_all, number=10)
-print(f"duration = {duration}")
+duration = timeit.timeit(gen_all, number=10) / 10.0
+print(f"duration = {duration} seconds")
 
 # %%
 
@@ -197,6 +208,7 @@ print(f" {total:6.2f}% total")
 
 # %%
 
+ex = model[0]
 tree = model[-1]
 print(tree)
 
@@ -215,11 +227,11 @@ print(tree_str)
 
 # %%
 
-# Convert to png using system command (requires Graphviz)
-from subprocess import call
-call(['dot', '-Tpng', 'tree.dot', '-o', 'tree.png', '-Gdpi=600'])
+if not TEST_MODE:
+    # Convert to png using system command (requires Graphviz)
+    from subprocess import call
+    call(['dot', '-Tpng', 'tree.dot', '-o', 'tree.png', '-Gdpi=300'])
 
-# %%
-# Display in jupyter notebook
-from IPython.display import Image
-Image(filename = 'tree.png')
+    # Display in jupyter notebook (does not work in Spyder)
+    from IPython.display import Image
+    Image(filename = 'tree.png')

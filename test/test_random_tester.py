@@ -140,7 +140,7 @@ class TestTracePrefixExtractor(unittest.TestCase):
         tr1 = agilkia.Trace([self.ev1, self.ev2])
         tr2 = agilkia.Trace([self.ev3])
         traces = agilkia.TraceSet([tr1, tr1, tr2])
-        self.assertEquals(3, len(traces))
+        self.assertEqual(3, len(traces))
         sut = agilkia.TracePrefixExtractor()
         sut.fit(traces)
         self.assertEqual(["Order", "Pay", "Skip"], sut.get_feature_names())
