@@ -179,6 +179,24 @@ class TestJsonTraces(unittest.TestCase):
         tmp2_json.unlink()
 
 
+class TestEvent(unittest.TestCase):
+    """Unit tests for agilkia.Event."""
+
+    ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": -2, "Error": "unknown name"})
+    ev2 = agilkia.Event("Order", {"Name": "Other"}, {})
+
+    def test_status(self):
+        self.assertEqual(-2, self.ev1.status)
+        self.assertEqual(0, self.ev2.status)
+
+    def test_error_message(self):
+        self.assertEqual("unknown name", self.ev1.error_message)
+        self.assertEqual("", self.ev2.error_message)
+
+    def test_str(self):
+        self.assertEqual("Event(Order, {'Name': 'Other'}, {})", str(self.ev2))
+
+
 class TestTrace(unittest.TestCase):
     """Unit tests for agilkia.Trace and agilkia.TraceSet."""
 
@@ -319,13 +337,13 @@ class TestTrace(unittest.TestCase):
 
 class TestTraceSet(unittest.TestCase):
     """Unit tests specifically for agilkia.TraceSet.
-    
+
     TODO: move some of the above tests into this class too.
     """
 
     ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
     ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
-    
+
     def test_meta_data_copy(self):
         tr1 = agilkia.Trace([self.ev1])
         tr2 = agilkia.Trace([self.ev2])

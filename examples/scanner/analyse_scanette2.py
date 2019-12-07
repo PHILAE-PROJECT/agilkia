@@ -146,8 +146,8 @@ counts = Counter(traceset3.get_clusters())
 count_pairs = sorted(list(counts.items()))
 print("cluster sizes:")
 for c,n in count_pairs:
-    print(f"    {c:2d}  {n:4d}")
-    
+    print(f"    {c:3d}  {n:4d}")
+
 # or graph them:
 # plt.bar([x for (x,y) in count_pairs], [y for (x,y) in count_pairs], log=True)
 
@@ -183,14 +183,15 @@ print("Total explained variance ratio:", sum(vis.explained_variance_ratio_))
 # %% Read traces from functional tests
 
 tests = read_traces_csv(Path("tests_1571927354131.csv"))
-tests.set_event_chars(traceset3.get_event_chars())
+event_chars3 = traceset3.get_event_chars()
+tests.set_event_chars(event_chars3)
 print(f"Reading system tests - one trace, {len(tests[0])} events.")
 
 # %% Split tests into separate traces
 
 tests2 = tests.with_traces_grouped_by("sessionID", property=True)
-for tr in tests2:
-    print("   ", tr)
+assert tests2.get_event_chars() == event_chars3
+
 print(f"Split into {len(tests2)} test traces, saved into tests_split.json")
 tests2.save_to_json(Path("tests_split.json"))
 
@@ -215,7 +216,7 @@ else:
     test_data.insert(0, 'none', 0)
     keep = ['debloquer_0', 'scanner_0', 'scanner_-2', 'transmission_0', 'abandon_0',
        'ouvrirSession_0', 'none', 'fermerSession_0',
-       'payer_-102', 'payer_-42', 'payer_0', 'payer_-4', 
+       'payer_-102', 'payer_-42', 'payer_0', 'payer_-4',
        'none',  # transmission_1
        'payer_-1', 'payer_2',
        'none', 'none', 'none', 'none',  # extras
@@ -230,7 +231,7 @@ if not all([c1[:5]==c2[:5] for (c1,c2) in zip(data.columns,test_data.columns) if
 # %% Put the test traces into the original clusters from above.
 
 # NOTE: with action_status_counts, we cannot use same normalizer here, because of error:
-#    
+#
 #  File "/Users/utting/anaconda3/envs/bus-testing/lib/python3.7/site-packages/sklearn/preprocessing/data.py", line 389, in transform
 #    X *= self.scale_
 #
@@ -259,6 +260,10 @@ plt.bar([x+0.4 for (x,y) in test_pairs], [y for (x,y) in test_pairs], width=0.4,
 plt.savefig("cust_vs_tests_log.pdf")
 plt.show(block=(not TEST_MODE))
 print("Number of tests =", sum([v for (_,v) in test_pairs]))
+
+# %% check test cluster results (when regression testing)
+
+assert test_pairs == [(0, 7), (1, 9), (2, 2), (6, 2), (7, 8), (10, 1), (11, 1)]
 
 # %% Visualise them into the SAME clusters by passing in the pre-fitted models
 

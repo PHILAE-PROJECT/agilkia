@@ -104,10 +104,14 @@ class Event:
         """
         return self.outputs.get("Error", "")
 
+    def __str__(self):
+        """Shows action, inputs and outputs, but elides any meta-data."""
+        return f"Event({self.action}, {self.inputs}, {self.outputs})"
+
 
 class Trace:
     """Represents a single trace, which contains a sequence of events.
-    
+
     Public data fields include:
         * self.events: List[Event].  However, the iteration, indexing, and len(_) methods
           have been lifted from the events list up to this Trace object, so you
@@ -213,7 +217,7 @@ class TraceSet:
         * forall tr:self.traces (tr._parent is self)
           (TODO: set _parent to None when a trace is removed?)
         * self.meta_data is a dict with keys: date, source at least.
-        
+
     Public data fields include:
         * self.traces: List[Trace].  However, the iteration, indexing, and len(_) methods
           have been lifted from the trace list up to the top-level TraceSet object, so you
@@ -305,7 +309,7 @@ class TraceSet:
         """Sets the requested meta data, and returns the old value if any."""
         old = None
         if key in self.meta_data:
-            old = self.meta_data[key] 
+            old = self.meta_data[key]
         self.meta_data[key] = value
         return old
 
@@ -564,7 +568,7 @@ class TraceSet:
 
         Note: you can add more data-gathering methods by defining a subclass of Trace
         and using that subclass when you create Trace objects.
-        
+
         Args:
             method: the name of one of the methods in the Trace objects.
                 This method must return a Dict[str, number] for some kind of number.
@@ -580,7 +584,11 @@ class TraceSet:
         """
         trace_data = [getattr(tr, method)() for tr in self.traces]
         if columns is None:
-            columns = self.get_all_actions()
+            # columns is the sorted list of the union of all keys in trace_data.
+            keys = set()
+            for d in trace_data:
+                keys.update(set(d.keys()))
+            columns = sorted(list(keys))
         data = pd.DataFrame(trace_data, columns=columns)
         data.fillna(value=0, inplace=True)
         return data
@@ -588,7 +596,7 @@ class TraceSet:
     def create_clusters(self, data: pd.DataFrame, algorithm=None,
                         normalizer=None, fit: bool = True) -> int:
         """Runs a clustering algorithm on the given data and remembers the clusters.
-        
+
         Note that clustering results are viewed as transient, so are currently not saved
         into JSON files.  Clustering must be repeated after loading a TraceSet.
 
@@ -632,7 +640,7 @@ class TraceSet:
 
     def get_clusters(self) -> List[int]:
         """Get the list of cluster numbers for each trace.
-        
+
         Precondition: self.is_clustered()
         """
         return self._clusters
@@ -651,8 +659,8 @@ class TraceSet:
                 If you want fit=False, use another dimension-reduction algorithm like PCA(...).
             xlim (Pair[float,float]): optional axis limits for the X axis.
             ylim (Pair[float,float]): optional axis limits for the Y axis.
-            cmap (Union[ColorMap,str]): optional color map for the cluster colors, 
-                or the name of a color map.  
+            cmap (Union[ColorMap,str]): optional color map for the cluster colors,
+                or the name of a color map.
                 See https://matplotlib.org/3.1.1/tutorials/colors/colormaps.html.
                 Default is 'brg', which has a wide range of
                 colors going from blue through red to green, and prints in black and white
@@ -692,7 +700,7 @@ class TraceSet:
             tsne_obj = algorithm.fit_transform(data)
         else:
             tsne_obj = algorithm.transform(data)
-        print(tsne_obj[0:5])
+        # print(tsne_obj[0:5])
 
         # All the following complex stuff is for adding a 'show label on mouse over' feature
         # to the visualisation scatter graph.
@@ -706,7 +714,7 @@ class TraceSet:
             ax.set_xlim(xlim)
         if ylim:
             ax.set_ylim(ylim)
-        if cmap is None:            
+        if cmap is None:
             # Choose a default colormap.  See bottom of the matplotlib page:
             #   https://matplotlib.org/3.1.0/tutorials/colors/colormaps.html
             cmap = pltcm.get_cmap('brg')  # sequential map with nice b&w printing.
@@ -723,10 +731,10 @@ class TraceSet:
                 mask = clusters != curr  # False means unmasked
                 x_masked = np.ma.array(tsne_obj[:, 0], mask=mask)
                 y_masked = np.ma.array(tsne_obj[:, 1], mask=mask)
-                c_masked = np.ma.array(clusters, mask=mask)
                 color = cmap(curr / num_clusters)
-                print(f"  mark {curr} is '{markers[curr]}' x={x_masked[0:10]} cl={c_masked[0:10]} color={color}")
-                sc = ax.plot(x_masked, y_masked, color=color, linewidth=0, 
+                # c_masked = np.ma.array(clusters, mask=mask)
+                # print(f"DEBUG:  mark {curr} is '{markers[curr]}' x={x_masked[0:10]} cl={c_masked[0:10]} color={color}")
+                sc = ax.plot(x_masked, y_masked, color=color, linewidth=0,
                              label=f"c{curr}",
                              marker=markchars[curr],
                              markersize=markersize)
