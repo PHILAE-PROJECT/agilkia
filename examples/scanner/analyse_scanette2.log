@@ -1,0 +1,132 @@
+Event chars:
+   {'scanner': '.', 'abandon': 'a', 'supprimer': 'd', 'ajouter': '+', 'debloquer': 'u', 'fermerSession': 'c', 'ouvrirSession': 'o', 'payer': 'p', 'transmission': 't'}
+One long trace, saved to log_one.json.  Length=65274 events.
+u.uuu...................ta.uo++..c...p.taup....ta.uo.+.c.p.......ta.uo..+.+...c..p.....tauo.+ta.uco.p++.ta.ucp.p.........tauo..+...+..c....p......taupt........tau..p.........ta.u.o..+...cp....ta..uota etc
+
+
+==== grouped by sessionID number ====
+    u.............tao++cp
+    u.......tao+cp
+    u.....tao++cp
+    u.......tap
+    u.......tao+cp
+    u.......tao++cp
+    u.............t...........tao+cp
+    u.....tap
+    u....tao++cp
+    u.............tao+cp
+    etc
+4818 traces now, saved into log_split.json
+supprimer           41.0
+fermerSession     2213.0
+ouvrirSession     2213.0
+ajouter           2969.0
+payer             4788.0
+abandon           4814.0
+debloquer         4818.0
+transmission      5252.0
+scanner          38166.0
+dtype: float64
+    running MeanShift on 4818 traces.
+13 clusters found - see clusters_out.txt
+cluster sizes:
+      0  2314
+      1  1996
+      2   218
+      3   129
+      4    45
+      5    40
+      6    35
+      7    26
+      8     4
+      9     5
+     10     3
+     11     2
+     12     1
+    running TSNE on 4818 traces.
+    running PCA on 4818 traces.
+Index(['abandon', 'ajouter', 'debloquer', 'fermerSession', 'ouvrirSession',
+       'payer', 'scanner', 'supprimer', 'transmission'],
+      dtype='object')
+PCA components:
+[[ 1.08574916e-03  1.88839674e-01  0.00000000e+00  6.93820161e-01
+   6.93820161e-01  8.04723931e-03  3.66420681e-02  1.15196671e-02
+  -5.04620129e-03]
+ [ 1.29916869e-02  3.57844949e-02  8.32667268e-17 -2.16432406e-02
+  -2.16432406e-02  5.36304900e-03  7.29272982e-01 -5.21923020e-03
+   6.82435888e-01]]
+PCA explained variance ratios:
+[0.88764228 0.05702309]
+Total explained variance ratio: 0.9446653742547825
+Reading system tests - one trace, 361 events.
+Split into 30 test traces, saved into tests_split.json
+     Trace  Event        Action  Status Error             param
+0        0      0     debloquer       0                     NaN
+1        0      1       scanner       0           5410188006711
+2        0      2       scanner       0           5410188006711
+3        0      3       scanner       0           5410188006711
+4        0      4       scanner       0           8715700110622
+..     ...    ...           ...     ...   ...               ...
+356     29     14       scanner       0           8715700110622
+357     29     15       scanner       0           8715700110622
+358     29     16       scanner       0             45496420598
+359     29     17  transmission       0        caisse1982791261
+360     29     18       abandon       0                     NaN
+
+[361 rows x 6 columns]
+
+Action frequencies:
+ scanner          193
+debloquer         36
+transmission      36
+abandon           34
+payer             23
+ouvrirSession     18
+fermerSession     14
+supprimer          7
+Name: Action, dtype: int64
+
+Status frequencies:
+  0      322
+-2       18
+-1       11
+-42       6
+ 2        2
+-102      1
+-4        1
+Name: Status, dtype: int64
+tests clustered - see test_clusters_out.txt
+[ 1 10  0  7  1  6  1  1  7  0  2  1  1  1  2  6  7  1  0  7  7  0  0  1
+  7 11  7  0  0  7]
+{'scanner': '.', 'abandon': 'a', 'supprimer': 'd', 'ajouter': '+', 'debloquer': 'u', 'fermerSession': 'c', 'ouvrirSession': 'o', 'payer': 'p', 'transmission': 't'}
+Number of tests = 30
+    running MeanShift on 30 traces.
+ pre predict len= 4818
+post predict len= 4818 30
+clusters= 12
+[ 1 10  0  7  1  6  1  1  7  0  2  1  1  1  2  6  7  1  0  7  7  0  0  1
+  7 11  7  0  0  7]
+30
+    running PCA on 30 traces.
+Trying 3D plot...
+    running PCA on 4818 traces.
+[[ 0.81015622  0.10399462  0.17419365]
+ [ 0.76359419 -0.0781878  -0.03311689]
+ [ 0.79843076 -0.12937274 -0.02844883]
+ [-0.66181407 -0.04205821  0.02378159]
+ [ 0.76359419 -0.0781878  -0.03311689]
+ [ 0.80136212 -0.0710309   0.02221179]
+ [ 0.78598769  0.75893578  0.05134057]
+ [-0.66474543 -0.10040005 -0.02687903]
+ [ 0.79696508 -0.15854365 -0.05377915]
+ [ 0.77238828  0.09683772  0.11886497]]
+[[ 0.72729194 -0.05617378 -0.06311526]
+ [-0.65980732 -0.08181141  0.22154113]
+ [-0.66327975 -0.07122913 -0.00154872]
+ [-0.67132699 -0.07659218  0.18252836]
+ [ 0.71777901 -0.09070774  0.09563151]
+ [ 0.73734592 -0.09056392 -0.0494328 ]
+ [ 0.72729194 -0.05617378 -0.06311526]
+ [ 0.72801076 -0.19666532 -0.37384389]
+ [ 0.0313156   0.46017064 -0.08048682]
+ [-0.66181407 -0.04205821  0.02378159]]

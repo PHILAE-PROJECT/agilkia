@@ -1,0 +1,591 @@
+Loaded 4818 customer traces from log_split.json
+{'scanner': '.', 'abandon': 'a', 'supprimer': 'd', 'ajouter': '+', 'debloquer': 'u', 'fermerSession': 'c', 'ouvrirSession': 'o', 'payer': 'p', 'transmission': 't'}
+supprimer           41.0
+fermerSession     2213.0
+ouvrirSession     2213.0
+ajouter           2969.0
+payer             4788.0
+abandon           4814.0
+debloquer         4818.0
+transmission      5252.0
+scanner          38166.0
+dtype: float64
+    running MeanShift on 4818 traces.
+13 clusters found
+Cluster 0:
+    u.......tap
+    u.....tap
+    u.......tap
+    u.......tap
+    u.....tap
+    ...
+Cluster 1:
+    u.............tao++cp
+    u.......tao+cp
+    u.....tao++cp
+    u.......tao+cp
+    u.......tao++cp
+    ...
+Cluster 2:
+    u.......t.......tap
+    u.....t.....tap
+    u.....t.....tap
+    u.....t.....tap
+    u.......t.......tap
+    ...
+Cluster 3:
+    u.......t......tao+cp
+    u.......t......tao+cp
+    u.....t....tao+cp
+    u.....t....tao+cp
+    u.......t......tao+cp
+    ...
+Cluster 4:
+    u.............t...........tao+cp
+    u.............t...........tao++cp
+    u.............t...........tao++cp
+    u.............t...........tao++cp
+    u.............t............tao+cp
+    ...
+Cluster 5:
+    u.............t............tap
+    u.............t............tap
+    u.............t............tap
+    u.............t............tap
+    u.............t............tap
+    ...
+Cluster 6:
+    u.d......tao++cp
+    u...d.tao+cp
+    u..........d...tao+cp
+    u....d..tao++cp
+    u.....dtao+cp
+    ...
+Cluster 7:
+    u............t...a
+    u......t.....a
+    u......t..a
+    u......t......a
+    u............t.........a
+    ...
+Cluster 8:
+    u.....
+    u....
+    u...
+    u
+Cluster 9:
+    u.............t..........tao+++cp
+    u.............t..........tao+++cp
+    u.............tao+++++cp
+    u.............tao+++++cp
+    u.............t.........tao++++cp
+Cluster 10:
+    u.....d.tap
+    ud....tap
+    u..d..tap
+Cluster 11:
+    u.d....t....tao+cp
+    u.....dt..tao++cp
+Cluster 12:
+    u........d.....t...........tao++cp
+    running PCA on 4818 traces.
+{'date': '2019-12-07T16:58:18.059433', 'author': 'utting', 'dataset': 'Scanette customer traces', 'action_chars': {'scanner': '.', 'abandon': 'a', 'supprimer': 'd', 'ajouter': '+', 'debloquer': 'u', 'fermerSession': 'c', 'ouvrirSession': 'o', 'payer': 'p', 'transmission': 't'}, 'source': 'analyse_scanette2.py', 'cmdline': ['analyse_scanette2.py']}
+========== cluster 3 has 129 traces ============
+Tree                 & 0.957 (+/- 0.026)\\
+GBC                  & 0.957 (+/- 0.026)\\
+RandForest           & 0.956 (+/- 0.024)\\
+AdaBoost             & 0.367 (+/- 0.000)\\
+NeuralNet            & 0.930 (+/- 0.020)\\
+KNeighbors           & 0.955 (+/- 0.017)\\
+NaiveBayes           & 0.856 (+/- 0.022)\\
+LinearSVC            & 0.899 (+/- 0.017)\\
+Dummy                & 0.108 (+/- 0.046)\\
+LogReg               & 0.899 (+/- 0.019)\\
+========== cluster 4 has 45 traces ============
+Tree                 & 0.961 (+/- 0.051)\\
+GBC                  & 0.961 (+/- 0.051)\\
+RandForest           & 0.963 (+/- 0.043)\\
+AdaBoost             & 0.374 (+/- 0.006)\\
+NeuralNet            & 0.945 (+/- 0.038)\\
+KNeighbors           & 0.960 (+/- 0.042)\\
+NaiveBayes           & 0.852 (+/- 0.029)\\
+LinearSVC            & 0.852 (+/- 0.029)\\
+Dummy                & 0.108 (+/- 0.047)\\
+LogReg               & 0.852 (+/- 0.029)\\
+========== cluster 5 has 40 traces ============
+Tree                 & 0.991 (+/- 0.051)\\
+GBC                  & 0.991 (+/- 0.051)\\
+RandForest           & 0.994 (+/- 0.037)\\
+AdaBoost             & 0.558 (+/- 0.135)\\
+NeuralNet            & 0.995 (+/- 0.033)\\
+KNeighbors           & 0.999 (+/- 0.007)\\
+NaiveBayes           & 0.824 (+/- 0.015)\\
+LinearSVC            & 0.827 (+/- 0.000)\\
+Dummy                & 0.186 (+/- 0.089)\\
+LogReg               & 0.827 (+/- 0.000)\\
+========== cluster 3 has 129 traces ============
+  it has 2621 trace prefixes
+    u.....t....tao+cp
+    u.....t........tao+cp
+    u.......t.....tao++cp
+    u.....t........tao+cp
+    u.......t......tao+cp
+    
+========== cluster 4 has 45 traces ============
+  it has 1518 trace prefixes
+    u.............t...........tao++cp
+    u.............t............tao+cp
+    u.............t............tao+cp
+    u.............t............tao+cp
+    u.............t...........tao++cp
+    
+========== cluster 5 has 40 traces ============
+  it has 1239 trace prefixes
+    u.............t............tap
+    u.............t............tap
+    u.............t............tap
+    u.............t............tap
+    u.............t............tap
+    
+========== all customer traces has 4818 traces ============
+  it has 70092 trace prefixes
+    u.....tap
+    u.............tao+cp
+    u.............tap
+    u.......tap
+    u.......tap
+    u.....tap
+    u.......tap
+    u.......tap
+    u.....tap
+    u.....tap
+    u.............tao++cp
+    u.......tao++cp
+    u.......tao+cp
+    u.....tap
+    u.....tap
+    u.......tao+cp
+    u.....t......ap
+    u.....tap
+    u.............tao+cp
+    u.......t....ao++cp
+    u.............t.tap
+    u......tap
+    u.....tap
+    u.....tap
+    u.....tap
+    u.......tap
+    u.....t.ap
+    u.............tao+cp
+    u.....t..ap
+    u.......tao+cp
+    
+duration = 0.20461093649999923 seconds
+generated 14 sequences
+  21.90% u.....tap
+  16.52% u.......tap
+  10.61% u.......tao+cp
+  10.07% u.....tao+cp
+   5.23% u.............tao+cp
+   3.72% u.............tap
+   3.40% u.......tao++cp
+   2.56% u.............tao++cp
+   2.11% u.......t...tap
+   1.61% u.....tao++cp
+   1.53% u.............t.tap
+   1.25% u....tap
+   1.06% u.....t..ap
+   1.01% u.............ttao+cp
+  82.57% total
+DecisionTreeClassifier(class_weight=None, criterion='gini', max_depth=None,
+                       max_features=None, max_leaf_nodes=None,
+                       min_impurity_decrease=0.0, min_impurity_split=None,
+                       min_samples_leaf=1, min_samples_split=2,
+                       min_weight_fraction_leaf=0.0, presort=False,
+                       random_state=None, splitter='best')
+|--- abandon <= 0.50
+|   |--- debloquer <= 0.50
+|   |   |--- class: debloquer
+|   |--- debloquer >  0.50
+|   |   |--- transmission <= 0.25
+|   |   |   |--- scanner <= 0.18
+|   |   |   |   |--- scanner <= 0.14
+|   |   |   |   |   |--- scanner <= 0.02
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |--- scanner >  0.02
+|   |   |   |   |   |   |--- scanner <= 0.06
+|   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |--- scanner >  0.06
+|   |   |   |   |   |   |   |--- scanner <= 0.10
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- scanner >  0.10
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |--- scanner >  0.14
+|   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |--- class: scanner
+|   |   |   |--- scanner >  0.18
+|   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |--- scanner <= 0.30
+|   |   |   |   |   |   |--- scanner <= 0.26
+|   |   |   |   |   |   |   |--- scanner <= 0.22
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- scanner >  0.22
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |--- scanner >  0.26
+|   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |--- class: transmission
+|   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |--- class: transmission
+|   |   |   |   |   |--- scanner >  0.30
+|   |   |   |   |   |   |--- scanner <= 0.46
+|   |   |   |   |   |   |   |--- scanner <= 0.42
+|   |   |   |   |   |   |   |   |--- scanner <= 0.38
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.34
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.34
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- scanner >  0.38
+|   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- scanner >  0.42
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |--- scanner >  0.46
+|   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |--- class: transmission
+|   |   |--- transmission >  0.25
+|   |   |   |--- scanner <= 0.30
+|   |   |   |   |--- scanner <= 0.22
+|   |   |   |   |   |--- scanner <= 0.18
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- scanner <= 0.14
+|   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |   |--- scanner >  0.14
+|   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |--- scanner >  0.18
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |--- scanner >  0.22
+|   |   |   |   |   |--- scanner <= 0.26
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |--- scanner >  0.26
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |--- scanner >  0.30
+|   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |--- scanner <= 0.58
+|   |   |   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |   |   |--- scanner <= 0.46
+|   |   |   |   |   |   |   |   |--- scanner <= 0.34
+|   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- scanner >  0.34
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.42
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.38
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.38
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.42
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- scanner >  0.46
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |   |   |--- scanner <= 0.54
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: abandon
+|   |   |   |   |   |   |   |--- scanner >  0.54
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |--- scanner >  0.58
+|   |   |   |   |   |   |--- scanner <= 0.98
+|   |   |   |   |   |   |   |--- scanner <= 0.94
+|   |   |   |   |   |   |   |   |--- scanner <= 0.90
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.86
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.74
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.74
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.86
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- scanner >  0.90
+|   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |--- scanner >  0.94
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: scanner
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: transmission
+|   |   |   |   |   |   |--- scanner >  0.98
+|   |   |   |   |   |   |   |--- class: transmission
+|   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |--- class: abandon
+|--- abandon >  0.50
+|   |--- payer <= 0.50
+|   |   |--- ouvrirSession <= 0.50
+|   |   |   |--- scanner <= 0.42
+|   |   |   |   |--- scanner <= 0.38
+|   |   |   |   |   |--- scanner <= 0.26
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- scanner <= 0.22
+|   |   |   |   |   |   |   |   |--- scanner <= 0.14
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |   |--- scanner >  0.14
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.18
+|   |   |   |   |   |   |   |   |   |   |--- class: payer
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.18
+|   |   |   |   |   |   |   |   |   |   |--- class: payer
+|   |   |   |   |   |   |   |--- scanner >  0.22
+|   |   |   |   |   |   |   |   |--- class: payer
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- scanner <= 0.18
+|   |   |   |   |   |   |   |   |--- class: payer
+|   |   |   |   |   |   |   |--- scanner >  0.18
+|   |   |   |   |   |   |   |   |--- scanner <= 0.22
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |   |--- scanner >  0.22
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |--- scanner >  0.26
+|   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |--- scanner <= 0.30
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: payer
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |--- scanner >  0.30
+|   |   |   |   |   |   |   |   |--- class: <END>
+|   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |--- scanner <= 0.34
+|   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |--- scanner >  0.34
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |--- scanner >  0.38
+|   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |--- class: <END>
+|   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |--- class: payer
+|   |   |   |--- scanner >  0.42
+|   |   |   |   |--- scanner <= 0.54
+|   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |   |   |   |--- scanner <= 0.46
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |   |--- scanner >  0.46
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |--- scanner <= 0.46
+|   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |--- scanner >  0.46
+|   |   |   |   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |--- scanner >  0.54
+|   |   |   |   |   |--- scanner <= 0.58
+|   |   |   |   |   |   |--- class: payer
+|   |   |   |   |   |--- scanner >  0.58
+|   |   |   |   |   |   |--- scanner <= 0.98
+|   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |--- class: <END>
+|   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |--- scanner <= 0.94
+|   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |   |--- scanner >  0.94
+|   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: ouvrirSession
+|   |   |   |   |   |   |--- scanner >  0.98
+|   |   |   |   |   |   |   |--- class: payer
+|   |   |--- ouvrirSession >  0.50
+|   |   |   |--- fermerSession <= 0.50
+|   |   |   |   |--- ajouter <= 0.10
+|   |   |   |   |   |--- class: ajouter
+|   |   |   |   |--- ajouter >  0.10
+|   |   |   |   |   |--- scanner <= 0.38
+|   |   |   |   |   |   |--- ajouter <= 0.30
+|   |   |   |   |   |   |   |--- scanner <= 0.22
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.18
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.14
+|   |   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.14
+|   |   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.18
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.18
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.18
+|   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |--- scanner >  0.22
+|   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.34
+|   |   |   |   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.34
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.32
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.26
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.26
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.32
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |--- ajouter >  0.30
+|   |   |   |   |   |   |   |--- scanner <= 0.30
+|   |   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |   |--- ajouter <= 0.70
+|   |   |   |   |   |   |   |   |   |   |--- ajouter <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 5
+|   |   |   |   |   |   |   |   |   |   |--- ajouter >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 3
+|   |   |   |   |   |   |   |   |   |--- ajouter >  0.70
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |   |--- ajouter <= 0.50
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |   |--- ajouter >  0.50
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |--- scanner >  0.30
+|   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |--- scanner >  0.38
+|   |   |   |   |   |   |--- ajouter <= 0.30
+|   |   |   |   |   |   |   |--- scanner <= 0.98
+|   |   |   |   |   |   |   |   |--- scanner <= 0.70
+|   |   |   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 3
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |--- scanner >  0.70
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.94
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.90
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.90
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.94
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |--- scanner >  0.98
+|   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |--- ajouter >  0.30
+|   |   |   |   |   |   |   |--- ajouter <= 0.50
+|   |   |   |   |   |   |   |   |--- scanner <= 0.94
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.46
+|   |   |   |   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |   |   |   |--- class: ajouter
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.46
+|   |   |   |   |   |   |   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 3
+|   |   |   |   |   |   |   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 3
+|   |   |   |   |   |   |   |   |--- scanner >  0.94
+|   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |--- ajouter >  0.50
+|   |   |   |   |   |   |   |   |--- scanner <= 0.50
+|   |   |   |   |   |   |   |   |   |--- scanner <= 0.46
+|   |   |   |   |   |   |   |   |   |   |--- transmission <= 0.75
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 2
+|   |   |   |   |   |   |   |   |   |   |--- transmission >  0.75
+|   |   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |   |--- scanner >  0.46
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |--- scanner >  0.50
+|   |   |   |   |   |   |   |   |   |--- ajouter <= 0.90
+|   |   |   |   |   |   |   |   |   |   |--- supprimer <= 0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- truncated branch of depth 4
+|   |   |   |   |   |   |   |   |   |   |--- supprimer >  0.50
+|   |   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |   |   |   |   |   |   |--- ajouter >  0.90
+|   |   |   |   |   |   |   |   |   |   |--- class: fermerSession
+|   |   |   |--- fermerSession >  0.50
+|   |   |   |   |--- class: payer
+|   |--- payer >  0.50
+|   |   |--- class: <END>
+
