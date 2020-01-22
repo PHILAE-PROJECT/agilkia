@@ -36,6 +36,11 @@ This 'agilkia' library is part of the Philae research project:
 It is open source software under the MIT license.
 See LICENSE.txt
 
+## People
+
+* Architect and developer: AProf. Mark Utting
+* Project leader: Prof. Bruno Legeard
+
 
 # Example Usage
 
