@@ -48,6 +48,7 @@ import json
 import decimal
 import datetime
 import re
+import itertools
 import xml.etree.ElementTree as ET
 import pandas as pd            # type: ignore
 import numpy as np             # type: ignore
@@ -210,6 +211,41 @@ class Trace:
             return "???"
 
 
+class TraceCluster:
+    """Represents a set of traces, identified by their positions in the 'owner' TraceSet.
+
+    This cluster may optionally contain child clusters, to support hierarchical clustering.
+    """
+    def __init__(self, owner:'TraceSet', trace_ids:List[int]):
+        self.owner:'TraceSet' = owner
+        self.trace_ids:List[int] = trace_ids
+        self.children:List[TraceCluster] = []
+        self.color = None   # for visualisation
+        self.marker = None  # for visualisation
+
+    def size(self, recursive=False):
+        """The number of traces in this cluster.
+        If recursive=True, then traces in child clusters are counted too.
+        """
+        result = len(self.trace_ids)
+        if recursive:
+            for child in self.children:
+                result += child.size(recursive=recursive)
+        return result
+
+    def iter_trace_ids(self, recursive=False):
+        """Returns an iterator through these trace ids.
+        If recursive=True, then it also iterates through all child sets."""
+        it = iter(self.trace_ids)
+        if recursive:
+            it = itertools.chain(it, *[c.iter_trace_ids(recursive) for c in self.children])
+        return it
+
+    def iter_traces(self, recursive=False):
+        """TODO: recursive"""
+        return iter([self.owner[i] for i in self.trace_ids])
+
+
 class TraceSet:
     """Represents a set of traces, either generated or recorded.
 
@@ -224,6 +260,7 @@ class TraceSet:
           may not need to access self.traces at all.
         * self.meta_data: MetaData.  Or use get_meta(key) to get an individual meta-data value.
         * self.version: str.  Version number of this TraceSet object.
+        * self.trace_clusters: List[TraceCluster] flat or hierarchical clusters of trace ids.
     """
 
     meta_data: MetaData
@@ -247,6 +284,7 @@ class TraceSet:
         self.traces = traces
         self._clusters: List[int] = None
         self._cluster_data: pd.DataFrame = None
+        self.trace_clusters: List[TraceCluster] = None
         trace_parents = set()
         # add all the trace to this set.
         for tr in self.traces:

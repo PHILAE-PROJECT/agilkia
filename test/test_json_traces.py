@@ -411,5 +411,38 @@ class TestSafeString(unittest.TestCase):
         self.assertEqual("_Ab9_etc_json", agilkia.safe_name("!Ab9 etc.json"))
 
 
+class TestTraceCluster(unittest.TestCase):
+    """Tests for TraceCluster objects."""
+
+    ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
+    ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
+
+    def test_flat_clusters(self):
+        tr1 = agilkia.Trace([self.ev1])
+        tr2 = agilkia.Trace([self.ev2])
+        tr3 = agilkia.Trace([self.ev2, self.ev1])
+        owner = agilkia.TraceSet([tr1, tr2, tr3])
+        self.assertEqual(3, len(owner))
+        c0 = agilkia.TraceCluster(owner, [1])
+        self.assertEqual(0, len(c0.children))
+        self.assertEqual(1, c0.size())
+        self.assertEqual(1, c0.size(recursive=True))
+        # now add a child cluster
+        c00 = agilkia.TraceCluster(owner, [2])
+        c0.children.append(c00)
+        self.assertEqual(1, len(c0.children))
+        self.assertEqual(1, c0.size())
+        self.assertEqual(2, c0.size(recursive=True))
+        # now add a grandchild cluster
+        c000 = agilkia.TraceCluster(owner, [0])
+        c00.children.append(c000)
+        self.assertEqual(1, len(c0.children))
+        self.assertEqual(1, c0.size())
+        self.assertEqual(3, c0.size(recursive=True))
+        # test trace ids
+        self.assertEqual([1], list(c0.iter_trace_ids(recursive=False)))
+        self.assertEqual([1, 2, 0], list(c0.iter_trace_ids(recursive=True)))
+
+
 if __name__ == "__main__":
     unittest.main()
