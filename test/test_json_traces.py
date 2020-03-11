@@ -13,6 +13,7 @@ import datetime
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import pandas as pd   # type: ignore
+import os
 import numpy.testing as nptest
 import unittest
 import pytest         # type: ignore
@@ -278,7 +279,7 @@ class TestTrace(unittest.TestCase):
     def test_default_meta_data(self):
         now = str(datetime.datetime.now())
         md = agilkia.TraceSet.get_default_meta_data()
-        self.assertEqual("pytest", md["source"].split("/")[-1])
+        self.assertEqual("pytest", md["source"].split(os.path.sep)[-1])
         self.assertEqual(now[0:10], md["date"][0:10])  # same date, unless it is exactly midnight!
 
     def test_arff_type(self):
