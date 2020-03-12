@@ -417,11 +417,11 @@ class TestTraceCluster(unittest.TestCase):
     ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
     ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
 
-    def test_flat_clusters(self):
-        tr1 = agilkia.Trace([self.ev1])
-        tr2 = agilkia.Trace([self.ev2])
-        tr3 = agilkia.Trace([self.ev2, self.ev1])
-        owner = agilkia.TraceSet([tr1, tr2, tr3])
+    def test_cluster(self):
+        tr0 = agilkia.Trace([self.ev1])
+        tr1 = agilkia.Trace([self.ev2])
+        tr2 = agilkia.Trace([self.ev2, self.ev1])
+        owner = agilkia.TraceSet([tr0, tr1, tr2])
         self.assertEqual(3, len(owner))
         c0 = agilkia.TraceCluster(owner, [1])
         self.assertEqual(0, len(c0.children))
@@ -440,8 +440,11 @@ class TestTraceCluster(unittest.TestCase):
         self.assertEqual(1, c0.size())
         self.assertEqual(3, c0.size(recursive=True))
         # test trace ids
-        self.assertEqual([1], list(c0.iter_trace_ids(recursive=False)))
-        self.assertEqual([1, 2, 0], list(c0.iter_trace_ids(recursive=True)))
+        self.assertEqual(set([1]), c0.ids(recursive=False))
+        self.assertEqual(set([0, 1, 2]), c0.ids(recursive=True))
+        # test traceset
+        self.assertEqual(1, len(c0.as_traceset()))
+        self.assertEqual(3, len(c0.as_traceset(recursive=True)))
 
 
 if __name__ == "__main__":

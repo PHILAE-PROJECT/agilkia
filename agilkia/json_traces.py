@@ -62,7 +62,21 @@ from sklearn.manifold import TSNE
 from typing import List, Set, Mapping, Dict, Union, Any, Optional, cast
 
 
-TRACE_SET_VERSION = "0.1.4"
+TRACE_SET_VERSION = "0.2.0"
+
+# History of the TraceSet versions
+# ================================
+# Note that this is the JSON file format version, which is separate to the Agilkia version.
+# This now uses semantic version numbering: major.minor.patch.
+#
+# 0.2.0 2020-03-12 added TraceSet.trace_clusters: List[TraceCluster] = None
+#       This supports flat and hierarchical clusters, and saves them in the *.json file.
+# 0.1.4 2019-10-28 renamed Event.properties to Event.meta_data, for consistency.
+#       All trace-related objects now put optional attributes into their self.meta_data dict.
+# 0.1.3 grouped optional Event attributes into Event.properties dictionary.
+#       The only compulsory attributes now are: "action", "inputs", "outputs".
+# 0.1.2 moved TraceSet.given_event_chars into TraceSet.meta_data["action_chars"]
+# 0.1.1 introduced TraceSet and Trace objects.
 
 MetaData = Dict[str, Any]
 
@@ -128,7 +142,7 @@ class Trace:
         Args:
             events: the sequence of Events that make up this trace.
             parent: the TraceSet that this trace is part of.
-            meta_data: any meta-data associated with this individual trace.
+            meta_data: optional meta-data associated with this individual trace.
             random_state: If this trace was generated using some randomness, you should supply
                 this optional parameter, to record the state of the random generator at the
                 start of the sequence.  For example, rand_state=rand.getstate().
@@ -214,16 +228,39 @@ class Trace:
 class TraceCluster:
     """Represents a set of traces, identified by their positions in the 'owner' TraceSet.
 
-    This cluster may optionally contain child clusters, to support hierarchical clustering.
-    """
-    def __init__(self, owner:'TraceSet', trace_ids:List[int]):
-        self.owner:'TraceSet' = owner
-        self.trace_ids:List[int] = trace_ids
-        self.children:List[TraceCluster] = []
-        self.color = None   # for visualisation
-        self.marker = None  # for visualisation
+    After a TraceSet has been clustered using a flat clustering algorithm, it will have
+    a list of these TraceCluster objects (in its 'trace_clusters' attribute), where each
+    of these cluster objects contains a set of integer trace numbers.
 
-    def size(self, recursive=False):
+    To support hierarchical clustering, each cluster may optionally contain child clusters.
+    The 'size()' method gives the number of traces in this cluster, and can optionally
+    include the traces in all children.
+
+    The set of trace ids in the cluster can be abtained using 'ids()'.  
+    If the recursive=True option is used, the resulting set will also include all the
+    trace numbers in all the child clusters, and their child clusters, and so on.
+
+    The 'as_traceset' method allows the cluster to be viewed as a TraceSet, and also has
+    the option of excluding or including all child clusters.
+    """
+    def __init__(self, owner:'TraceSet', trace_ids:List[int],
+                 meta_data: Optional[MetaData] = None,
+                 ):
+        """Create a new cluster for the given owner TraceSet.
+
+        Args:
+            owner: the TraceSet that this cluster is associated with.
+            trace_ids: the integer ids (positions) of the traces directly in this cluster.
+            meta_data: optional meta-data associated with this individual trace.  This can
+                be used to store extra information about the cluster such as 'color'
+                and 'marker' for visualisation.
+        """
+        self.owner:'TraceSet' = owner
+        self.trace_ids: List[int] = trace_ids
+        self.children: List[TraceCluster] = []
+        self.meta_data: MetaData = {} if meta_data is None else meta_data
+
+    def size(self, recursive=False) -> int:
         """The number of traces in this cluster.
         If recursive=True, then traces in child clusters are counted too.
         """
@@ -233,17 +270,24 @@ class TraceCluster:
                 result += child.size(recursive=recursive)
         return result
 
-    def iter_trace_ids(self, recursive=False):
-        """Returns an iterator through these trace ids.
-        If recursive=True, then it also iterates through all child sets."""
-        it = iter(self.trace_ids)
-        if recursive:
-            it = itertools.chain(it, *[c.iter_trace_ids(recursive) for c in self.children])
-        return it
+    def ids(self, recursive=False) -> Set[int]:
+        """Returns the set of trace ids directly in this cluster.
 
-    def iter_traces(self, recursive=False):
-        """TODO: recursive"""
-        return iter([self.owner[i] for i in self.trace_ids])
+        If recursive=True, the result also includes all child and descendent sets.
+        """
+        result = set(self.trace_ids)
+        if recursive:
+            for child in self.children:
+                result |= child.ids(recursive=True)
+        return result
+
+    def as_traceset(self, recursive=False):
+        """A convenience method that turns this cluster into a TraceSet.
+
+        If recursive=True, then all children traces are included as well.
+        """
+        tr_ids = self.ids(recursive=recursive)
+        return TraceSet([self.owner[i] for i in tr_ids])
 
 
 class TraceSet:
@@ -279,6 +323,9 @@ class TraceSet:
                     "dataset" for the official name of this TraceSet;
                     "source" for the origin of the dataset;
                     and any other meta-data that is available.
+                If meta_data is not given explicitly, and the given traces have a unique
+                parent TraceSet, then most meta data will be copied from that common parent,
+                except that the "date" will be set to the current creation time.
         """
         self.version = TRACE_SET_VERSION
         self.traces = traces
@@ -324,7 +371,7 @@ class TraceSet:
     def get_default_meta_data(cls) -> Dict[str, Any]:
         """Generates some basic meta-data such as date, user and command line."""
         now = datetime.datetime.now().isoformat()
-        user = os.path.expanduser('~').split('/')[-1]  # usually correct, but can be tricked.
+        user = Path(os.path.expanduser('~')).name  # usually correct, but can be tricked.
         meta_data: Dict[str, Any] = {
                 "date": now,
                 "author": user,
@@ -332,8 +379,12 @@ class TraceSet:
                 "action_chars": None
                 }
         if len(sys.argv) > 0:
-            meta_data["source"] = sys.argv[0]  # the path to the running script/tool.
-            meta_data["cmdline"] = sys.argv
+            args = sys.argv.copy()
+            # strip directory off
+            cmd = Path(args[0]).name
+            args[0] = cmd
+            meta_data["source"] = cmd  # default to the name of the running script/tool.
+            meta_data["cmdline"] = args
         return meta_data
 
     def get_meta(self, key: str) -> Optional[Any]:
@@ -395,14 +446,23 @@ class TraceSet:
         return f"TraceSet '{name}' with {len(self)} traces."
 
     def save_to_json(self, file: Path) -> None:
+        """Saves this TraceSet into the given file[.json] in JSON format.
+
+        The file extension is forced to be .json. if it is not already that.
+        The file includes a version number so that older data files can be updated if possible.
+        """
         if isinstance(file, str):
             print(f"WARNING: converting {file} to Path.  Please learn to speak pathlib.")
             file = Path(file)
-        with file.open("w") as output:
+        with file.with_suffix(".json").open("w") as output:
             json.dump(self, output, indent=2, cls=TraceEncoder)
 
     @classmethod
     def load_from_json(cls, file: Path) -> 'TraceSet':
+        """Load traces from the given file.
+
+        This upgrades older trace sets to the current version if possible.
+        """
         if isinstance(file, str):
             print(f"WARNING: converting {file} to Path.  Please learn to speak pathlib.")
             file = Path(file)
@@ -428,15 +488,15 @@ class TraceSet:
     @classmethod
     def upgrade_json_data(cls, json_data: Dict) -> 'TraceSet':
         version = json_data["version"]
-        if version.startswith("0.1."):
+        if version.startswith("0."):
             # This JSON file is compatible with our code.
             # First, convert json_data dicts to Trace and TraceSet objects.
             traceset = TraceSet([], json_data["meta_data"])
             for tr_data in json_data["traces"]:
                 traceset.append(cls._create_trace_object(version, tr_data))
             # Next, see if any more little updates are needed.
-            if version in ["0.1.2", "0.1.3", TRACE_SET_VERSION]:
-                pass  # nothing more to do.
+            if version in ["0.1.2", "0.1.3", "0.1.4", TRACE_SET_VERSION]:
+                pass  # nothing more to do
             elif version == "0.1.1":
                 # Move given_event_chars into meta_data["action_chars"]
                 # Note: traceset["version"] has already been updated to the latest.
@@ -445,6 +505,10 @@ class TraceSet:
                 # The JSON must be from a newer 0.1.x version, so give a warning.
                 print(f"WARNING: reading {version} TraceSet using {TRACE_SET_VERSION} code.")
                 print(f"         Some data may be lost.  Please upgrade this program.")
+            # now handle optional clustering data, if it is present
+            if json_data["trace_clusters"]:  # from 0.2.0 onwards
+                traceset.trace_clusters = [cls._create_cluster_object(version, c)
+                                           for c in json_data["trace_clusters"]]
             return traceset
         raise Exception(f"upgrade of TraceSet v{version} to v{TRACE_SET_VERSION} not supported.")
 
@@ -471,6 +535,18 @@ class TraceSet:
         else:
             props = ev["meta_data"]
         return Event(action, inputs, outputs, props)
+
+    @classmethod
+    def _create_cluster_object(cls, owner: 'TraceSet', version: str,
+                               tr_data: Dict[str, Any]) -> TraceCluster:
+        assert tr_data["__class__"] == "TraceCluster"
+        assert isinstance(tr_data["trace_ids"], list)
+        meta = tr_data.get("meta_data", None)
+        events = [cls._create_event_object(version, ev) for ev in tr_data["events"]]
+        cluster = TraceCluster(owner, tr_data["trace_ids"], meta_data=meta)
+        for child in tr_data["children"]:
+            cluster.children.append(cls._create_cluster_object(owner, version, child))
+        return cluster
 
     def to_pandas(self) -> pd.DataFrame:
         """Converts all the traces into a single Pandas DataFrame (one event/row).
@@ -635,8 +711,7 @@ class TraceSet:
                         normalizer=None, fit: bool = True) -> int:
         """Runs a clustering algorithm on the given data and remembers the clusters.
 
-        Note that clustering results are viewed as transient, so are currently not saved
-        into JSON files.  Clustering must be repeated after loading a TraceSet.
+        Note that clustering results are now saved into JSON files.
 
         Args:
             data: a Pandas DataFrame, typically from get_trace_data(), with the i'th row
