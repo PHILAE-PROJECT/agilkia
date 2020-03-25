@@ -412,6 +412,13 @@ class TraceSet:
         self.traces.append(trace)
         self._event_chars = None  # we will recalculate this later
 
+    def extend(self, traces: List[Trace]):
+        """Appends all the given traces into this set of traces.
+        This also sets their parents to be this trace set.
+        """
+        for tr in traces:
+            self.append(tr)
+
     def set_event_chars(self, given: Mapping[str, str] = None):
         """Sets up the event-to-char map that is used to visualise traces.
 
@@ -601,39 +608,49 @@ class TraceSet:
                 }
             arff.dump(contents, output)
 
-    def with_traces_split(self, start_action: str = None, input_name: str = None) -> 'TraceSet':
+    def with_traces_split(self,
+                          start_action: str = None,
+                          input_name: str = None,
+                          split: Callable[[Event, Event], bool] = None) -> 'TraceSet':
         """Returns a new TraceSet with each trace in this set split into shorter traces.
 
-        It accepts several split criteria, and will start a new trace whenever any
-        of those criteria are true.  At least one criteria must be supplied.
+        It will start a new trace whenever the `split` function returns True.
+        The `split` function is called on each adjacent pair of events in each trace,
+        and should return True whenever the second of those events should start a
+        new trace.
+
+        The `start_action` and `input_name` parameters give shortcuts for common
+        splitting criteria.
 
         Args:
             start_action: the name of an action that starts a new trace.
+                This is shorthand for split=(lambda e1,e2: e2.action==start_action).
             input_name: the name of an input.  Whenever the value of this input
-                changes, then a new trace should be started.  Note that events
-                with this input missing are ignored for this splitting criteria.
+                changes, then a new trace should be started.  This is shorthand for
+                split=(lambda e1,e2: e1.inputs[input_name] != e2.inputs[input_name]).
+            split: a function that is called on each adjacent pair of events to determine
+                if the trace should be split between those two events.
 
         Returns:
             a new TraceSet, usually with more traces and shorter traces.
         """
-        if start_action is None and input_name is None:
+        if start_action is not None:
+            split = (lambda e1,e2: e2.action == start_action)
+        elif input_name is not None:
+            split = (lambda e1,e2: e1.inputs[input_name] != e2.inputs[input_name])
+        elif split is None:
             raise Exception("split_traces requires at least one split criteria.")
         traces2 = TraceSet([], self.meta_data)
-        # TODO: update meta data with split info?
         for old in self.traces:
             curr_trace = Trace([])
             traces2.append(curr_trace)
-            prev_input = None
+            prev_event = None
             for event in old:
-                input_value = event.inputs.get(input_name, None)
-                input_changed = input_value != prev_input and input_value is not None
-                if (event.action == start_action or input_changed) and len(curr_trace) > 0:
+                if prev_event is not None and split(prev_event, event):
                     curr_trace = Trace([])
                     traces2.append(curr_trace)
                 curr_trace.append(event)
-                if input_value is not None:
-                    prev_input = input_value
-                # NOTE: we could check end_action here.
+                prev_event = event
         return traces2
 
     def with_traces_grouped_by(self, name: str = None,

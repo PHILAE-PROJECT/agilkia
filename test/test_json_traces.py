@@ -310,7 +310,7 @@ class TestTrace(unittest.TestCase):
     def test_split_input(self):
         ev3b = agilkia.Event("Pay", {"Name": "Merry", "Amount": 23.45}, {"Status": 0})
         # each change in the "Name" input will start a new trace
-        trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev2, self.ev1])
+        trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev1, self.ev3])
         traces = agilkia.TraceSet([trace])
         traces2 = traces.with_traces_split(input_name="Name")
         #for t in traces2:
@@ -397,6 +397,17 @@ class TestTraceSet(unittest.TestCase):
         traces2 = agilkia.TraceSet.load_from_json(tmp3_json)
         self.assertFalse(traces2.is_clustered())
         tmp3_json.unlink()
+
+    def test_extend(self):
+        traces = agilkia.TraceSet([])
+        tr1 = agilkia.Trace([self.ev1])
+        tr2 = agilkia.Trace([self.ev2])
+        traces.extend([tr1, tr2])
+        self.assertEqual(2, len(traces))
+        self.assertEqual(traces, tr1._parent)
+        self.assertEqual(traces, tr1._parent)
+        traces.extend([tr1, tr2])
+        self.assertEqual(4, len(traces))
 
 
 class TestDefaultMapToChars(unittest.TestCase):
