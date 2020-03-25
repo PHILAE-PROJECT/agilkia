@@ -326,14 +326,33 @@ class TestTrace(unittest.TestCase):
     def test_group_input(self):
         ev3b = agilkia.Event("Pay", {"Name": "Merry", "Amount": 23.45}, {"Status": 0})
         # each different "Name" input will be grouped into a new trace
-        trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev2, self.ev1])
+        trace = agilkia.Trace([self.ev1, self.ev3, ev3b, self.ev3, self.ev1])
+        for i in range(2):
+            traces = agilkia.TraceSet([trace])
+            traces2 = traces.with_traces_grouped_by("Name", allow_missing=True)
+            self.assertEqual(2, len(traces2))
+            self.assertEqual("Mark", traces2[0].events[0].inputs["Name"])
+            self.assertEqual("Merry", traces2[1].events[0].inputs["Name"])
+            self.assertEqual(4, len(traces2[0]))
+            self.assertEqual(1, len(traces2[1]))
+            trace.append(self.ev2)  # has missing Name
+
+    def test_group_missing_input(self):
+        trace = agilkia.Trace([self.ev1, self.ev3, self.ev3, self.ev2, self.ev1])
         traces = agilkia.TraceSet([trace])
-        traces2 = traces.with_traces_grouped_by("Name")  # self.ev2 will be discarded
+        with pytest.raises(Exception):
+            traces.with_traces_grouped_by("Name")
+
+    def test_group_output(self):
+        # each different output status value will be grouped into a new trace
+        trace = agilkia.Trace([self.ev1, self.ev2, self.ev3, self.ev1, self.ev4])
+        traces = agilkia.TraceSet([trace])
+        traces.set_event_chars(self.to_char)
+        self.assertEqual("O,pOS", str(traces[0]))
+        traces2 = traces.with_traces_grouped_by(key=(lambda ev: ev.status))
         self.assertEqual(2, len(traces2))
-        self.assertEqual("Mark", traces2[0].events[0].inputs["Name"])
-        self.assertEqual("Merry", traces2[1].events[0].inputs["Name"])
-        self.assertEqual(4, len(traces2[0]))
-        self.assertEqual(1, len(traces2[1]))
+        self.assertEqual("OpO", str(traces2[0]))
+        self.assertEqual(",S", str(traces2[1]))
 
 
 class TestTraceSet(unittest.TestCase):

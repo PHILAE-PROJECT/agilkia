@@ -59,7 +59,7 @@ import matplotlib.cm as pltcm
 from sklearn.manifold import TSNE
 # liac-arff from https://pypi.org/project/liac-arff (via pip)
 # import arff                    # type: ignore
-from typing import List, Set, Mapping, Dict, Union, Any, Optional, cast
+from typing import List, Set, Mapping, Dict, Union, Any, Optional, Callable, cast
 
 
 TRACE_SET_VERSION = "0.2.0"
@@ -601,8 +601,7 @@ class TraceSet:
                 }
             arff.dump(contents, output)
 
-    def with_traces_split(self, start_action: str = None, input_name: str = None,
-                          comparator=None) -> 'TraceSet':
+    def with_traces_split(self, start_action: str = None, input_name: str = None) -> 'TraceSet':
         """Returns a new TraceSet with each trace in this set split into shorter traces.
 
         It accepts several split criteria, and will start a new trace whenever any
@@ -637,30 +636,41 @@ class TraceSet:
                 # NOTE: we could check end_action here.
         return traces2
 
-    def with_traces_grouped_by(self, name: str, property: bool = False) -> 'TraceSet':
+    def with_traces_grouped_by(self, name: str = None,
+                               key: Callable[[Event], str] = None,
+                               property: bool = False,
+                               allow_missing: bool = False) -> 'TraceSet':
         """Returns a new TraceSet with each trace grouped into shorter traces.
 
-        It generates a new trace for each distinct value of the given input or property name.
+        It generates a new trace for each distinct key value.
 
         Args:
-            name: the name of an input.  A new trace is started for each value of this input
-                (or property).  Note that events with this value missing are totally discarded.
-            property: True means group by the property called name, rather than an input.
+            name: the name of an input.  This is a convenience parameter that is
+                a shorthand for key = (lambda ev: ev.inputs[name]).
+            key: a function that takes an Event object and returns the groupby key string.
+            property [deprecated]: True means `name` is a meta-data field, not an input.
+            allow_missing: True allows `key` to return None, meaning that that event will
+                be silently discarded.  False means it is an error for `key` to give None.
 
         Returns:
             a new TraceSet, usually with more traces and shorter traces.
         """
-        # TODO: update meta data with split info?
         traces2 = TraceSet([], self.meta_data)
+        if name is not None:
+            if property:
+                print("WARNING: property=True is deprecated.  Use key=...")
+                key = (lambda ev: ev.meta_data.get(name, None))
+            else:
+                key = (lambda ev: ev.inputs.get(name, None))
         for old in self.traces:
             groups = defaultdict(list)  # for each value this stores a list of Events.
             for event in old:
-                if property:
-                    value = event.meta_data.get(name, None)
-                else:
-                    value = event.inputs.get(name, None)
+                value = key(event)
                 if value is not None:
                     groups[value].append(event)
+                else:
+                    if not allow_missing:
+                        raise Exception(f"missing key value when grouping {event}")
             for event_list in groups.values():
                 traces2.append(Trace(event_list))
         return traces2
