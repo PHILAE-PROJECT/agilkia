@@ -42,6 +42,7 @@ Ideas / Tasks to do
 
 import os
 import sys
+import math
 from pathlib import Path  # object-oriented filenames!
 from collections import defaultdict
 import json
@@ -108,9 +109,24 @@ class Event:
     @property
     def status(self) -> int:
         """Read-only status of the operation, where 0 means success.
-        If no output 'Status' is available, this method always returns 0.
+        If output 'Status' is not available or is not numeric, this method still returns 0.
         """
-        return int(self.outputs.get("Status", "0"))
+        try:
+            return int(self.outputs.get("Status", "0"))
+        except ValueError:
+            return 0
+
+    @property
+    def status_float(self) -> float:
+        """Read-only status of the operation, where 0.0 usually means success.
+
+        This method is useful for applications that use non-integer status values.
+        If no output 'Status' is available or it is not a valid number, NaN is returned.
+        """
+        try:
+            return float(self.outputs.get("Status", "nan"))
+        except ValueError:
+            return math.nan
 
     @property
     def error_message(self) -> str:
@@ -541,6 +557,9 @@ class TraceSet:
             props = ev["properties"]
         else:
             props = ev["meta_data"]
+        # convert props["timestamp"] back to Python datetime if possible
+        if "timestamp" in props:
+            props["timestamp"] = datetime.datetime.fromisoformat(props["timestamp"])
         return Event(action, inputs, outputs, props)
 
     @classmethod
@@ -549,7 +568,6 @@ class TraceSet:
         assert tr_data["__class__"] == "TraceCluster"
         assert isinstance(tr_data["trace_ids"], list)
         meta = tr_data.get("meta_data", None)
-        events = [cls._create_event_object(version, ev) for ev in tr_data["events"]]
         cluster = TraceCluster(owner, tr_data["trace_ids"], meta_data=meta)
         for child in tr_data["children"]:
             cluster.children.append(cls._create_cluster_object(owner, version, child))

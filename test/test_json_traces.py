@@ -17,6 +17,7 @@ import os
 import numpy.testing as nptest
 import unittest
 import pytest         # type: ignore
+import math
 
 THIS_DIR = Path(__file__).parent
 
@@ -185,10 +186,17 @@ class TestEvent(unittest.TestCase):
 
     ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": -2, "Error": "unknown name"})
     ev2 = agilkia.Event("Order", {"Name": "Other"}, {})
+    ev3 = agilkia.Event("Order", {"Name": "Other"}, {"Status": "?"})
 
     def test_status(self):
         self.assertEqual(-2, self.ev1.status)
         self.assertEqual(0, self.ev2.status)
+        self.assertEqual(0, self.ev3.status)
+
+    def test_status_float(self):
+        self.assertEqual(-2.0, self.ev1.status_float)
+        self.assertTrue(math.isnan(self.ev2.status_float))
+        self.assertTrue(math.isnan(self.ev3.status_float))
 
     def test_error_message(self):
         self.assertEqual("unknown name", self.ev1.error_message)
