@@ -32,6 +32,7 @@ Ideas / Tasks to do
     * DONE: add 'meta_data' to Trace and Event objects too (replace properties)
     * DONE: add unit tests for clustering...  (Note: not saved in JSON!)
     * DONE: split RandomTester into SmartSequenceGenerator subclass (better meta-data).
+    * DONE: add set_clusters with support for flat and hierarchical clustering.
     * provide an easy way of copying meta-data across, or cloning a Trace[Set] with new traces.
     * extend to_pandas() to allow user-defined columns to be added.
     * split the test execution methods out of RandomTester into a delegate class,
@@ -72,7 +73,7 @@ TRACE_SET_VERSION = "0.2.1"
 #
 # 0.2.1 2020-03-27 changed hierarchical cluster support to use SciPy ClusterNode trees.
 #       Better to use existing technology rather than reinventing the wheel.
-#       This adds TraceSet fields: cluster_labels, cluster_tree, cluster_linkage,
+#       This adds TraceSet fields: cluster_labels, cluster_linkage, [briefly cluster_tree]
 #       and removes the recently-added trace_clusters field.
 #       That would be a breaking change, but no one was using 0.2.0 hierarchical clusters yet.
 # 0.2.0 2020-03-12 added TraceSet.trace_clusters: List[TraceCluster] = None
@@ -263,13 +264,6 @@ class TraceSet:
         * self.cluster_labels: optional list giving a cluster number for each trace.
             That is, `self.cluster_labels[i]` is the number of the cluster that trace
             `self.traces[i]` (or equivalently, `self[i]`) belongs to.
-        * self.cluster_tree: `scipy.cluster.hierarchy.ClusterNode`.  This optional hierarchical
-            clustering tree is automatically calculated whenever a hierarchical clustering
-            is given to `set_clusters`.  The tree is saved in the *.json file, with the
-            linkage matrix.  See the SciPy docs for how to use the tree.  One handy method
-            to call on any node of the tree is `node.pre_order()`, which returns a list of
-            all the trace numbers in that subtree.  See also, `get_cluster(k)`, which returns
-            a (flat) cluster number into a list of Trace objects, rather than their numbers.
         * self.cluster_linkage: optional hierarchical clustering (SciPy linkage matrix).
     """
 
@@ -297,7 +291,6 @@ class TraceSet:
         self.traces = traces
         self._cluster_data: pd.DataFrame = None
         self.cluster_labels: List[int] = None  # for flat clustering
-        self.cluster_tree: hierarchy.ClusterNode = None  # for hierarchical clustering
         self.cluster_linkage: np.ndarray = None   # scipy Linkage array for cluster trees.
         trace_parents = set()
         # add all the trace to this set.
@@ -746,10 +739,13 @@ class TraceSet:
 
         After this method has been called, the flat clusters will be saved in
         `self.cluster_labels`.  If the `linkage` argument is not None, then the
-        hierarchical clustering information will be saved in `self.cluster_tree`
-        (a SciPy ClusterNode tree) as well as `self.cluster_linkage`.  The latter
-        is directly useful for drawing dendograms and calculating various statistics.
+        hierarchical clustering information will be saved in `self.cluster_linkage`
+        which records the binary clustering tree in a compact format.  This SciPy linkage
+        array is directly useful for drawing dendograms and calculating various statistics
         (see https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html). 
+        This can be converted to an explicit tree of ClusterNode objects if needed, via::
+
+            scipy.cluster.hierarchy.to_tree(self.cluster_linkage)
 
         Parameters
         ----------
@@ -757,7 +753,6 @@ class TraceSet:
             an array of cluster numbers for each Trace.
         linkage : np.ndarray, optional
             an optional scipy linkage array that encodes a binary hierarchical tree.
-            If given, `self.cluster_tree` will be derived from this linkage array.
             The default is None, as hierarchical clustering is optional.
 
         Raises
@@ -774,7 +769,6 @@ class TraceSet:
             raise Exception("Bad cluster labels")
         if linkage is not None:
             hierarchy.is_valid_linkage(linkage, throw=True)
-            self.cluster_tree = hierarchy.to_tree(linkage)
             self.cluster_linkage = linkage
         self.cluster_labels = labels
 

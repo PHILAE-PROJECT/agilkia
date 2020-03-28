@@ -422,15 +422,12 @@ class TestTraceSet(unittest.TestCase):
         self.assertEqual(2, len(traces1.get_cluster(1)))
         nptest.assert_array_equal([tr2, tr3], traces1.get_cluster(1))
         nptest.assert_array_equal([tr1], traces1.get_cluster(0))
-        tree = traces1.cluster_tree
-        self.assertEqual(4, tree.id)
         #
         # Now test save then load - tree clusters should be saved and restored.
         tmp_json = Path("tmp_tree.json")
         traces1.save_to_json(tmp_json)
         traces2 = agilkia.TraceSet.load_from_json(tmp_json)
         self.assertTrue(traces2.is_clustered())
-        self.assertEqual(4, traces2.cluster_tree.id)
         tmp_json.unlink()
 
     def test_extend(self):
@@ -483,7 +480,6 @@ class TestTraceSetVersions(unittest.TestCase):
         nptest.assert_array_equal([0, 0, 0, 1, 1, 0, 0], traces.cluster_labels)
         self.assertEqual(6, len(traces.cluster_linkage))
         nptest.assert_allclose([8, 11, 8.06225775, 7], traces.cluster_linkage[-1])
-        self.assertEqual(12, traces.cluster_tree.id)
 
 
 class TestDefaultMapToChars(unittest.TestCase):
