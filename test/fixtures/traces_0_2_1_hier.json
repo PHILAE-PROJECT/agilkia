@@ -1,0 +1,790 @@
+{
+  "__class__": "TraceSet",
+  "__module__": "agilkia.json_traces",
+  "version": "0.2.1",
+  "traces": [
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 3
+          },
+          "outputs": {
+            "Status": 1,
+            "Error": "No funds"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 3
+          },
+          "outputs": {
+            "Status": 1,
+            "Error": "No funds"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 3
+          },
+          "outputs": {
+            "Status": 1,
+            "Error": "No funds"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 3
+          },
+          "outputs": {
+            "Status": 1,
+            "Error": "No funds"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 3
+          },
+          "outputs": {
+            "Status": 1,
+            "Error": "No funds"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Order",
+          "inputs": {
+            "Count": 1
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "Pay",
+          "inputs": {
+            "Amount": 2
+          },
+          "outputs": {
+            "Status": 0
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {}
+    }
+  ],
+  "cluster_labels": [
+    0,
+    0,
+    0,
+    1,
+    1,
+    0,
+    0
+  ],
+  "cluster_tree": {
+    "__class__": "ClusterNode",
+    "__module__": "scipy.cluster.hierarchy",
+    "id": 12,
+    "left": {
+      "__class__": "ClusterNode",
+      "__module__": "scipy.cluster.hierarchy",
+      "id": 8,
+      "left": {
+        "__class__": "ClusterNode",
+        "__module__": "scipy.cluster.hierarchy",
+        "id": 3,
+        "left": null,
+        "right": null,
+        "dist": 0,
+        "count": 1
+      },
+      "right": {
+        "__class__": "ClusterNode",
+        "__module__": "scipy.cluster.hierarchy",
+        "id": 4,
+        "left": null,
+        "right": null,
+        "dist": 0,
+        "count": 1
+      },
+      "dist": 0.0,
+      "count": 2
+    },
+    "right": {
+      "__class__": "ClusterNode",
+      "__module__": "scipy.cluster.hierarchy",
+      "id": 11,
+      "left": {
+        "__class__": "ClusterNode",
+        "__module__": "scipy.cluster.hierarchy",
+        "id": 5,
+        "left": null,
+        "right": null,
+        "dist": 0,
+        "count": 1
+      },
+      "right": {
+        "__class__": "ClusterNode",
+        "__module__": "scipy.cluster.hierarchy",
+        "id": 10,
+        "left": {
+          "__class__": "ClusterNode",
+          "__module__": "scipy.cluster.hierarchy",
+          "id": 2,
+          "left": null,
+          "right": null,
+          "dist": 0,
+          "count": 1
+        },
+        "right": {
+          "__class__": "ClusterNode",
+          "__module__": "scipy.cluster.hierarchy",
+          "id": 9,
+          "left": {
+            "__class__": "ClusterNode",
+            "__module__": "scipy.cluster.hierarchy",
+            "id": 0,
+            "left": null,
+            "right": null,
+            "dist": 0,
+            "count": 1
+          },
+          "right": {
+            "__class__": "ClusterNode",
+            "__module__": "scipy.cluster.hierarchy",
+            "id": 7,
+            "left": {
+              "__class__": "ClusterNode",
+              "__module__": "scipy.cluster.hierarchy",
+              "id": 1,
+              "left": null,
+              "right": null,
+              "dist": 0,
+              "count": 1
+            },
+            "right": {
+              "__class__": "ClusterNode",
+              "__module__": "scipy.cluster.hierarchy",
+              "id": 6,
+              "left": null,
+              "right": null,
+              "dist": 0,
+              "count": 1
+            },
+            "dist": 0.0,
+            "count": 2
+          },
+          "dist": 1.0,
+          "count": 3
+        },
+        "dist": 1.0,
+        "count": 4
+      },
+      "dist": 6.0,
+      "count": 5
+    },
+    "dist": 8.06225774829855,
+    "count": 7
+  },
+  "cluster_linkage": [
+    [
+      1.0,
+      6.0,
+      0.0,
+      2.0
+    ],
+    [
+      3.0,
+      4.0,
+      0.0,
+      2.0
+    ],
+    [
+      0.0,
+      7.0,
+      1.0,
+      3.0
+    ],
+    [
+      2.0,
+      9.0,
+      1.0,
+      4.0
+    ],
+    [
+      5.0,
+      10.0,
+      6.0,
+      5.0
+    ],
+    [
+      8.0,
+      11.0,
+      8.06225774829855,
+      7.0
+    ]
+  ],
+  "meta_data": {
+    "date": "2020-03-28T17:52:17.505122",
+    "author": "Mark Utting",
+    "dataset": "Artificial test traces",
+    "action_chars": {
+      "Order": "o",
+      "Pay": "P"
+    },
+    "source": "generate_test_traces.py",
+    "cmdline": [
+      "generate_test_traces.py"
+    ]
+  }
+}
