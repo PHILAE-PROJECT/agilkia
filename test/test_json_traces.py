@@ -13,6 +13,7 @@ import datetime
 import xml.etree.ElementTree as ET
 from pathlib import Path
 import pandas as pd   # type: ignore
+import scipy.cluster.hierarchy as hierarchy  # type: ignore
 import os
 import numpy.testing as nptest
 import unittest
@@ -385,7 +386,7 @@ class TestTraceSet(unittest.TestCase):
         traces4 = agilkia.TraceSet([tr1, tr2])  # different parents
         self.assertEqual("unknown", traces4.get_meta("dataset"))
 
-    def test_clustering(self):
+    def test_flat_clustering(self):
         tr1 = agilkia.Trace([self.ev2, self.ev2, self.ev1]) # in cluster 1
         tr2 = agilkia.Trace([self.ev1, self.ev1, self.ev2]) # in cluster 0
         tr3 = agilkia.Trace([self.ev1, self.ev2, self.ev1]) # in cluster 0
@@ -399,12 +400,38 @@ class TestTraceSet(unittest.TestCase):
         nptest.assert_array_equal([tr2, tr3], traces1.get_cluster(0))
         nptest.assert_array_equal([tr1], traces1.get_cluster(1))
         #
-        # Now test save then load - clusters should be lost, since they are currently transient.
+        # Now test save then load - clusters should be saved and restored.
         tmp3_json = Path("tmp3.json")
         traces1.save_to_json(tmp3_json)
         traces2 = agilkia.TraceSet.load_from_json(tmp3_json)
-        self.assertFalse(traces2.is_clustered())
+        self.assertTrue(traces2.is_clustered())
         tmp3_json.unlink()
+
+    def test_hierarchical_clustering(self):
+        tr1 = agilkia.Trace([self.ev2, self.ev2, self.ev1]) # in cluster 1
+        tr2 = agilkia.Trace([self.ev1, self.ev1, self.ev2]) # in cluster 0
+        tr3 = agilkia.Trace([self.ev1, self.ev2, self.ev1]) # in cluster 0
+        traces1 = agilkia.TraceSet([tr1, tr2, tr3])
+        data = traces1.get_trace_data()
+        nptest.assert_array_equal(["Order", "Skip"], data.columns)
+        self.assertFalse(traces1.is_clustered())
+        Z = hierarchy.linkage(data)
+        flat = hierarchy.cut_tree(Z, n_clusters=[2])
+        traces1.set_clusters(flat, linkage=Z)
+        self.assertTrue(traces1.is_clustered())
+        self.assertEqual(2, len(traces1.get_cluster(1)))
+        nptest.assert_array_equal([tr2, tr3], traces1.get_cluster(1))
+        nptest.assert_array_equal([tr1], traces1.get_cluster(0))
+        tree = traces1.cluster_tree
+        self.assertEqual(4, tree.id)
+        #
+        # Now test save then load - tree clusters should be saved and restored.
+        tmp_json = Path("tmp_tree.json")
+        traces1.save_to_json(tmp_json)
+        traces2 = agilkia.TraceSet.load_from_json(tmp_json)
+        self.assertTrue(traces2.is_clustered())
+        self.assertEqual(4, traces2.cluster_tree.id)
+        tmp_json.unlink()
 
     def test_extend(self):
         traces = agilkia.TraceSet([])
@@ -416,6 +443,47 @@ class TestTraceSet(unittest.TestCase):
         self.assertEqual(traces, tr1._parent)
         traces.extend([tr1, tr2])
         self.assertEqual(4, len(traces))
+
+
+
+class TestTraceSetVersions(unittest.TestCase):
+    """Unit tests specifically for loading older agilkia.TraceSet versions."""
+
+    def test_load_v1(self):
+        """traces1.json is just a list of lists."""
+        traces = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures" / "traces1.json")
+        self.assertEqual(1, len(traces))
+        self.assertEqual(agilkia.TRACE_SET_VERSION, traces.version)
+
+    def test_load_0_1_4(self):
+        traces = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures" / "traces_0_1_4.json")
+        self.assertEqual(7, len(traces))
+        self.assertEqual(agilkia.TRACE_SET_VERSION, traces.version)
+        self.assertFalse(traces.is_clustered())
+
+    def test_load_0_2_0(self):
+        traces = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures" / "traces_0_2_0.json")
+        self.assertEqual(7, len(traces))
+        self.assertEqual(agilkia.TRACE_SET_VERSION, traces.version)
+        self.assertFalse(traces.is_clustered())
+
+    def test_load_0_2_1_flat(self):
+        traces = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures" / "traces_0_2_1_flat.json")
+        self.assertEqual(7, len(traces))
+        self.assertEqual(agilkia.TRACE_SET_VERSION, traces.version)
+        self.assertTrue(traces.is_clustered())
+        nptest.assert_array_equal([0, 0, 0, 1, 1, 2, 0], traces.cluster_labels)
+        self.assertEqual(None, traces.cluster_linkage)
+
+    def test_load_0_2_1_hier(self):
+        traces = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures" / "traces_0_2_1_hier.json")
+        self.assertEqual(7, len(traces))
+        self.assertEqual(agilkia.TRACE_SET_VERSION, traces.version)
+        self.assertTrue(traces.is_clustered())
+        nptest.assert_array_equal([0, 0, 0, 1, 1, 0, 0], traces.cluster_labels)
+        self.assertEqual(6, len(traces.cluster_linkage))
+        nptest.assert_allclose([8, 11, 8.06225775, 7], traces.cluster_linkage[-1])
+        self.assertEqual(12, traces.cluster_tree.id)
 
 
 class TestDefaultMapToChars(unittest.TestCase):
@@ -448,42 +516,44 @@ class TestSafeString(unittest.TestCase):
         self.assertEqual("Ab9", agilkia.safe_name("Ab9"))
         self.assertEqual("_Ab9_etc_json", agilkia.safe_name("!Ab9 etc.json"))
 
-
-class TestTraceCluster(unittest.TestCase):
-    """Tests for TraceCluster objects."""
-
-    ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
-    ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
-
-    def test_cluster(self):
-        tr0 = agilkia.Trace([self.ev1])
-        tr1 = agilkia.Trace([self.ev2])
-        tr2 = agilkia.Trace([self.ev2, self.ev1])
-        owner = agilkia.TraceSet([tr0, tr1, tr2])
-        self.assertEqual(3, len(owner))
-        c0 = agilkia.TraceCluster(owner, [1])
-        self.assertEqual(0, len(c0.children))
-        self.assertEqual(1, c0.size())
-        self.assertEqual(1, c0.size(recursive=True))
-        # now add a child cluster
-        c00 = agilkia.TraceCluster(owner, [2])
-        c0.children.append(c00)
-        self.assertEqual(1, len(c0.children))
-        self.assertEqual(1, c0.size())
-        self.assertEqual(2, c0.size(recursive=True))
-        # now add a grandchild cluster
-        c000 = agilkia.TraceCluster(owner, [0])
-        c00.children.append(c000)
-        self.assertEqual(1, len(c0.children))
-        self.assertEqual(1, c0.size())
-        self.assertEqual(3, c0.size(recursive=True))
-        # test trace ids
-        self.assertEqual(set([1]), c0.ids(recursive=False))
-        self.assertEqual(set([0, 1, 2]), c0.ids(recursive=True))
-        # test traceset
-        self.assertEqual(1, len(c0.as_traceset()))
-        self.assertEqual(3, len(c0.as_traceset(recursive=True)))
-
+# =============================================================================
+# 
+# class TestTraceCluster(unittest.TestCase):
+#     """Tests for TraceCluster objects."""
+# 
+#     ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
+#     ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
+# 
+#     def test_cluster(self):
+#         tr0 = agilkia.Trace([self.ev1])
+#         tr1 = agilkia.Trace([self.ev2])
+#         tr2 = agilkia.Trace([self.ev2, self.ev1])
+#         owner = agilkia.TraceSet([tr0, tr1, tr2])
+#         self.assertEqual(3, len(owner))
+#         c0 = agilkia.TraceCluster(owner, [1])
+#         self.assertEqual(0, len(c0.children))
+#         self.assertEqual(1, c0.size())
+#         self.assertEqual(1, c0.size(recursive=True))
+#         # now add a child cluster
+#         c00 = agilkia.TraceCluster(owner, [2])
+#         c0.children.append(c00)
+#         self.assertEqual(1, len(c0.children))
+#         self.assertEqual(1, c0.size())
+#         self.assertEqual(2, c0.size(recursive=True))
+#         # now add a grandchild cluster
+#         c000 = agilkia.TraceCluster(owner, [0])
+#         c00.children.append(c000)
+#         self.assertEqual(1, len(c0.children))
+#         self.assertEqual(1, c0.size())
+#         self.assertEqual(3, c0.size(recursive=True))
+#         # test trace ids
+#         self.assertEqual(set([1]), c0.ids(recursive=False))
+#         self.assertEqual(set([0, 1, 2]), c0.ids(recursive=True))
+#         # test traceset
+#         self.assertEqual(1, len(c0.as_traceset()))
+#         self.assertEqual(3, len(c0.as_traceset(recursive=True)))
+# 
+# =============================================================================
 
 if __name__ == "__main__":
     unittest.main()

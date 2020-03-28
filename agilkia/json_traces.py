@@ -49,7 +49,6 @@ import json
 import decimal
 import datetime
 import re
-import itertools
 import xml.etree.ElementTree as ET
 import pandas as pd            # type: ignore
 import numpy as np             # type: ignore
@@ -57,19 +56,25 @@ import sklearn.cluster         # type: ignore
 import sklearn.preprocessing   # type: ignore
 import matplotlib.pyplot as plt
 import matplotlib.cm as pltcm
+import scipy.cluster.hierarchy as hierarchy
 from sklearn.manifold import TSNE
 # liac-arff from https://pypi.org/project/liac-arff (via pip)
 # import arff                    # type: ignore
 from typing import List, Set, Mapping, Dict, Union, Any, Optional, Callable, cast
 
 
-TRACE_SET_VERSION = "0.2.0"
+TRACE_SET_VERSION = "0.2.1"
 
 # History of the TraceSet versions
 # ================================
 # Note that this is the JSON file format version, which is separate to the Agilkia version.
 # This now uses semantic version numbering: major.minor.patch.
 #
+# 0.2.1 2020-03-27 changed hierarchical cluster support to use SciPy ClusterNode trees.
+#       Better to use existing technology rather than reinventing the wheel.
+#       This adds TraceSet fields: cluster_labels, cluster_tree, cluster_linkage,
+#       and removes the recently-added trace_clusters field.
+#       That would be a breaking change, but no one was using 0.2.0 hierarchical clusters yet.
 # 0.2.0 2020-03-12 added TraceSet.trace_clusters: List[TraceCluster] = None
 #       This supports flat and hierarchical clusters, and saves them in the *.json file.
 # 0.1.4 2019-10-28 renamed Event.properties to Event.meta_data, for consistency.
@@ -241,71 +246,6 @@ class Trace:
             return "???"
 
 
-class TraceCluster:
-    """Represents a set of traces, identified by their positions in the 'owner' TraceSet.
-
-    After a TraceSet has been clustered using a flat clustering algorithm, it will have
-    a list of these TraceCluster objects (in its 'trace_clusters' attribute), where each
-    of these cluster objects contains a set of integer trace numbers.
-
-    To support hierarchical clustering, each cluster may optionally contain child clusters.
-    The 'size()' method gives the number of traces in this cluster, and can optionally
-    include the traces in all children.
-
-    The set of trace ids in the cluster can be abtained using 'ids()'.  
-    If the recursive=True option is used, the resulting set will also include all the
-    trace numbers in all the child clusters, and their child clusters, and so on.
-
-    The 'as_traceset' method allows the cluster to be viewed as a TraceSet, and also has
-    the option of excluding or including all child clusters.
-    """
-    def __init__(self, owner:'TraceSet', trace_ids:List[int],
-                 meta_data: Optional[MetaData] = None,
-                 ):
-        """Create a new cluster for the given owner TraceSet.
-
-        Args:
-            owner: the TraceSet that this cluster is associated with.
-            trace_ids: the integer ids (positions) of the traces directly in this cluster.
-            meta_data: optional meta-data associated with this individual trace.  This can
-                be used to store extra information about the cluster such as 'color'
-                and 'marker' for visualisation.
-        """
-        self.owner:'TraceSet' = owner
-        self.trace_ids: List[int] = trace_ids
-        self.children: List[TraceCluster] = []
-        self.meta_data: MetaData = {} if meta_data is None else meta_data
-
-    def size(self, recursive=False) -> int:
-        """The number of traces in this cluster.
-        If recursive=True, then traces in child clusters are counted too.
-        """
-        result = len(self.trace_ids)
-        if recursive:
-            for child in self.children:
-                result += child.size(recursive=recursive)
-        return result
-
-    def ids(self, recursive=False) -> Set[int]:
-        """Returns the set of trace ids directly in this cluster.
-
-        If recursive=True, the result also includes all child and descendent sets.
-        """
-        result = set(self.trace_ids)
-        if recursive:
-            for child in self.children:
-                result |= child.ids(recursive=True)
-        return result
-
-    def as_traceset(self, recursive=False):
-        """A convenience method that turns this cluster into a TraceSet.
-
-        If recursive=True, then all children traces are included as well.
-        """
-        tr_ids = self.ids(recursive=recursive)
-        return TraceSet([self.owner[i] for i in tr_ids])
-
-
 class TraceSet:
     """Represents a set of traces, either generated or recorded.
 
@@ -320,11 +260,21 @@ class TraceSet:
           may not need to access self.traces at all.
         * self.meta_data: MetaData.  Or use get_meta(key) to get an individual meta-data value.
         * self.version: str.  Version number of this TraceSet object.
-        * self.trace_clusters: List[TraceCluster] flat or hierarchical clusters of trace ids.
+        * self.cluster_labels: optional list giving a cluster number for each trace.
+            That is, `self.cluster_labels[i]` is the number of the cluster that trace
+            `self.traces[i]` (or equivalently, `self[i]`) belongs to.
+        * self.cluster_tree: `scipy.cluster.hierarchy.ClusterNode`.  This optional hierarchical
+            clustering tree is automatically calculated whenever a hierarchical clustering
+            is given to `set_clusters`.  The tree is saved in the *.json file, with the
+            linkage matrix.  See the SciPy docs for how to use the tree.  One handy method
+            to call on any node of the tree is `node.pre_order()`, which returns a list of
+            all the trace numbers in that subtree.  See also, `get_cluster(k)`, which returns
+            a (flat) cluster number into a list of Trace objects, rather than their numbers.
+        * self.cluster_linkage: optional hierarchical clustering (SciPy linkage matrix).
     """
 
     meta_data: MetaData
-    _event_chars: Optional[Dict[str, str]]
+    _event_chars: Optional[Dict[str, str]]   # just a cache, not stored.
 
     def __init__(self, traces: List[Trace], meta_data: Dict[str, Any] = None):
         """Create a TraceSet object from a list of Traces.
@@ -345,9 +295,10 @@ class TraceSet:
         """
         self.version = TRACE_SET_VERSION
         self.traces = traces
-        self._clusters: List[int] = None
         self._cluster_data: pd.DataFrame = None
-        self.trace_clusters: List[TraceCluster] = None
+        self.cluster_labels: List[int] = None  # for flat clustering
+        self.cluster_tree: hierarchy.ClusterNode = None  # for hierarchical clustering
+        self.cluster_linkage: np.ndarray = None   # scipy Linkage array for cluster trees.
         trace_parents = set()
         # add all the trace to this set.
         for tr in self.traces:
@@ -525,13 +476,13 @@ class TraceSet:
                 # Note: traceset["version"] has already been updated to the latest.
                 traceset.meta_data["actions_chars"] = json_data["given_event_chars"]
             else:
-                # The JSON must be from a newer 0.1.x version, so give a warning.
+                # The JSON must be from a newer 0.x.y version, so give a warning.
                 print(f"WARNING: reading {version} TraceSet using {TRACE_SET_VERSION} code.")
                 print(f"         Some data may be lost.  Please upgrade this program.")
             # now handle optional clustering data, if it is present
-            if json_data["trace_clusters"]:  # from 0.2.0 onwards
-                traceset.trace_clusters = [cls._create_cluster_object(version, c)
-                                           for c in json_data["trace_clusters"]]
+            if json_data.get("cluster_labels", None) is not None:  # from 0.2.1 onwards
+                traceset.set_clusters(json_data["cluster_labels"],
+                                      linkage=json_data.get("cluster_linkage", None))
             return traceset
         raise Exception(f"upgrade of TraceSet v{version} to v{TRACE_SET_VERSION} not supported.")
 
@@ -561,17 +512,6 @@ class TraceSet:
         if "timestamp" in props:
             props["timestamp"] = datetime.datetime.fromisoformat(props["timestamp"])
         return Event(action, inputs, outputs, props)
-
-    @classmethod
-    def _create_cluster_object(cls, owner: 'TraceSet', version: str,
-                               tr_data: Dict[str, Any]) -> TraceCluster:
-        assert tr_data["__class__"] == "TraceCluster"
-        assert isinstance(tr_data["trace_ids"], list)
-        meta = tr_data.get("meta_data", None)
-        cluster = TraceCluster(owner, tr_data["trace_ids"], meta_data=meta)
-        for child in tr_data["children"]:
-            cluster.children.append(cls._create_cluster_object(owner, version, child))
-        return cluster
 
     def to_pandas(self) -> pd.DataFrame:
         """Converts all the traces into a single Pandas DataFrame (one event/row).
@@ -786,22 +726,64 @@ class TraceSet:
         self._cluster_data = pd.DataFrame(normalizer.transform(data), columns=data.columns)
         if fit:
             algorithm.fit(self._cluster_data)
-            self._clusters = algorithm.labels_
+            self.cluster_labels = algorithm.labels_
         else:
             print(" pre predict len=", len(algorithm.labels_))
-            self._clusters = algorithm.predict(self._cluster_data)
-            print("post predict len=", len(algorithm.labels_), len(self._clusters))
-        return max(self._clusters) + 1
+            self.cluster_labels = algorithm.predict(self._cluster_data)
+            print("post predict len=", len(algorithm.labels_), len(self.cluster_labels))
+        return max(self.cluster_labels) + 1
 
     def is_clustered(self) -> bool:
-        return self._clusters is not None
+        return self.cluster_labels is not None
+
+    def set_clusters(self, labels: List[int], linkage: np.ndarray = None):
+        """Record clustering information for the traces in this TraceSet.
+
+        The set of flat clusters must be given - one cluster number for each Trace.
+
+        If hierarchical clusters are supplied (as a linkage array),
+        then the flat clusters are typically a cut through that tree.
+
+        After this method has been called, the flat clusters will be saved in
+        `self.cluster_labels`.  If the `linkage` argument is not None, then the
+        hierarchical clustering information will be saved in `self.cluster_tree`
+        (a SciPy ClusterNode tree) as well as `self.cluster_linkage`.  The latter
+        is directly useful for drawing dendograms and calculating various statistics.
+        (see https://docs.scipy.org/doc/scipy/reference/cluster.hierarchy.html). 
+
+        Parameters
+        ----------
+        labels : List[int]
+            an array of cluster numbers for each Trace.
+        linkage : np.ndarray, optional
+            an optional scipy linkage array that encodes a binary hierarchical tree.
+            If given, `self.cluster_tree` will be derived from this linkage array.
+            The default is None, as hierarchical clustering is optional.
+
+        Raises
+        ------
+        Exception
+            if `labels` is not the same length as the number of traces, or if any
+            arguments are malformed.
+
+        Returns
+        -------
+        None.
+        """
+        if len(labels) != len(self.traces):
+            raise Exception("Bad cluster labels")
+        if linkage is not None:
+            hierarchy.is_valid_linkage(linkage, throw=True)
+            self.cluster_tree = hierarchy.to_tree(linkage)
+            self.cluster_linkage = linkage
+        self.cluster_labels = labels
 
     def get_clusters(self) -> List[int]:
         """Get the list of cluster numbers for each trace.
 
         Precondition: self.is_clustered()
         """
-        return self._clusters
+        return self.cluster_labels
 
     def visualize_clusters(self, algorithm=None, fit: bool = True,
                            xlim=None, ylim=None, cmap=None,
@@ -845,9 +827,9 @@ class TraceSet:
                 the color map will not be exactly the same.
         """
         data = self._cluster_data
-        if data is None or self._clusters is None:
+        if data is None or self.cluster_labels is None:
             raise Exception("You must call create_clusters() before visualizing them!")
-        num_clusters = max(self._clusters) + 1
+        num_clusters = max(self.cluster_labels) + 1
         if algorithm is None:
             if not fit:
                 raise Exception("You must supply pre-fitted algorithm when fit=False")
@@ -882,7 +864,7 @@ class TraceSet:
             markers = "o"
         if isinstance(markers, str) and len(markers) > 1:
             # loop through the marker styles
-            clusters = np.ma.array(self._clusters)
+            clusters = np.ma.array(self.cluster_labels)
             markchars = markers + "o" * num_clusters
             for curr in range(max(num_clusters, len(markers))):
                 #prepare for masking arrays - 'conventional' arrays won't do it
@@ -899,7 +881,7 @@ class TraceSet:
             leg = ax.legend(loc='best') #, ncol=2, mode="expand", shadow=True, fancybox=True)
             leg.get_frame().set_alpha(0.5)
         else:
-            sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self._clusters,
+            sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.cluster_labels,
                              cmap=cmap, marker=markers)
 
         if filename:
@@ -920,7 +902,7 @@ class TraceSet:
             annot.xy = pos
             # text = "{}, {}".format(" ".join(list(map(str, ind["ind"]))),
             #                        " ".join([str(names[n]) for n in ind["ind"]]))
-            anns = [f"{n} ({self._clusters[n]}): {str(names[n])}" for n in ind["ind"]]
+            anns = [f"{n} ({self.cluster_labels[n]}): {str(names[n])}" for n in ind["ind"]]
             text = "\n".join(anns)
             annot.set_text(text)
             # annot.get_bbox_patch().set_facecolor(cmap(norm(c[ind["ind"][0]])))
@@ -944,11 +926,11 @@ class TraceSet:
 
     def get_cluster(self, num: int) -> List[Trace]:
         """Gets a list of all the Trace objects that are in the given cluster."""
-        if self._clusters is None:
-            raise Exception("You must call create_clusters() before get_cluster(_)")
-        if len(self._clusters) != len(self.traces):
+        if self.cluster_labels is None:
+            raise Exception("You must call set/create_clusters() before get_cluster(_)")
+        if len(self.cluster_labels) != len(self.traces):
             raise Exception("Traces have changed, so you must call create_clusters() again.")
-        return [tr for (i, tr) in zip(self._clusters, self.traces) if i == num]
+        return [tr for (i, tr) in zip(self.cluster_labels, self.traces) if i == num]
 
 
 class TraceEncoder(json.JSONEncoder):
@@ -971,6 +953,8 @@ class TraceEncoder(json.JSONEncoder):
             return list(obj)
         if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
             return obj.isoformat()  # as a string
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
         if hasattr(obj, "__dict__"):
             result = {
                 "__class__": obj.__class__.__name__,
