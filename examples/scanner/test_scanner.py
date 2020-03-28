@@ -19,14 +19,17 @@ class TestExamplesScanner(unittest.TestCase):
         """Convenience function to run a command, check success, and capture output as text."""
         return subprocess.run(args, cwd=SCANNER_DIR, check=True, capture_output=True, text=True)
 
-    def test_generate(self):
-        status = self.ok(["python", "generate_missing_tests_scanette.py", "--test"])
-        with open("test_generate.log", "w") as out:
-            out.write("status=" + str(status))
-
     def test_analyze(self):
         status = self.ok(["python", "analyse_scanette2.py", "--test"])
         with open("test_analyse.log", "w") as out:
+            out.write("status=" + str(status))
+
+    def test_generate(self):
+        # Note: this assumes "log_split.json" as input.
+        json = SCANNER_DIR / "log_split.json"
+        self.assertTrue(json.exists(), "Needs log_split.json.  Run analyse_scanette2.py first.")
+        status = self.ok(["python", "generate_missing_tests_scanette.py", "--test"])
+        with open("test_generate.log", "w") as out:
             out.write("status=" + str(status))
 
     def test_read_write(self):
