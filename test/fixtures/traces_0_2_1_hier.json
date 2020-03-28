@@ -631,111 +631,6 @@
     0,
     0
   ],
-  "cluster_tree": {
-    "__class__": "ClusterNode",
-    "__module__": "scipy.cluster.hierarchy",
-    "id": 12,
-    "left": {
-      "__class__": "ClusterNode",
-      "__module__": "scipy.cluster.hierarchy",
-      "id": 8,
-      "left": {
-        "__class__": "ClusterNode",
-        "__module__": "scipy.cluster.hierarchy",
-        "id": 3,
-        "left": null,
-        "right": null,
-        "dist": 0,
-        "count": 1
-      },
-      "right": {
-        "__class__": "ClusterNode",
-        "__module__": "scipy.cluster.hierarchy",
-        "id": 4,
-        "left": null,
-        "right": null,
-        "dist": 0,
-        "count": 1
-      },
-      "dist": 0.0,
-      "count": 2
-    },
-    "right": {
-      "__class__": "ClusterNode",
-      "__module__": "scipy.cluster.hierarchy",
-      "id": 11,
-      "left": {
-        "__class__": "ClusterNode",
-        "__module__": "scipy.cluster.hierarchy",
-        "id": 5,
-        "left": null,
-        "right": null,
-        "dist": 0,
-        "count": 1
-      },
-      "right": {
-        "__class__": "ClusterNode",
-        "__module__": "scipy.cluster.hierarchy",
-        "id": 10,
-        "left": {
-          "__class__": "ClusterNode",
-          "__module__": "scipy.cluster.hierarchy",
-          "id": 2,
-          "left": null,
-          "right": null,
-          "dist": 0,
-          "count": 1
-        },
-        "right": {
-          "__class__": "ClusterNode",
-          "__module__": "scipy.cluster.hierarchy",
-          "id": 9,
-          "left": {
-            "__class__": "ClusterNode",
-            "__module__": "scipy.cluster.hierarchy",
-            "id": 0,
-            "left": null,
-            "right": null,
-            "dist": 0,
-            "count": 1
-          },
-          "right": {
-            "__class__": "ClusterNode",
-            "__module__": "scipy.cluster.hierarchy",
-            "id": 7,
-            "left": {
-              "__class__": "ClusterNode",
-              "__module__": "scipy.cluster.hierarchy",
-              "id": 1,
-              "left": null,
-              "right": null,
-              "dist": 0,
-              "count": 1
-            },
-            "right": {
-              "__class__": "ClusterNode",
-              "__module__": "scipy.cluster.hierarchy",
-              "id": 6,
-              "left": null,
-              "right": null,
-              "dist": 0,
-              "count": 1
-            },
-            "dist": 0.0,
-            "count": 2
-          },
-          "dist": 1.0,
-          "count": 3
-        },
-        "dist": 1.0,
-        "count": 4
-      },
-      "dist": 6.0,
-      "count": 5
-    },
-    "dist": 8.06225774829855,
-    "count": 7
-  },
   "cluster_linkage": [
     [
       1.0,
@@ -775,7 +670,7 @@
     ]
   ],
   "meta_data": {
-    "date": "2020-03-28T17:52:17.505122",
+    "date": "2020-03-28T20:24:17.295561",
     "author": "Mark Utting",
     "dataset": "Artificial test traces",
     "action_chars": {

@@ -631,10 +631,9 @@
     2,
     0
   ],
-  "cluster_tree": null,
   "cluster_linkage": null,
   "meta_data": {
-    "date": "2020-03-28T17:52:17.505122",
+    "date": "2020-03-28T20:24:17.295561",
     "author": "Mark Utting",
     "dataset": "Artificial test traces",
     "action_chars": {
