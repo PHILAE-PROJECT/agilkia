@@ -1,4 +1,4 @@
-Example usage (Scanette)
+Example: Supermarkets
 ------------------------
 To illustrate a typical workflow we shall use the **Scanette** Example.
 This is a simple Supermarket Scanner application, where a shopper can take a
@@ -26,7 +26,7 @@ Here is example code that goes through the first four of these steps::
     Example analysis of Scanette logs - new CSV format.
     
     Reads Scanette CSV files with these columns:
-    # Columns Docs from Frederick, 2019-10-18.
+    # Column Docs from Frederic, 2019-10-18.
       0: id is an identifier of the line (some numbers may be missing)
       1: timestamp is in Linux format with three extra digits for milliseconds.
       2: sessionID provides the identifier of the session - each client is different.
@@ -124,7 +124,7 @@ Here is example code that goes through the first four of these steps::
     data = traceset3.get_trace_data(method="action_counts")  # or add: method="action_status_counts"
     print(data.sum().sort_values())
     
-    # %% Now cluster the traces (default MeanShift)
+    # %% Now cluster the traces using the default MeanShift algorithm.
     
     num_clusters = traceset3.create_clusters(data)
     print(num_clusters, "clusters found")
@@ -136,3 +136,9 @@ Here is example code that goes through the first four of these steps::
     # %% Visualise clusters (using TSNE)
     
     traceset3.visualize_clusters()
+
+
+Further examples of using Agilkia to analyse and generate Scanette tests
+are available in the Agilkia GitHub repository (https://github.com/utting/agilkia),
+in the `examples/scanner` folder.
+

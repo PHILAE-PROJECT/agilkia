@@ -34,6 +34,7 @@ Ideas / Tasks to do
     * DONE: split RandomTester into SmartSequenceGenerator subclass (better meta-data).
     * DONE: add set_clusters with support for flat and hierarchical clustering.
     * provide an easy way of copying meta-data across, or cloning a Trace[Set] with new traces.
+      Also decide if the Traces and Events should be cloned or shared between parents.
     * extend to_pandas() to allow user-defined columns to be added.
     * split the test execution methods out of RandomTester into a delegate class,
         so that we can generate tests without executing them, and execute without generating.
@@ -250,6 +251,17 @@ class Trace:
 class TraceSet:
     """Represents a set of traces, either generated or recorded.
 
+    Typical usage is to create an empty TraceSet and then add traces to it one
+    by one::
+
+        traces = agilkia.TraceSet([], meta_data = {"author":"MarkU", "dataset":"Example 1"})
+        for i in ...:
+            traces.append(agilkia.Trace(...))
+
+    Once all traces have been added, the TraceSet should be considered read-only
+    (except for adding meta-data and clustering information).  If you want to create
+    subsets of the traces, it is recommended to create those as new TraceSet objects.
+
     Invariants:
         * forall tr:self.traces (tr._parent is self)
           (TODO: set _parent to None when a trace is removed?)
@@ -383,12 +395,15 @@ class TraceSet:
         """Sets up the event-to-char map that is used to visualise traces.
 
         This will calculate a default mapping for any actions that are not in given.
-        (See 'default_map_to_chars').
+        For good readability of the printed traces, it is recommended that extremely
+        common actions should be mapped to 'small' characters like '.' or ','.
+ 
+        If `given` is None, then meta data "action_chars" will be used as a basis instead.
+        If that is also None, then all action characters will be calculated
+        using the global `default_map_to_chars()` function.
 
         Args:
-            given: optional pre-allocation of a few action names to chars.
-            For good readability of the printed traces, it is recommended that extremely
-            common actions should be mapped to 'small' characters like '.' or ','.
+            given: optional pre-allocation of a few action names to chars.  
         """
         if given is None:
             new_given = self.get_meta("action_chars")
@@ -400,6 +415,7 @@ class TraceSet:
 
     def get_event_chars(self):
         """Gets the event-to-char map that is used to visualise traces.
+
         This maps each action name to a single character.
         If set_event_chars has not been called, this getter will calculate and cache
         a default mapping from action names to characters.
@@ -415,7 +431,7 @@ class TraceSet:
     def save_to_json(self, file: Path) -> None:
         """Saves this TraceSet into the given file[.json] in JSON format.
 
-        The file extension is forced to be .json. if it is not already that.
+        The file extension is forced to be `.json` if it is not already that.
         The file includes a version number so that older data files can be updated if possible.
         """
         if isinstance(file, str):
@@ -512,6 +528,7 @@ class TraceSet:
         The first three columns are 'Trace' and 'Event' which give the number of the
         trace and the position of the event within that trace, and 'Action' which is
         the name of the action of the event.
+
         Each named input value is recorded in a separate column.
         For outputs, by default there are just 'Status' (int) and 'Error' (str) columns.
         """
@@ -586,8 +603,12 @@ class TraceSet:
             a new TraceSet, usually with more traces and shorter traces.
         """
         if start_action is not None:
+            if not isinstance(start_action, str):
+                raise Exception(f"start_action must be a string, not {start_action}")
             split = (lambda e1,e2: e2.action == start_action)
         elif input_name is not None:
+            if not isinstance(input_name, str):
+                raise Exception(f"input_name must be a string, not {input_name}")
             split = (lambda e1,e2: e1.inputs[input_name] != e2.inputs[input_name])
         elif split is None:
             raise Exception("split_traces requires at least one split criteria.")
@@ -625,6 +646,8 @@ class TraceSet:
         """
         traces2 = TraceSet([], self.meta_data)
         if name is not None:
+            if not isinstance(name, str):
+                raise Exception(f"group-by name must be a string, not {name}")
             if property:
                 print("WARNING: property=True is deprecated.  Use key=...")
                 key = (lambda ev: ev.meta_data.get(name, None))
@@ -928,7 +951,9 @@ class TraceSet:
 
 
 class TraceEncoder(json.JSONEncoder):
-    """Custom JSON encoder because objects from zeep could not be serialised.
+    """An internal class used by TraceSet to encode objects into JSON format.
+
+    We use a custom JSON encoder because objects from zeep could not be serialised.
 
     Based on ideas from this blog entry by 'The Fellow' (Ouma Rodgers):
     https://medium.com/python-pandemonium/json-the-python-way-91aac95d4041.

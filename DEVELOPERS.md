@@ -87,12 +87,16 @@ flit publish
 ```
 conda install conda-build
 conda install conda-verify
+# on Windows, you might also need to install patch:
+conda install -c anaconda patch
 mkdir tmp
 cd tmp
 conda skeleton pypi agilkia   # you can add --version 0.x.y if needed
 # now edit the generated agilkia/meta.yaml and add this line after the "build:" line:
 #      noarch: python
+conda config --add channels conda-forge
 conda-build agilkia/
 # look in the above output for 'anaconda upload <PATH>.tar.bz2'
+# NOTE: if 'anaconda' is missing do: conda install anaconda
 anaconda upload <PATH>.tar.bz2
 ```
