@@ -72,7 +72,8 @@ during the Rosetta space mission.
 
 # Example Usages
 
-Here is how install this toolkit using conda:
+Agilkia requires Python 3.7 or higher.
+Here is how to install this toolkit using conda:
 ```
 conda install -c mark.utting agilkia
 ```
