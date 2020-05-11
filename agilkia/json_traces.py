@@ -22,6 +22,17 @@ NOTES
 
 Ideas / Tasks to do
 ===================
+    * Add meta-data that describes how features were extracted from traces for clustering.
+    * Provide an easier way of copying meta-data across, or cloning a Trace[Set] with new traces.
+      Also decide if the Traces and Events should be cloned or shared between parents.
+    * Extend to_pandas() to allow user-defined columns to be added.  Add a function
+      parameter that can map each Event to a Mapping[ColumnName, Value].  Provide a default
+      function that does the current behaviour (inputs, status, errmsg).
+    * Split the test execution methods out of RandomTester into a delegate class,
+        so that we can generate tests without executing them, and execute without generating.
+
+DONE
+====
     * DONE: add save_as_arff() method like to_pandas.
     * DONE: store event_chars into meta_data.
     * DONE: store signatures into meta_data.
@@ -32,12 +43,7 @@ Ideas / Tasks to do
     * DONE: add 'meta_data' to Trace and Event objects too (replace properties)
     * DONE: add unit tests for clustering...  (Note: not saved in JSON!)
     * DONE: split RandomTester into SmartSequenceGenerator subclass (better meta-data).
-    * DONE: add set_clusters with support for flat and hierarchical clustering.
-    * provide an easy way of copying meta-data across, or cloning a Trace[Set] with new traces.
-      Also decide if the Traces and Events should be cloned or shared between parents.
-    * extend to_pandas() to allow user-defined columns to be added.
-    * split the test execution methods out of RandomTester into a delegate class,
-        so that we can generate tests without executing them, and execute without generating.
+    * DONE Mar20: add set_clusters with support for flat and hierarchical clustering.
 
 @author: utting@usc.edu.au
 """
