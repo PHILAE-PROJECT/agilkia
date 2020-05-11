@@ -21,7 +21,23 @@ OUTPUT_FILE = "regression_tests.json"
 
 # %% cluster traces, select, and return the new TraceSet.
 
-def cluster_select(traces: agilkia.TraceSet, num_tests: int):
+def cluster_select(traces: agilkia.TraceSet, num_tests: int) -> agilkia.TraceSet:
+    """
+    Clusters the given traces, then chooses up to `num_tests` per cluster.
+
+    Parameters
+    ----------
+    traces : agilkia.TraceSet
+        Input set of traces.
+    num_tests : int
+        The desired number of tests per cluster.  For clusters smaller than this,
+        all tests will be selected.
+
+    Returns
+    -------
+    result : agilkia.TraceSet
+        A traceset containing the selected tests.
+    """
     data = traces.get_trace_data(method="action_counts")
     print(data.sum().sort_values())
     num_clusters = traces.create_clusters(data)
