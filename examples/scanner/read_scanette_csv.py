@@ -2,7 +2,7 @@
 """
 Example project to read Scanette CSV logs and save in Agilkia JSON format.
 
-It can also split the traces into sessions.
+It can also split the traces into sessions, and optionally cluster them.
 
 It uses the Philae 'Agilkia' library, which can be installed by::
 
@@ -124,33 +124,51 @@ english_chars = {'scanner': '.',        # 'scan'
 
 # %% Read traces and save in the Agilkia JSON format.
 
-def read_split_save(name: str, split: bool):
+def read_split_save(name: str, split: bool, cluster: bool):
         path = Path(name)
         traces = read_traces_csv(path)
         traces.set_event_chars(english_chars)
+        msg = ""
         if split:
             traces = traces.with_traces_grouped_by("sessionID")
-            path2 = path.with_suffix(".split.json")
+            if cluster:
+                path2 = path.with_suffix(".clustered.json")
+                data = traces.get_trace_data()
+                num = traces.create_clusters(data)
+                msg = f", {num} clusters"
+            else:
+                path2 = path.with_suffix(".split.json")
         else:
             path2 = path.with_suffix(".json")
-        print(f"  {path} -> {path2} [{len(traces)} traces]")
+        print(f"  {path} -> {path2} [{len(traces)} traces{msg}]")
         traces.save_to_json(path2)
 
 # %%
 
-if __name__ == "__main__":
-    if len(sys.argv) >= 2:
-        start = 1
-        split = False
-        if sys.argv[1] == "--split":
-            start += 1
-            split = True
-        for name in sys.argv[start:]:
-            read_split_save(name, split)
+def main(args):
+    start = 1
+    split = False
+    cluster = False
+    if start < len(args) and args[start] == "--split":
+        start += 1
+        split = True
+    if start < len(args) and args[start] == "--cluster":
+        start += 1
+        cluster = True
+    files = args[start:]
+    if len(files) > 0:
+        for name in files:
+            read_split_save(name, split=split, cluster=cluster)
     else:
-        script = sys.argv[0] or "read_scanette_csv.py"
+        script = args[0] or "read_scanette_csv.py"
         print("This script converts Scanette *.csv files into Agilkia *.json trace files.")
         print("If the --split argument is given, it will also split traces by session IDs.")
+        print("If --cluster is also given, it will cluster traces using MeanShift with action counts.")
         print(f"Setup: conda install -c mark.utting agilkia")
-        print(f"Usage: python {script} [--split] scanner1.csv scanner2.csv ...")
+        print(f"Usage: python {script} [--split [--cluster]] scanner1.csv scanner2.csv ...")
 
+
+# %%
+
+if __name__ == "__main__":
+    main(sys.argv)
