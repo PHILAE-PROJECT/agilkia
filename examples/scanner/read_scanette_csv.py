@@ -101,7 +101,7 @@ def read_traces_csv(path: Path) -> agilkia.TraceSet:
 
 french_chars = {'scanner': '.',
                 'abandon': 'a',
-                'supprimer': 's',
+                'supprimer': '-',
                 'ajouter': '+',
                 'debloquer': 'd',
                 'fermerSession': 'f',
@@ -172,3 +172,4 @@ def main(args):
 
 if __name__ == "__main__":
     main(sys.argv)
+
