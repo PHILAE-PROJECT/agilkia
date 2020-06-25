@@ -397,6 +397,7 @@ class TestTraceSet(unittest.TestCase):
         n = traces1.create_clusters(data)
         self.assertEqual(2, n)
         self.assertTrue(traces1.is_clustered())
+        self.assertEqual(2, traces1.get_num_clusters())
         nptest.assert_array_equal([tr2, tr3], traces1.get_cluster(0))
         nptest.assert_array_equal([tr1], traces1.get_cluster(1))
         #
@@ -405,6 +406,7 @@ class TestTraceSet(unittest.TestCase):
         traces1.save_to_json(tmp3_json)
         traces2 = agilkia.TraceSet.load_from_json(tmp3_json)
         self.assertTrue(traces2.is_clustered())
+        self.assertEqual(2, traces2.get_num_clusters())
         tmp3_json.unlink()
 
     def test_hierarchical_clustering(self):
@@ -415,10 +417,12 @@ class TestTraceSet(unittest.TestCase):
         data = traces1.get_trace_data()
         nptest.assert_array_equal(["Order", "Skip"], data.columns)
         self.assertFalse(traces1.is_clustered())
+        self.assertEqual(0, traces1.get_num_clusters())
         Z = hierarchy.linkage(data)
         flat = hierarchy.cut_tree(Z, n_clusters=[2])
         traces1.set_clusters(flat, linkage=Z)
         self.assertTrue(traces1.is_clustered())
+        self.assertEqual(2, traces1.get_num_clusters())
         self.assertEqual(2, len(traces1.get_cluster(1)))
         nptest.assert_array_equal([tr2, tr3], traces1.get_cluster(1))
         nptest.assert_array_equal([tr1], traces1.get_cluster(0))

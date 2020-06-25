@@ -641,7 +641,8 @@ class TraceSet:
 
         Args:
             name: the name of an input.  This is a convenience parameter that is
-                a shorthand for key = (lambda ev: ev.inputs[name]).
+                a shorthand for `key=(lambda ev: ev.inputs[name])` if property=False
+                or for `key=(lambda ev: ev.meta_data.get(name, None))` if property=True.
             key: a function that takes an Event object and returns the groupby key string.
             property [deprecated]: True means `name` is a meta-data field, not an input.
             allow_missing: True allows `key` to return None, meaning that that event will
@@ -655,7 +656,6 @@ class TraceSet:
             if not isinstance(name, str):
                 raise Exception(f"group-by name must be a string, not {name}")
             if property:
-                print("WARNING: property=True is deprecated.  Use key=...")
                 key = (lambda ev: ev.meta_data.get(name, None))
             else:
                 key = (lambda ev: ev.inputs.get(name, None))
@@ -748,15 +748,22 @@ class TraceSet:
         self._cluster_data = pd.DataFrame(normalizer.transform(data), columns=data.columns)
         if fit:
             algorithm.fit(self._cluster_data)
-            self.cluster_labels = algorithm.labels_
+            self.set_clusters(algorithm.labels_)
         else:
-            print(" pre predict len=", len(algorithm.labels_))
-            self.cluster_labels = algorithm.predict(self._cluster_data)
-            print("post predict len=", len(algorithm.labels_), len(self.cluster_labels))
-        return max(self.cluster_labels) + 1
+            self.set_clusters(algorithm.predict(self._cluster_data))
+        return self.get_num_clusters()
 
     def is_clustered(self) -> bool:
         return self.cluster_labels is not None
+
+    def get_num_clusters(self) -> int:
+        """Return the number of clusters.
+        Zero means not clustered.
+        """
+        if self.is_clustered():
+            return max(self.cluster_labels) + 1
+        else:
+            return 0
 
     def set_clusters(self, labels: List[int], linkage: np.ndarray = None):
         """Record clustering information for the traces in this TraceSet.
@@ -779,7 +786,7 @@ class TraceSet:
         Parameters
         ----------
         labels : List[int]
-            an array of cluster numbers for each Trace.
+            an array of cluster numbers (0..), containing one number for each Trace.
         linkage : np.ndarray, optional
             an optional scipy linkage array that encodes a binary hierarchical tree.
             The default is None, as hierarchical clustering is optional.
@@ -787,7 +794,8 @@ class TraceSet:
         Raises
         ------
         Exception
-            if `labels` is not the same length as the number of traces, or if any
+            if `labels` is not the same length as the number of traces, or the cluster label
+            numbers are not contiguous in the range 0..n for some n, or if any
             arguments are malformed.
 
         Returns
@@ -799,7 +807,7 @@ class TraceSet:
         if linkage is not None:
             hierarchy.is_valid_linkage(linkage, throw=True)
             self.cluster_linkage = linkage
-        self.cluster_labels = labels
+        self.cluster_labels = [int(c) for c in labels]   # convert to an ordinary list of int
 
     def get_clusters(self) -> List[int]:
         """Get the list of cluster numbers for each trace.
@@ -852,7 +860,7 @@ class TraceSet:
         data = self._cluster_data
         if data is None or self.cluster_labels is None:
             raise Exception("You must call create_clusters() before visualizing them!")
-        num_clusters = max(self.cluster_labels) + 1
+        num_clusters = self.get_num_clusters()
         if algorithm is None:
             if not fit:
                 raise Exception("You must supply pre-fitted algorithm when fit=False")
