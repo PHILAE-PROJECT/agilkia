@@ -216,6 +216,14 @@ class TestTrace(unittest.TestCase):
     ev4 = agilkia.Event("Ski", {"Type": "downhill"}, {"Status": 1})
     to_char = {"Order": "O", "Skip": ",", "Pay": "p"}
 
+    def test_action_counts(self):
+        tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3, self.ev1])
+        counts = tr1.action_counts()
+        self.assertEqual(1, counts["Skip"])
+        self.assertEqual(2, counts["Order"])
+        self.assertEqual(1, counts["Pay"])
+        self.assertEqual(3, len(counts))
+
     def test_trace(self):
         tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])  # no parent initially
         with self.assertRaises(Exception):
