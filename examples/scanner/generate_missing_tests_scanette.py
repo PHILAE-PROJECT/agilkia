@@ -3,7 +3,14 @@
 """
 Example analysis of Scanette logs to generate missing tests.
 
-@author: utting@usc.edu.au
+This analysis is described in the paper:
+
+  M. Utting, B. Legeard, F. Dadeau, F. Tamagnan and F. Bouquet,
+  "Identifying and Generating Missing Tests using Machine Learning on Execution Traces",
+  2020 IEEE International Conference On Artificial Intelligence Testing (AITest),
+  Oxford, United Kingdom, 2020, pp. 83-90, doi: 10.1109/AITEST49225.2020.00020.
+
+@author: m.utting@uq.edu.au
 """
 
 from sklearn.tree import DecisionTreeClassifier
@@ -28,6 +35,7 @@ from pathlib import Path
 import random
 import timeit
 import sys
+from collections import Counter
 
 import agilkia
 
@@ -158,17 +166,36 @@ def gen_tests_for(traceset, name, traces=5):
         smart.generate_trace_with_model(model, length=100)
     for tr in smart.trace_set:
         print(f"    {tr}")
-    return model
+    return (model, smart.trace_set)
+
+# %%
+def metric_distinct(traceset: agilkia.TraceSet, n=1) -> float:
+    """Calculates the 'distinct-n' metric for all the traces in the given set.
+
+    For example, n=2 means count the number of distinct adjacent pairs of
+    action names in the traces, and divide that by the total number of pairs.
+    The result will always be between 0.0 to 1.0.
+    These metrics are useful as a measure of diversity.
+    """
+    counts = Counter()
+    for tr in traceset:
+        for i in range(0, len(tr) - n):
+            actions = ",".join([ev.action for ev in tr[i:i+n]])
+            counts[actions] += 1
+    print(f"DEBUG: distinct {len(counts)} / {counts}")
+    return len(counts) / sum(counts.values())
+
+# %%
+for n in [0]:
+    cluster = agilkia.TraceSet(cust) # .get_cluster(n))
+    (_, tests) = gen_tests_for(cluster, f"cluster {n}")
+    print(f"Missing {n} has distinct-1 metric:", metric_distinct(tests))
+    print(f"Missing {n} has distinct-2 metric:", metric_distinct(tests, 2))
+    print(f"Missing {n} has distinct-2 metric:", metric_distinct(tests, 3))
 
 # %%
 
-for n in missing:
-    cluster = agilkia.TraceSet(cust.get_cluster(n))
-    gen_tests_for(cluster, f"cluster {n}")
-
-# %%
-    
-model = gen_tests_for(cust, "all customer traces", traces=30)
+(model,_) = gen_tests_for(cust, "all customer traces", traces=30)
 
 # %% Get frequency of a generated trace (maybe partial)
 

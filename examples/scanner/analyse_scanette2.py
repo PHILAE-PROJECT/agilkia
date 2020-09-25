@@ -15,7 +15,7 @@ Reads Scanette CSV files with these columns:
 
 Created on Thu Oct 17 16:45:39 2019
 
-@author: utting@usc.edu.au
+@author: m.utting@uq.edu.au
 """
 
 import csv

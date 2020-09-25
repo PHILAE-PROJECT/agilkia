@@ -38,7 +38,7 @@ Here is example code that goes through the first four of these steps::
     
     Created on Thu Oct 17 16:45:39 2019
     
-    @author: utting@usc.edu.au
+    @author: m.utting@uq.edu.au
     """
     
     import csv

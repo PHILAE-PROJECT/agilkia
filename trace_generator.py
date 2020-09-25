@@ -4,7 +4,7 @@ Generate and execute tests for a Web Service.
 
 Example args: http://www.soapclient.com/xml/soapresponder.wsdl
 
-@author: utting@usc.edu.au
+@author: m.utting@uq.edu.au
 """
 
 import random

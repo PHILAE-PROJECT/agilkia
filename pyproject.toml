@@ -5,7 +5,7 @@ build-backend = "flit.buildapi"
 [tool.flit.metadata]
 module = "agilkia"
 author = "Mark Utting"
-author-email = "utting@usc.edu.au"
+author-email = "m.utting@uq.edu.au"
 home-page = "https://github.com/utting/agilkia"
 description-file = "README.md"
 classifiers = [

@@ -5,7 +5,7 @@ Analyse results of a testing run.
 It prints a one-line summary of each trace, plus some general statistics.
 Optionally, it can also report how many rows were added to each database table.
 
-@author: utting@usc.edu.au
+@author: m.utting@uq.edu.au
 """
 
 import pandas as pd
