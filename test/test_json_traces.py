@@ -2,7 +2,7 @@
 """
 Test JSON saving and loading.
 
-@author: utting@usc.edu.au
+@author: m.utting@uq.edu.au
 """
 
 import agilkia
@@ -224,6 +224,14 @@ class TestTrace(unittest.TestCase):
         self.assertEqual(1, counts["Pay"])
         self.assertEqual(3, len(counts))
 
+    def test_action_counts_custom(self):
+        tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3, self.ev1])
+        def custom(ev): return ev.inputs.get("Name", "?") + "!" + str(ev.status)
+        counts = tr1.action_counts(custom)
+        self.assertEqual(3, counts["Mark!0"])
+        self.assertEqual(1, counts["?!1"])
+        self.assertEqual(2, len(counts))
+
     def test_trace(self):
         tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev3])  # no parent initially
         with self.assertRaises(Exception):
@@ -296,7 +304,7 @@ class TestTrace(unittest.TestCase):
     def test_default_meta_data(self):
         now = str(datetime.datetime.now())
         md = agilkia.TraceSet.get_default_meta_data()
-        self.assertEqual("pytest", md["source"].split(os.path.sep)[-1])
+        self.assertTrue("pytest" in md["source"].split(os.path.sep)[-1])
         self.assertEqual(now[0:10], md["date"][0:10])  # same date, unless it is exactly midnight!
 
     def test_arff_type(self):
@@ -379,7 +387,29 @@ class TestTraceSet(unittest.TestCase):
     """
 
     ev1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
-    ev2 = agilkia.Event("Skip", {"Size": 3}, {"Status": 1, "Error": "Too big"})
+    ev1b = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 2})
+    ev2 = agilkia.Event("Skip", {"Size": 3, "Name": "Sue"}, {"Status": 1, "Error": "Too big"})
+
+    def test_get_trace_data(self):
+        """Tests get_trace_data and get_all_actions (which defines the column names)."""
+        tr1 = agilkia.Trace([self.ev1, self.ev1b])
+        tr2 = agilkia.Trace([self.ev2, self.ev1])
+        traces1 = agilkia.TraceSet([tr1, tr2])
+        self.assertEqual(["Order", "Skip"], traces1.get_all_actions())
+        data = traces1.get_trace_data()
+        self.assertListEqual(["Order", "Skip"], list(data.columns))
+        self.assertListEqual([2, 1], list(data["Order"].values))
+        self.assertListEqual([0, 1], list(data["Skip"].values))
+        # Now redo it with a custom function for generating column names.
+        def f(ev): return ev.inputs["Name"] + str(ev.status)
+        self.assertEqual(["Mark0", "Mark2", "Sue1"], traces1.get_all_actions(f))
+        def tr_encoder(tr): return tr.action_counts(event_to_str=f)
+        # request a subset of the columns, in a custom order.
+        data = traces1.get_trace_data(method=tr_encoder, columns=["Sue1", "Mark2"])
+        self.assertListEqual(["Sue1", "Mark2"], list(data.columns))
+        # Not requested: self.assertListEqual([1, 1], list(data["Mark0"].values))
+        self.assertListEqual([1, 0], list(data["Mark2"].values))
+        self.assertListEqual([0, 1], list(data["Sue1"].values))
 
     def test_meta_data_copy(self):
         tr1 = agilkia.Trace([self.ev1])

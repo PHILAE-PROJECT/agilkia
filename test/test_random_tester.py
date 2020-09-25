@@ -2,10 +2,7 @@
 """
 Unit tests for the RandomTester class.
 
-TODO:
-    * test the ML test generator
-
-@author: utting@usc.edu.au
+@author: m.utting@uq.edu.au
 """
 
 import unittest

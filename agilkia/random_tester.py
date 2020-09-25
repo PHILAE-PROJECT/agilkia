@@ -373,8 +373,19 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         feature_names_ (list): A list of length n_features containing the feature names.
     """
 
-    def __init__(self):
+    def __init__(self, event_to_str=None):
+        """
+        Create a new prefix-extractor for traces.
+
+        Args:
+            event_to_str (Event -> str): an optional feature-extractor function that maps each event
+               to a single string.  The default is just to return the action name of the event.
+        """
         self._traces = None
+        if event_to_str is None:
+            self._event_to_str = (lambda ev: ev.action)
+        else:
+            self._event_to_str = event_to_str
         pass
 
     def get_feature_names(self):
@@ -389,13 +400,13 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         self.feature_names_ = names
         self.vocabulary_ = {(col,i) for (i,col) in enumerate(self.feature_names_)}
 
-    def get_prefix_features(self, events:List[Event]) -> Dict[str, float]:
+    def get_prefix_features(self, events: List[Event]) -> Dict[str, float]:
         """Converts a sequence of events into numeric training data to predict next action.
         
         Subclasses could override this to change the feature encoding.
         (If they want to change the feature names, they should also override set_feature_names)
         """
-        counts = collections.Counter([ev.action for ev in events])
+        counts = collections.Counter([self._event_to_str(ev) for ev in events])
         # TODO: add 'recent' event counts if that is desired.
         return counts
 
@@ -414,7 +425,7 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         if not isinstance(X, TraceSet):
             raise Exception("TracePrefixExtractor.fit input must be TraceSet.")
         self._traceset = X
-        self.set_feature_names(X.get_all_actions())
+        self.set_feature_names(X.get_all_actions(event_to_str=self._event_to_str))
         self.is_fitted_ = True
         return self
 
@@ -463,7 +474,7 @@ class SmartSequenceGenerator(RandomTester):
     
     def __init__(self,
                  urls: Union[str, List[str]],
-                 method_signatures:Dict[str, Signature] = None,
+                 method_signatures: Dict[str, Signature] = None,
                  methods_to_test: List[str] = None,
                  input_rules: Dict[str, List] = None,
                  rand: random.Random = None,
@@ -494,7 +505,7 @@ class SmartSequenceGenerator(RandomTester):
         if self.methods_to_test is None:
             self.methods_allowed += sorted(list(method_signatures.keys()))
 
-    def generate_trace_with_model(self, model, start=True, length=20):
+    def generate_trace_with_model(self, model, start=True, length=20, event_factory=None):
         """Generates one sequence test steps, choosing actions using the given model.
         The generated trace terminates either when the model says <end> or after length steps.
 
@@ -502,6 +513,7 @@ class SmartSequenceGenerator(RandomTester):
             model (Classifier): ML model that takes an Event list and predicts next action name.
             start (bool): True means that a new trace is started, beginning with a "Login" call.
             length (int): The maximum number of steps to generate in one trace (default=20).
+            event_factory (string->Event): Optional event generator, from the string predicted by the model.
 
         Returns:
             the whole of the current trace that has been generated so far.
@@ -520,11 +532,16 @@ class SmartSequenceGenerator(RandomTester):
                 self.generate_trace(start=True, length=0)
                 break  # we view length as a maximum...
             else:
-                self.call_method(action)
+                if event_factory is None:
+                    self.call_method(action)
+                else:
+                    ev = event_factory(action)
+                    # TODO: should this also do call_method?
+                    self.curr_events.append(ev)
         return result
 
     def generate_all_traces(self, model, length=5, action_prob=0.01, path_prob=1.0e-12,
-                            partial=True) -> List[Trace]:
+                            partial=True, event_factory=None) -> List[Trace]:
         """Generate all traces that satisfy the given constraints.
 
         Args:
@@ -533,6 +550,7 @@ class SmartSequenceGenerator(RandomTester):
             action_prob (float): only do actions with at least this probability.
             path_prob (float): only include paths with at least this total probability.
             partial (bool): True means include partial traces.  False gives complete traces only.
+            event_factory (string->Event): Optional event generator, from the string predicted by the model.
 
         Returns:
             A list of all the Trace objects that satisfy the given constraints.
@@ -540,6 +558,8 @@ class SmartSequenceGenerator(RandomTester):
                 traces will have len(tr)==length.
         """
         results = []
+        if event_factory is None:
+            event_factory = (lambda action: Event(action,{},{}))
         def depth_first_search(prefix, prob):
             indent = ">" * len(prefix)
             # print(indent + ",".join([ev.action for ev in prefix]))
@@ -556,7 +576,7 @@ class SmartSequenceGenerator(RandomTester):
                         else:
                             if self.verbose:
                                 print(indent + f" trying {action}")
-                            depth_first_search(prefix + [Event(action,{},{})], prob * p)
+                            depth_first_search(prefix + [event_factory(action)], prob * p)
         depth_first_search([], 1.0)
         return results
 
