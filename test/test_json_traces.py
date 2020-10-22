@@ -19,6 +19,7 @@ import numpy.testing as nptest
 import unittest
 import pytest         # type: ignore
 import math
+import collections
 
 THIS_DIR = Path(__file__).parent
 
@@ -410,6 +411,17 @@ class TestTraceSet(unittest.TestCase):
         # Not requested: self.assertListEqual([1, 1], list(data["Mark0"].values))
         self.assertListEqual([1, 0], list(data["Mark2"].values))
         self.assertListEqual([0, 1], list(data["Sue1"].values))
+
+    def test_get_trace_data_pairs(self):
+        def f(tr): return collections.Counter([f"{tr[i].action}_{tr[i+1].action}" for i in range(len(tr) - 1)])
+        tr1 = agilkia.Trace([self.ev2, self.ev1, self.ev1b, self.ev1])
+        tr2 = agilkia.Trace([])
+        self.assertEqual({"Skip_Order": 1, "Order_Order": 2}, f(tr1))
+        self.assertEqual({}, f(tr2))
+        traces1 = agilkia.TraceSet([tr1, tr2])
+        data = traces1.get_trace_data(method=f)
+        self.assertListEqual(["Order_Order", "Skip_Order"], list(data.columns))
+        self.assertListEqual([2, 0], list(data["Order_Order"].values))
 
     def test_meta_data_copy(self):
         tr1 = agilkia.Trace([self.ev1])

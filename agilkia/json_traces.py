@@ -718,8 +718,7 @@ class TraceSet:
         As another example, if you wanted to encode pairs of events, you could do
         it using a method function like this:
 
-          ``lambda tr: Counter([self._event_to_str(ev) for i in range(len(tr) - 1)]``
-
+          ``lambda tr: Counter([f"{tr[i].action}_{tr[i+1].action}" for i in range(len(tr) - 1)])``
 
         Args:
             method: the feature encoding method to use for each trace.
