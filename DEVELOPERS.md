@@ -49,6 +49,9 @@ mypy --html-report . -p agilkia
 
 ## How to build the Agilkia documentation
 
+Please use Google docstrings style within the documentation
+strings for each class and function.
+
 ```
 cd docs; make html
 ```

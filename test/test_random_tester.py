@@ -10,6 +10,8 @@ import random
 from pathlib import Path
 import sklearn.utils.estimator_checks
 
+from typing import Tuple, List, Set, Dict, Optional, Any
+
 import agilkia
 
 THIS_DIR = Path(__file__).parent
@@ -152,5 +154,77 @@ class TestTracePrefixExtractor(unittest.TestCase):
             self.assertEqual([1.0, 0.0, 1.0], X.iloc[row, :].tolist())
             self.assertEqual(agilkia.TRACE_END, y[row])
         self.assertEqual([0.0, 1.0, 0.0], X.iloc[7, :].tolist())
-        
-        
+
+    def test_bag_of_words_custom(self):
+        """Test TracePrefixExtractor with a custom event-to-string function."""
+        def custom(ev): return ev.inputs.get("Name", "???")
+        tr1 = agilkia.Trace([self.ev1, self.ev2])
+        tr2 = agilkia.Trace([self.ev3, self.ev3])
+        traces = agilkia.TraceSet([tr1, tr1, tr2])
+        self.assertEqual(3, len(traces))
+        self.assertEqual("Mark", custom(self.ev1))
+        self.assertEqual("???", custom(self.ev2))
+        sut = agilkia.TracePrefixExtractor(custom)
+        sut.fit(traces)
+        self.assertEqual(["???", "Mark"], sut.get_feature_names())
+        X = sut.transform(traces)
+        y = sut.get_labels()
+        self.assertEqual((9, 2), X.shape)
+        self.assertEqual(9, len(y))
+        for row in [0, 3, 6]:
+            self.assertEqual([0.0, 0.0], X.iloc[row, :].tolist())
+            self.assertEqual(custom(traces[row // 3][0]), y[row])
+        for row in [2, 5]:
+            self.assertEqual([1.0, 1.0], X.iloc[row, :].tolist())
+            self.assertEqual(agilkia.TRACE_END, y[row])
+        self.assertEqual([0.0, 2.0], X.iloc[8, :].tolist())
+
+    def test_custom_subclass(self):
+        """Test TracePrefixExtractor subclass with a custom encoder that::
+
+          - counts Order events
+          - sums all 'Size' inputs
+          - reports the current action (0=Order, 1=Skip, 2=Pay)
+          - and learns status output values.
+        """
+        action2num = {"Order": 0, "Skip": 1, "Pay": 2}
+
+        class MyPrefixExtractor(agilkia.TracePrefixExtractor):
+            def generate_feature_names(self, trace: agilkia.Trace) -> Set[str]:
+                return {"Orders", "TotalSize", "CurrAction"}
+
+            def generate_prefix_features(self, events: List[agilkia.Event],
+                                         current: Optional[agilkia.Event]) -> Tuple[Dict[str, float], Any]:
+                total = sum([ev.inputs.get("Size", 0) for ev in events])
+                orders = len([ev.action for ev in events if ev.action == "Order"])
+                if current is not None:
+                    action = action2num[current.action]
+                    learn = current.status
+                else:
+                    action = -1
+                    learn = -1
+                return {"Orders": orders, "TotalSize": total, "CurrAction": action}, learn
+
+        tr1 = agilkia.Trace([self.ev1, self.ev2, self.ev2, self.ev1])
+        tr2 = agilkia.Trace([self.ev3, self.ev3])
+        traces = agilkia.TraceSet([tr1, tr2])
+        # now run the encoder
+        sut = MyPrefixExtractor()
+        sut.fit(traces)
+        self.assertEqual(["CurrAction", "Orders", "TotalSize"], sut.get_feature_names())
+        X = sut.transform(traces)
+        y = sut.get_labels()
+        self.assertEqual((8, 3), X.shape)
+        self.assertEqual(8, len(y))
+        # tr1 prefixes
+        self.assertEqual([0, 0, 0], X.iloc[0, :].tolist())
+        self.assertEqual([1, 1, 0], X.iloc[1, :].tolist())
+        self.assertEqual([1, 1, 3], X.iloc[2, :].tolist())
+        self.assertEqual([0, 1, 6], X.iloc[3, :].tolist())
+        self.assertEqual([-1, 2, 6], X.iloc[4, :].tolist())
+        self.assertEqual([0, 1, 1, 0, -1], y[0:5])
+        # tr2 prefixes
+        self.assertEqual([2, 0, 0], X.iloc[5, :].tolist())
+        self.assertEqual([2, 0, 0], X.iloc[6, :].tolist())
+        self.assertEqual([-1, 0, 0], X.iloc[7, :].tolist())
+        self.assertEqual([0, 0, -1], y[5:])

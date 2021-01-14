@@ -231,7 +231,7 @@ class Trace:
         """
         if event_to_str is None:
             event_to_str = (lambda ev: ev.action)
-        result = defaultdict(int)
+        result: Dict[str, int] = defaultdict(int)
         for ev in self.events:
             result[event_to_str(ev)] += 1
         return result
@@ -318,9 +318,9 @@ class TraceSet:
         """
         self.version = TRACE_SET_VERSION
         self.traces = traces
-        self._cluster_data: pd.DataFrame = None
-        self.cluster_labels: List[int] = None  # for flat clustering
-        self.cluster_linkage: np.ndarray = None   # scipy Linkage array for cluster trees.
+        self._cluster_data: Optional[pd.DataFrame] = None
+        self.cluster_labels: Optional[List[int]] = None  # for flat clustering
+        self.cluster_linkage: Optional[np.ndarray] = None   # scipy Linkage array for cluster trees.
         trace_parents = set()
         # add all the trace to this set.
         for tr in self.traces:
@@ -622,11 +622,13 @@ class TraceSet:
         if start_action is not None:
             if not isinstance(start_action, str):
                 raise Exception(f"start_action must be a string, not {start_action}")
-            split = (lambda e1,e2: e2.action == start_action)
+            split = (lambda e1, e2: e2.action == start_action)
         elif input_name is not None:
-            if not isinstance(input_name, str):
+            if isinstance(input_name, str):
+                key = input_name   # rename the key makes mypy use a more precise type!
+                split = (lambda e1, e2: e1.inputs[key] != e2.inputs[key])
+            else:
                 raise Exception(f"input_name must be a string, not {input_name}")
-            split = (lambda e1,e2: e1.inputs[input_name] != e2.inputs[input_name])
         elif split is None:
             raise Exception("split_traces requires at least one split criteria.")
         traces2 = TraceSet([], self.meta_data)
@@ -664,12 +666,16 @@ class TraceSet:
         """
         traces2 = TraceSet([], self.meta_data)
         if name is not None:
-            if not isinstance(name, str):
-                raise Exception(f"group-by name must be a string, not {name}")
-            if property:
-                key = (lambda ev: ev.meta_data.get(name, None))
+            if isinstance(name, str):
+                key_value = name  # rename it so that mypy uses its more precise local type
+                if property:
+                    key = (lambda ev: ev.meta_data.get(key_value, None))
+                else:
+                    key = (lambda ev: ev.inputs.get(key_value, None))
             else:
-                key = (lambda ev: ev.inputs.get(name, None))
+                raise Exception(f"group-by name must be a string, not {name}")
+        if key is None:
+            raise Exception("you must supply key function or name")
         for old in self.traces:
             groups = defaultdict(list)  # for each value this stores a list of Events.
             for event in old:
@@ -799,6 +805,7 @@ class TraceSet:
         Zero means not clustered.
         """
         if self.is_clustered():
+            assert self.cluster_labels is not None
             return max(self.cluster_labels) + 1
         else:
             return 0
@@ -847,7 +854,7 @@ class TraceSet:
             self.cluster_linkage = linkage
         self.cluster_labels = [int(c) for c in labels]   # convert to an ordinary list of int
 
-    def get_clusters(self) -> List[int]:
+    def get_clusters(self) -> Optional[List[int]]:
         """Get the list of cluster numbers for each trace.
 
         Precondition: self.is_clustered()

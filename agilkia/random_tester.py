@@ -25,7 +25,7 @@ import pandas as pd
 from sklearn.utils.validation import check_is_fitted
 from pathlib import Path
 from pprint import pprint
-from typing import Tuple, List, Mapping, Dict, Any, Optional, Union
+from typing import Tuple, List, Set, Mapping, Dict, Counter, Any, Optional, Union
 
 from . json_traces import Event, Trace, TraceSet, TraceEncoder, MetaData
 
@@ -82,7 +82,9 @@ def uniq(d):
 
 
 class TestUniq(unittest.TestCase):
-    """Some unit tests of the uniq function."""
+    """Some unit tests of the uniq function.
+
+    (This should be in a test file, but uniq is not exported.)"""
 
     def test_normal(self):
         self.assertEqual("def", uniq({"abc": "def"}))
@@ -180,7 +182,7 @@ class RandomTester:
         self.password: Optional[str] = None
         self.random = random.Random() if rand is None else rand
         self.verbose = verbose
-        self.clients_and_methods: List[Tuple[zeep.Service, Dict[str, Signature]]] = []
+        self.clients_and_methods: List[Tuple[Optional[zeep.Service], Dict[str, Signature]]] = []
         self.methods_to_test = methods_to_test
         self.methods_allowed = [] if methods_to_test is None else methods_to_test
         # maps each parameter to list of possible 'values'
@@ -366,7 +368,32 @@ class RandomTester:
 
 
 class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerMixin):
-    """Extracts prefixes of traces so that the next action can be predicted.
+    """Encodes all the prefixes of all traces into (X,y) features for machine learning.
+
+    This feature encoder follows the standard scikit-learn Estimator conventions, so a
+    typical usage might look like::
+
+        prefixes = TracePrefixExtractor()
+        prefixes.fit(traceset)
+        X = prefixes.transform(traceset)
+        y = prefixes.get_labels()
+
+    The default implementation uses bag-of-words to build X.
+
+    That is, each event is converted into a single string (see `event_to_str` parameter),
+    and then bag-of-words is used to count the number of times each of those strings appears.
+    This gives one row of the X matrix, while the corresponding y value (see `get_labels()`)
+    is just the result of applying event_to_str to the next event.
+
+    The default event_to_str function just uses the action string for each Event, which
+    is useful for learning to predict the next action.  If 'tr' is the first Trace in the
+    traceset in the above example, then the first few rows in (X,y) will effectively be::
+
+        X[i] = Counter([ev.action for ev in tr[0:i]])
+        y[i] = tr[i].action
+
+    For more complex feature encoding than simple bag-of-words, you can create a subclass
+    of this class and override the `generate_row` and `generate_feature_names` methods.
     
     Attributes:
         vocabulary_ (dict): A dictionary mapping feature names to feature indices.
@@ -393,25 +420,51 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         check_is_fitted(self, 'is_fitted_')
         return self.feature_names_
 
-    def set_feature_names(self, names:List[str]):
+    def set_feature_names(self, names: List[str]):
         """Sets self.feature_names_ to the given list of feature names.
-        And sets self.vocabulary_ to the inverse mapping - names to position.
+
+        Also sets self.vocabulary_ to the inverse mapping - names to position.
+
+        Args:
+            names: For consistent results, this list should be sorted in a consistent way.
         """
         self.feature_names_ = names
-        self.vocabulary_ = {(col,i) for (i,col) in enumerate(self.feature_names_)}
+        self.vocabulary_ = {(col, i) for (i, col) in enumerate(self.feature_names_)}
+
+    def generate_feature_names(self, trace: Trace) -> Set[str]:
+        """Generate the column names required for the given trace.
+
+        By default this just applies the event_to_str function to every Event in trace.
+        """
+        return {self._event_to_str(ev) for ev in trace}
 
     def get_prefix_features(self, events: List[Event]) -> Dict[str, float]:
-        """Converts a sequence of events into numeric training data to predict next action.
-        
-        Subclasses could override this to change the feature encoding.
-        (If they want to change the feature names, they should also override set_feature_names)
-        """
-        counts = collections.Counter([self._event_to_str(ev) for ev in events])
-        # TODO: add 'recent' event counts if that is desired.
-        return counts
+        """Use bag-of-words to count the various features in a sequence of Events."""
+        # Note: Counter is a dictionary, but mypy does not recognise this.
+        return collections.Counter([self._event_to_str(ev) for ev in events])
 
-    def fit(self, X:TraceSet, y=None):
-        """Fit remembers the given TraceSet and calculates the feature names.
+    def generate_prefix_features(self, events: List[Event], current: Optional[Event]) -> Tuple[Dict[str, float], Any]:
+        """Encodes a sequence of events into one row of the (X,y) training data.
+        
+        Subclasses can override this to change the feature encoding (X), or change what is being learned (y).
+        If they want to change the feature names, they should also override generate_feature_names.
+
+        Args:
+            events: the prefix of the trace.
+            current: the next event in the trace.  None usually means the end of the trace.
+        """
+        counts = self.get_prefix_features(events)
+        if current is None:
+            expect = TRACE_END
+        else:
+            expect = self._event_to_str(current)
+        return counts, expect
+
+    def fit(self, X: TraceSet, y=None):
+        """Fit uses the given TraceSet to calculate the feature names.
+
+        It takes the union of `generate_feature_names()` over all the traces,
+        sorts the resulting set of feature names, and passes that list to set_feature_names.
 
         Args:
             X (TraceSet): the set of traces to be fitted.
@@ -425,22 +478,27 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         if not isinstance(X, TraceSet):
             raise Exception("TracePrefixExtractor.fit input must be TraceSet.")
         self._traceset = X
-        self.set_feature_names(X.get_all_actions(event_to_str=self._event_to_str))
+        features = set()
+        for tr in X:
+            features |= self.generate_feature_names(tr)
+        self.set_feature_names(sorted(list(features)))
         self.is_fitted_ = True
         return self
 
-    def transform(self, X:Union[TraceSet, List[Event]]):
+    def transform(self, X: Union[TraceSet, List[Event]], curr: Event = None):
         """Transforms a set of traces, or an event sequence, into a Pandas DataFrame
         of training data.  Note that the columns of the resulting DataFrame are fixed
-        during the fit() method, so any new kinds of actions appearing in this X
-        input will be ignored.
+        during the fit() method (which calls `set_feature_names`), so any new kinds
+        of actions appearing in this X input will be ignored.
 
         There are two different behaviors, depending upon the input type of X.
             * if traces is a TraceSet, all prefixes of all traces are converted into
-              training data, and the corresponding expected y labels (action name) for
+              training data, and the corresponding expected y labels (e.g. action name) for
               all those prefixes are available from get_labels().
             * if traces is a list of events, then the result will contain just
-              a single row, which will be the data for that whole trace.
+              a single row, which will be the data for that whole trace.  In this case,
+              the optional parameter `curr` may be used to pass the partially-complete
+              current event to the feature encoding if desired.
         """
         check_is_fitted(self, 'is_fitted_')
         data = []
@@ -448,15 +506,15 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         if isinstance(X, TraceSet):
             for tr in X.traces:
                 for size in range(len(tr) + 1):  # every prefix, plus the whole trace.
-                    events = tr.events[0:size]
-                    features = self.get_prefix_features(events)
-                    action = tr[size].action if size < len(tr) else TRACE_END
-                    data.append(features)
-                    self._y.append(action)
+                    prefix = tr.events[0:size]
+                    current = tr.events[size] if size < len(tr) else None
+                    (row, y) = self.generate_prefix_features(prefix, current)
+                    data.append(row)
+                    self._y.append(y)
         elif isinstance(X, list) and (X == [] or isinstance(X[0], Event)):
-            features = self.get_prefix_features(X)
-            data = [features]
-            self._y = [TRACE_END]
+            (row, y) = self.generate_prefix_features(X, curr)
+            data = [row]
+            self._y = [y]
         else:
             raise Exception("TracePrefixExtractor.transform input must be TraceSet or [Events].")
         df = pd.DataFrame(data, columns=self.feature_names_)
@@ -500,9 +558,12 @@ class SmartSequenceGenerator(RandomTester):
                          rand=rand, action_chars=action_chars, verbose=verbose)
         # Quick hack to get some dummy signatures set up when running offline (no web service)
         if not urls:
-            self.clients_and_methods.append((None, method_signatures))
+            if method_signatures is None:
+                raise Exception("urls or method_signatures must be provided")
+            service: Optional[zeep.Service] = None
+            self.clients_and_methods.append((service, method_signatures))
             self.trace_set.meta_data["method_signatures"].update(method_signatures)
-        if self.methods_to_test is None:
+        if self.methods_to_test is None and method_signatures is not None:
             self.methods_allowed += sorted(list(method_signatures.keys()))
 
     def generate_trace_with_model(self, model, start=True, length=20, event_factory=None):
