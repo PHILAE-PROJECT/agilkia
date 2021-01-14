@@ -408,12 +408,13 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
             event_to_str (Event -> str): an optional feature-extractor function that maps each event
                to a single string.  The default is just to return the action name of the event.
         """
-        self._traces = None
+        super().__init__()
+        self._traceset = None
+        self.is_fitted_ = False
         if event_to_str is None:
             self._event_to_str = (lambda ev: ev.action)
         else:
             self._event_to_str = event_to_str
-        pass
 
     def get_feature_names(self):
         """Gets the list of column names for the generated data tables."""
