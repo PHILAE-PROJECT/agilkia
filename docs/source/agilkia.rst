@@ -19,12 +19,6 @@ Event
    :members:
    :show-inheritance:
 
-TraceEncoder
-------------
-.. autoclass:: agilkia.TraceEncoder
-   :members:
-   :show-inheritance:
-
 RandomTester
 ------------
 .. autoclass:: agilkia.RandomTester
@@ -34,6 +28,18 @@ RandomTester
 SmartSequenceGenerator
 ----------------------
 .. autoclass:: agilkia.SmartSequenceGenerator
+   :members:
+   :show-inheritance:
+
+TracePrefixExtractor
+--------------------
+.. autoclass:: agilkia.TracePrefixExtractor
+   :members:
+   :show-inheritance:
+
+TraceEncoder
+------------
+.. autoclass:: agilkia.TraceEncoder
    :members:
    :show-inheritance:
 

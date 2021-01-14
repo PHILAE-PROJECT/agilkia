@@ -422,9 +422,9 @@ class TracePrefixExtractor(sklearn.base.BaseEstimator, sklearn.base.TransformerM
         return self.feature_names_
 
     def set_feature_names(self, names: List[str]):
-        """Sets self.feature_names_ to the given list of feature names.
+        """Sets the output column names to the given list of feature names.
 
-        Also sets self.vocabulary_ to the inverse mapping - names to position.
+        Also calculates the inverse mapping (names to position) for internal use.
 
         Args:
             names: For consistent results, this list should be sorted in a consistent way.
