@@ -19,7 +19,7 @@ Example::
     # now convert traces to Agilkia JSON format: OpenCartAction.split.json
     python read_eshop_log.py --split --verbose OpenCartAction.txt
     # show some examples and statistics about the data
-    python analyse_eshop.py OpenCartAction.json
+    python analyse_eshop.py OpenCartAction.split.json
 
 Note: you need to have pandas and agilkia installed in your Python environment.
     Look in the Python code for instructions.
