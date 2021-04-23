@@ -64,31 +64,34 @@ def read_traces_log(path: Path) -> agilkia.TraceSet:
             controller = contents["controller"]
             function = contents["function"]
             data = contents["data"]
-            response = contents["httpResponseCode"]
+            route = data["route"]
+            del data["route"]  # route is the main action, so does not need to be an input too
+            response = int(contents["httpResponseCode"])
             # now we identify inputs, outputs, and meta-data.
             inputs = {
                     'customerID': customerID,
-                    'controller': controller,
+                    'sessionID': sessionID,
                     }
             inputs.update(data)  # add all the data keys and values.
-            outputs = {'Status': int(response)}
+            outputs = {
+                'httpResponseCode': response,
+                'Status': 0 if 200 <= response < 300 else 1}
             meta = {
-                    'sessionID': sessionID,
-                    'timestamp': timestamp
+                    'timestamp': timestamp,
+                    'controller': controller,
                     }
-            event = agilkia.Event(function, inputs, outputs, meta)
+            event = agilkia.Event(route, inputs, outputs, meta)
             trace1.append(event)
             # See which data keys are associated with each type of event?
-            # print(function, sorted(list(data.keys())))
+            # print(function, route, sorted(list(data.keys())))
     traceset = agilkia.TraceSet([])
     traceset.append(trace1)
     return traceset
 
 
 # %% How to visualise traces
-# Since there are so many different types of actions, we use two chars for each one.
 
-# We use lowercase or punctuation for common actions, uppercase for less common ones.
+# We use lowercase or punctuation for common functions, uppercase for less common ones.
 abbrev_chars = {
     "add": "+",
     "addAddress": "A",
@@ -121,8 +124,93 @@ abbrev_chars = {
     "write": "w"
     }
 
+
+# Since there are so many different types of actions, we use two chars for each one.
+# First char is:
+#   '.' for product/
+#   '^' for checkout
+#   '@' for account
+#   '+' for extension
+#   '?' for information
+#   '=' for common
+#   '#' for tool
+abbrev_chars = {
+    "account/account": "@@",              #      29 account
+    "account/account/country": "@c",      #       1 account
+    "account/address": "@a",              #       6 account
+    "account/address/add": "@A",          #       1 account
+    "account/address/delete": "@-",       #       2 account
+    "account/download": "@d",             #       2 account
+    "account/edit": "@e",                 #       2 account
+    "account/login": "@L",                #      63 account
+    "account/logout": "@l",               #      17 account
+    "account/newsletter": "@n",           #       4 account
+    "account/order": "@o",                #      13 account
+    "account/order/reorder": "@O",        #       2 account
+    "account/password": "@p",             #       7 account
+    "account/recurring": "@2",            #       2 account
+    "account/register": "@r",             #      38 account
+    "account/register/customfield": "@f", #      24 account
+    "account/return/add": "@+",           #       3 account
+    "account/reward": "@R",               #       2 account
+    "account/success": "@s",              #       3 account
+    "account/transaction": "@t",          #       3 account
+    "account/voucher": "@v",              #       5 account
+    "account/wishlist": "@w",             #      25 account
+    "account/wishlist/add": "@W",         #      35 account
+    "checkout/cart": "^_",                #     141 checkout
+    "checkout/cart/add": "^+",            #     186 checkout
+    "checkout/cart/edit": "^e",           #      21 checkout
+    "checkout/cart/remove": "^-",         #      32 checkout
+    "checkout/checkout": "^^",            #      90 checkout
+    "checkout/checkout/country": "^c",    #     151 checkout
+    "checkout/checkout/customfield": "^f", #      50 checkout
+    "checkout/confirm": "^C",             #      27 checkout
+    "checkout/guest": "^g",               #      33 checkout
+    "checkout/guest/save": "^s",          #      29 checkout
+    "checkout/guest_shipping": "^G",      #      16 checkout
+    "checkout/login": "^L",               #      53 checkout
+    "checkout/login/save": "^S",          #      10 checkout
+    "checkout/payment_address": "^a",     #      38 checkout
+    "checkout/payment_address/save": "^A", #      13 checkout
+    "checkout/payment_method": "^p",      #      29 checkout
+    "checkout/payment_method/save": "^P", #      43 checkout
+    "checkout/register": "^r",            #      17 checkout
+    "checkout/register/save": "^R",       #      29 checkout
+    "checkout/shipping_address": "^d",    #      25 checkout
+    "checkout/shipping_address/save": "^D", #      14 checkout
+    "checkout/shipping_method": "^m",     #      28 checkout
+    "checkout/shipping_method/save": "^M", #      26 checkout
+    "checkout/success": "^y",             #      26 checkout
+    "common/currency/currency": "=c",     #      15 common
+    "common/home": "=h",                  #     122 common
+    "extension/payment/cod/confirm": "+p",                #     126 extension
+    "extension/total/coupon/coupon": "+c",                #      27 extension
+    "extension/total/shipping/country": "+C",             #     122 extension
+    "extension/total/shipping/quote": "+q",               #      19 extension
+    "extension/total/shipping/shipping": "+s",            #      21 extension
+    "extension/total/voucher/voucher": "+v",              #      13 extension
+    "information/contact": "?c",                  #      13 information
+    "information/contact/success": "?C",          #       2 information
+    "information/information": "?i",              #      11 information
+    "information/information/agree": "?I",        #       2 information
+    "information/sitemap": "?s",          #       3 information
+    "product/category": ".c",             #     321 product
+    "product/compare": ".C",              #      31 product
+    "product/compare/add": ".a",          #      30 product
+    "product/manufacturer": ".m",         #       4 product
+    "product/product": ".p",              #     165 product
+    "product/product/getRecurringDescription": ".d", #      19 product
+    "product/product/review": ".r",               #     154 product
+    "product/product/write": ".w",                #      38 product
+    "product/search": ".s",               #      36 product
+    "product/special": ".S",              #       1 product
+    "tool/upload": "#u",                  #       6 tool
+}
+
 # check that the abbrev chars are all unique.
-assert len(abbrev_chars.keys()) == len(abbrev_chars.values())
+dups = [v for v in abbrev_chars.values() if list(abbrev_chars.values()).count(v) > 1]
+assert len(set(abbrev_chars.keys())) == len(set(abbrev_chars.values())), "duplicates: " + str(dups)
 
 # %% Read traces and save in the Agilkia JSON format.
 
@@ -132,7 +220,7 @@ def read_split_save(name: str, split: bool, verbose: bool = False):
         traces.set_event_chars(abbrev_chars)
         msg = ""
         if split:
-            traces = traces.with_traces_grouped_by(key=(lambda ev: ev.meta_data["sessionID"]))
+            traces = traces.with_traces_grouped_by(key=(lambda ev: ev.inputs["sessionID"]))
             path2 = path.with_suffix(".split.json")
         else:
             path2 = path.with_suffix(".json")
