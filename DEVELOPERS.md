@@ -1,12 +1,24 @@
-# Build/Run Instructions
+# Build/Run  Instructions
+
+Agilkia requires Python 3.7 or higher, plus several Python packages.
+
+A convenient way of setting up a suitable development environment with
+all the required dependencies for working on Agilkia is to create a 
+conda environment using the supplied YML file: developers_agilkia.yml.
+
+The following commands will set up a new environment called 'agilkia-dev'.
+Note: if you want to use a newer Python than 3.7, just edit the YML file
+first, and increase the minimum version of Python.
+```
+    conda env create -f developers_agilkia.yml
+    conda activate agilkia-dev
+```
 
 We use 'flit' to build and install the agilkia package.
-```
-    conda install flit
-```
-
-* to install the agilkia package locally (useful during development of Agilkia,
-  so you can edit the source files and instantly use the updated version):
+It is best to install the agilkia package locally using symbolic links,
+so you can edit the source files and instantly use the updated version.
+Note: on Windows computers, you may need to run flit install with 
+administrator permissions so that it can create symbolic links.
 ```
     flit install --symlink      # do a local install with symbolic links.
     python trace_generator.py --help
