@@ -7,3 +7,5 @@ tests_split.json
 tree.dot
 tree.png
 regression_tests.json
+1026-steps.split.json
+1026-steps.clustered.json
