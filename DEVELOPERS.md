@@ -73,8 +73,9 @@ cd docs; make html
 
 * To publish this package publically on pypi.org:
   * you need to create accounts on test.pypi.org and pypi.org.
+  * define testpypi in your ~/.pypirc file.  
+    See https://flit.readthedocs.io/en/latest/upload.html 
   * you should publish agilkia on test.pypi.org first.
-  *   see https://flit.readthedocs.io/en/latest/upload.html
   * then install and test agilkia to check dependencies, etc.
   * then publish it to pypi.org: flit publish
   * here is a full example sequence for publishing on testpypi then pypi:
@@ -85,10 +86,10 @@ cd docs; make html
 # and then commit these changes to the repository.
 cd agilkia
 pytest
-flit --repository testpypi publish
+flit publish --repository testpypi
 # create a fresh Python environment to test the distribution
 conda env remove --name tmp
-conda create --name tmp pip
+conda create --name tmp python=3.8 pip
 conda activate tmp
 # install the version you want...
 pip install --extra-index-url  https://test.pypi.org/simple/ agilkia==0.7.0
@@ -103,8 +104,7 @@ flit publish
 * To install it on Anaconda cloud (after installing on pypi):
   Taken from: https://docs.conda.io/projects/conda-build/en/latest/user-guide/tutorials/build-pkgs-skeleton.html
 ```
-conda install conda-build
-conda install conda-verify
+conda install conda-build conda-verify
 # on Windows, you might also need to install patch:
 conda install -c anaconda patch
 mkdir tmp
@@ -115,6 +115,6 @@ conda skeleton pypi agilkia   # you can add --version 0.x.y if needed
 conda config --add channels conda-forge
 conda-build agilkia/
 # look in the above output for 'anaconda upload <PATH>.tar.bz2'
-# NOTE: if 'anaconda' is missing do: conda install anaconda
+# NOTE: if 'anaconda' is missing do: conda install anaconda-client
 anaconda upload <PATH>.tar.bz2
 ```

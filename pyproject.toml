@@ -25,6 +25,7 @@ requires = [
     "jsonpickle>=1.3",
     "matplotlib>=3.2",
     "pandas>=1.0.3",
+    # TODO: to avoid conda-build warnings? add "numpy>=1.18",
     "pillow>=7.0",
     "pip>=20.0",
     "requests>=2.23",
