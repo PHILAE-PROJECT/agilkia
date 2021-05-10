@@ -79,7 +79,10 @@ cd docs; make html
   * then publish it to pypi.org: flit publish
   * here is a full example sequence for publishing on testpypi then pypi:
 ```
-# NOTE: first upgrade agilkia version in agilkia/__init__.py and commit.
+# NOTE: first upgrade agilkia version in:
+#    agilkia/__init__.py
+#    docs/sources/conf.py
+# and then commit these changes to the repository.
 cd agilkia
 pytest
 flit --repository testpypi publish
@@ -88,7 +91,7 @@ conda env remove --name tmp
 conda create --name tmp pip
 conda activate tmp
 # install the version you want...
-pip install --extra-index-url  https://test.pypi.org/simple/ agilkia==0.2.2
+pip install --extra-index-url  https://test.pypi.org/simple/ agilkia==0.7.0
 # test that it is installed.  Look in the output for the correct version...
 python <<EOF
 import agilkia

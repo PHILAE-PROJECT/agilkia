@@ -22,7 +22,6 @@ NOTES
 
 Ideas / Tasks to do
 ===================
-    * Add more general methods for extracting features from a trace.
     * Add meta-data that describes how features were extracted from traces for clustering.
     * Add a method or subclass of TraceSet for filtering out a subset of traces,
       and maybe also for expanding them into all prefixes (see TracePrefixExtractor).
@@ -47,6 +46,7 @@ DONE
     * DONE: add unit tests for clustering...  (Note: not saved in JSON!)
     * DONE: split RandomTester into SmartSequenceGenerator subclass (better meta-data).
     * DONE Mar20: add set_clusters with support for flat and hierarchical clustering.
+    * DONE Apr21: extend PrefixTraceExtractor with more general methods for extracting ML features from a trace.
 
 @author: m.utting@uq.edu.au
 """

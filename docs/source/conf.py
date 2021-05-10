@@ -18,11 +18,11 @@
 # -- Project information -----------------------------------------------------
 
 project = 'Agilkia'
-copyright = '2019, Mark Utting'
+copyright = '2019-2021, Mark Utting'
 author = 'Mark Utting'
 
 # The full version, including alpha/beta/rc tags
-release = '0.3.2'
+release = '0.7.0'
 master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
