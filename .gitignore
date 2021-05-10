@@ -112,3 +112,5 @@ html/
 index.html
 mypy-html.css
 
+.idea
+.vscode
