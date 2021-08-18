@@ -201,12 +201,12 @@ class Trace:
     def __getitem__(self, key):
         return self.events[key]
 
-    def get_meta(self, key: str) -> Optional[Any]:
-        """Returns requested meta data, or None if that key does not exist."""
+    def get_meta(self, key: str, default: float) -> Optional[Any]:
+        """Returns requested meta data, or default value if that key does not exist."""
         if key in self.meta_data:
             return self.meta_data[key]
         else:
-            return None
+            return default
 
     def append(self, event: Event):
         if not isinstance(event, Event):
