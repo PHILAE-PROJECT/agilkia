@@ -201,7 +201,7 @@ class Trace:
     def __getitem__(self, key):
         return self.events[key]
 
-    def get_meta(self, key: str, default: float) -> Optional[Any]:
+    def get_meta(self, key: str, default: Any = None) -> Optional[Any]:
         """Returns requested meta data, or default value if that key does not exist."""
         if key in self.meta_data:
             return self.meta_data[key]
