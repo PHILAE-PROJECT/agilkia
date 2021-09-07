@@ -20,10 +20,8 @@ class TestTraceSetOptimizer(unittest.TestCase):
 
     def test_frequency_objective_function(self):
         solution = np.array([1, 1, 0])
-        objective_function = agilkia.FrequencyCoverage(self.trace_set, 2)
-        self.assertEqual((self.trace1.get_meta('freq', 0) + self.trace2.get_meta('freq', 0)) / (
-                self.trace1.get_meta('freq', 0) + self.trace2.get_meta('freq', 0) + self.trace3.get_meta('freq', 0)),
-                         objective_function.evaluate(solution))
+        objective_function = agilkia.FrequencyCoverage(self.trace_set, 2) 
+        self.assertEqual((0.6 + 0.5) / (0.6 + 0.5 + 0.7), objective_function.evaluate(solution))
 
     def test_frequency_objective_function2(self):
         solution = np.array([1, 1, 1])

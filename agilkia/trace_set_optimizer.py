@@ -6,6 +6,7 @@ Author: Shane Feng, 2021
 
 """
 import math
+import random
 from typing import List, Union, Callable, Tuple
 
 import numpy
@@ -67,7 +68,6 @@ class TraceSetOptimizer:
         """
         number_of_objective_functions = len(self.objective_functions)
         total_objective_value = 0
-        # TODO: List comprehension
         for objective_function in self.objective_functions:
             objective_value = objective_function(self.trace_set, solution, self.number_of_traces)
             total_objective_value += objective_value * (1 / number_of_objective_functions)
@@ -155,7 +155,6 @@ class ActionStatusCoverage(ObjectiveFunction):
     solution, out of all the traces in the trace set. If an Event does not have a status in the output, status would
     be 0.
     """
-
     def __init__(self, trace_set: TraceSet, num_of_traces: int):
         """Constructor for the action status coverage objective function
         Pre calculates the action status coverage of each trace in the trace set
@@ -167,10 +166,11 @@ class ActionStatusCoverage(ObjectiveFunction):
         """
         super().__init__(trace_set, num_of_traces)
         self.trace_action_status_coverage = []
-        self.total_action_status_coverage = set()
+        self.total_coverage = set()
         for trace in self.trace_set:
+            # TODO: Store in variable
             self.trace_action_status_coverage.append(set(trace.action_status_counts().keys()))
-            self.total_action_status_coverage = self.total_action_status_coverage.union(
+            self.total_coverage = self.total_coverage.union(
                 set(trace.action_status_counts().keys()))
         self.trace_action_status_coverage = np.array(self.trace_action_status_coverage)
 
@@ -192,14 +192,14 @@ class ActionStatusCoverage(ObjectiveFunction):
         solution = np.array(solution, dtype=bool)
         for trace_coverage in self.trace_action_status_coverage[solution]:
             solution_action_status_coverage = solution_action_status_coverage.union(trace_coverage)
-        return len(solution_action_status_coverage) / len(self.total_action_status_coverage)
+        return len(solution_action_status_coverage) / len(self.total_coverage)
 
 
-class ActionCoverage(ObjectiveFunction):
+class EventCoverage(ObjectiveFunction):
     """ An objective function that calculates the event action coverage of the selected traces in the
     solution, out of all the traces in the trace set.
     """
-
+    # TODO: Passed in optional lambda function
     def __init__(self, trace_set: TraceSet, num_of_traces: int):
         """Constructor for the action coverage objective function
         Pre calculates the action coverage of each trace in the trace set
@@ -282,13 +282,13 @@ class StatusCoverage(ObjectiveFunction):
         return len(solution_status_coverage) / len(self.total_status_coverage)
 
 
-class ActionPairCoverage(ObjectiveFunction):
+class EventPairCoverage(ObjectiveFunction):
     """An objective function that calculates the action pair coverage of the selected traces in the solution, out of the
     all traces in the trace set.
     For example, for a trace, the events in a trace are "unlock, scan, scan, checkout". The action pairs would be
     "unlock_scan, scan_scan, scan_checkout".
     """
-
+    #TODO: Use lambda
     def __init__(self, trace_set: TraceSet, num_of_traces: int):
         super().__init__(trace_set, num_of_traces)
         self.trace_action_pair_coverage = []
@@ -374,7 +374,7 @@ class GreedyOptimizer(TraceSetOptimizer):
         return selected_traces, best_objective_value
 
 
-class PSOOptimizer(TraceSetOptimizer):
+class ParticleSwarmOptimizer(TraceSetOptimizer):
     """
     A subclass of TraceSetOptimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of
     traces that tries to maximize the objective value
@@ -516,3 +516,43 @@ class PSOOptimizer(TraceSetOptimizer):
         # TODO: NEED TESTS!!!
         selected_traces = TraceSet(gbest_x * self.trace_set)
         return selected_traces, gbest_val
+
+
+class GeneticOptimizer(TraceSetOptimizer):
+    # Todo: Optional
+    def __init__(self, trace_set: TraceSet,
+                 objective_functions: Union[Callable, List[Callable]],
+                 number_of_traces: int, number_of_chromosomes: int, prob_cross: float, prob_mutate: float,
+                 elitism_rate: float, number_of_iterations: int):
+        super().__init__(trace_set, objective_functions, number_of_traces)
+        self.number_of_chromosomes = number_of_chromosomes
+        self.number_of_genes = len(self.trace_set)
+        self.prob_cross = prob_cross
+        self.prob_mutate = prob_mutate
+        self.elitism_rate = elitism_rate
+        self.number_of_iterations = number_of_iterations
+
+        # Initialise population
+        self.population = np.rint(np.random.rand(self.number_of_chromosomes, self.number_of_genes))
+        self.new_population = np.zeros((self.number_of_chromosomes, self.number_of_genes))
+
+    def roulette_wheel(self, normalised_objective_values):
+        cum_sum = np.cumsum(normalised_objective_values)
+        r = random.random()
+        for index, condition in enumerate(r <= cum_sum):
+            if condition:
+                return index
+
+    def selection(self, population, normalised_objective_values, number_of_parents):
+        selected_parents_indexes = []
+        selected_parents = []
+        for i in range(number_of_parents):
+            index = self.roulette_wheel(normalised_objective_values)
+            while index in selected_parents_indexes:
+                index = self.roulette_wheel(normalised_objective_values)
+            selected_parents_indexes.append(index)
+            selected_parents.append(population[index])
+        return selected_parents
+
+
+    # def optimize(self):
