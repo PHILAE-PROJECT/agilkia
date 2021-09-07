@@ -7,82 +7,23 @@ Author: Shane Feng, 2021
 """
 import math
 import random
-from typing import List, Union, Callable, Tuple
-
-import numpy
-from agilkia.json_traces import Trace, TraceSet
 import numpy as np
-
-
-class TraceSetOptimizer:
-    """
-    An abstract class for different optimizers with different optimization algorithms for a given trace set.
-
-    Given a trace set, an (or a list of) objective function(s), and the number of traces to be extracted,
-    the optimizer runs the optimization algorithms and tries to extract a set of traces that maximize the objective
-    values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
-    """
-
-    def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[Callable, List[Callable]],
-                 number_of_traces: int):
-        """ Constructor for a trace set optimizer.
-
-        Args:
-            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
-            objective_functions (Callable or List[Callable]): The objective functions to be used to
-                evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
-                An objective function would take in three arguments, which are the trace set, a binary vector to
-                represent the solution (on every position, 1 means selected), and the number of traces wanted to be
-                selected. Any external variables needed for the objective function should be global variables that can
-                be accessed within the function. This is for the convenience to compute different objective values with
-                different objective functions and combine them.
-            number_of_traces (int): The number of traces wanted to be selected from the trace set.
-                For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
-                optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
-                objective values returned by the objective functions.
-        """
-        self.trace_set = trace_set
-        self.objective_functions = [objective_functions] if isinstance(objective_functions,
-                                                                       Callable) else objective_functions
-        self.number_of_traces = number_of_traces
-        try:
-            for objective_function in self.objective_functions:
-                if not isinstance(objective_function, Callable):
-                    raise ValueError(
-                        "Please provide valid built in objective functions or your custom objective functions")
-        except ValueError as error:
-            print(error)
-
-    def objective(self, solution: np.ndarray) -> float:
-        """ Evaluate the solution with all objective functions passed in, assign an equal weight to them based on the
-        number of objective functions passed in and combine them.
-
-        Args:
-            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
-                On every position, 1 means the trace at the position is selected, and 0 means not selected.
-
-        Returns:
-            Combined the different objective values with an equal weight based on the number of the objective
-            functions, and return it. Result would be between 0 and 1
-        """
-        number_of_objective_functions = len(self.objective_functions)
-        total_objective_value = 0
-        for objective_function in self.objective_functions:
-            objective_value = objective_function(self.trace_set, solution, self.number_of_traces)
-            total_objective_value += objective_value * (1 / number_of_objective_functions)
-        return total_objective_value
+import numpy
+from typing import List, Union, Callable, Tuple
+from agilkia.json_traces import TraceSet
 
 
 class ObjectiveFunction:
-    """An abstract class for objective functions that can evaluate a solution based on the chosen metrics.
+    """
+    An abstract class for objective functions that can evaluate a solution based on the chosen metrics.
 
     If a user aims to implement a custom objective function and use it to evaluate the solution, create a subclass of
     this abstract class. See more instruction in the documentation of the constructor and evaluate method below.
     """
 
     def __init__(self, trace_set: TraceSet, num_of_traces: int):
-        """Constructor for an objective function.
+        """
+        Constructor for an objective function.
 
         Use the constructor to pre compute any meta data objective function needs to evaluate a solution and store it.
 
@@ -97,11 +38,21 @@ class ObjectiveFunction:
         self.num_of_traces = num_of_traces
 
     def evaluate(self, solution: numpy.ndarray) -> float:
+        """
+        Evaluate the solution and return an objective value. Implement in subclass
+
+        Args:
+            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
+
+        Returns: The objective value of the solution
+        """
         return 0
 
 
 class FrequencyCoverage(ObjectiveFunction):
-    """ An objective function that calculates the frequency coverage of the traces selected in the solution, out of the
+    """
+    An objective function that calculates the frequency coverage of the traces selected in the solution, out of the
     total trace set frequency.
 
     Typically, if the traces in the trace set are generated using agilkia.SmartSequenceGenerator, there would be a
@@ -112,7 +63,8 @@ class FrequencyCoverage(ObjectiveFunction):
     """
 
     def __init__(self, trace_set: TraceSet, num_of_traces: int):
-        """Constructor for a frequency coverage objective function.
+        """
+        Constructor for a frequency coverage objective function.
 
         Pre calculates the frequency coverage for each trace in the trace set and store it in a list.
         Pre calculates the total frequency coverage.
@@ -131,14 +83,16 @@ class FrequencyCoverage(ObjectiveFunction):
                 raise ValueError("There is no frequency information of the traces")
         except ValueError as error:
             print(error)
+            raise error
 
     def evaluate(self, solution: numpy.ndarray) -> float:
-        """ Evaluate the solution based on the frequency coverage of the traces selected in the solution, out of the
+        """
+        Evaluate the solution based on the frequency coverage of the traces selected in the solution, out of the
         total trace set frequency.
 
         Args:
             solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
-            On every position, 1 means the trace at the position is selected, and 0 means not selected.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
 
         Returns:
             The percentage of the frequency coverage of the selected traces out of the total frequency of the trace set
@@ -150,32 +104,45 @@ class FrequencyCoverage(ObjectiveFunction):
         return solution_frequency_coverage / self.total_frequency_coverage
 
 
-class ActionStatusCoverage(ObjectiveFunction):
-    """ An objective function that calculates the event action and status coverage of the selected traces in the
-    solution, out of all the traces in the trace set. If an Event does not have a status in the output, status would
-    be 0.
+class EventCoverage(ObjectiveFunction):
     """
-    def __init__(self, trace_set: TraceSet, num_of_traces: int):
-        """Constructor for the action status coverage objective function
-        Pre calculates the action status coverage of each trace in the trace set
-        Pre calculates the total action status coverage of the trace set
+    An objective function that calculates the coverage of the individual events of the selected traces in the
+    solution, out of all the traces in the trace set. Typical usage would be action coverage, status coverage and action
+    status coverage. If an Event does not have a status in the output, status would be 0.
+    """
+
+    # TODO: Need to put Optional[]?
+    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Callable = None):
+        """
+        Constructor for the event coverage objective function.
+
+        Pass in a lambda function to extract the data on the events in the trace and use it to precalculate coverage of
+        each trace in the trace set, and the total coverage of the trace set.
+
+        To calculate action coverage, pass in event_to_string=lambda ev: ev.action.
+        To calculate status coverage, pass in event_to_string=lambda ev: str(ev.status).
+        To calculate action_status coverage, pass in event_to_string = lambda ev: ev.action + "_" + str(ev.status).
 
         Args:
             trace_set (TraceSet): The set of traces.
-            num_of_traces (int): The number of traces to be selected as a test suite
+            num_of_traces (int): The number of traces to be selected as a test suite.
+            event_to_str (Callable): The function used to extract data on the events in the trace.
         """
         super().__init__(trace_set, num_of_traces)
-        self.trace_action_status_coverage = []
+        self.event_to_str = event_to_str
+        if self.event_to_str is None:
+            self.event_to_str = (lambda ev: ev.action)
+        self.trace_coverage = []
         self.total_coverage = set()
         for trace in self.trace_set:
-            # TODO: Store in variable
-            self.trace_action_status_coverage.append(set(trace.action_status_counts().keys()))
-            self.total_coverage = self.total_coverage.union(
-                set(trace.action_status_counts().keys()))
-        self.trace_action_status_coverage = np.array(self.trace_action_status_coverage)
+            trace_coverage = set(trace.action_counts(event_to_str=self.event_to_str).keys())
+            self.trace_coverage.append(trace_coverage)
+            self.total_coverage = self.total_coverage.union(trace_coverage)
+        self.trace_coverage = np.array(self.trace_coverage)
 
     def evaluate(self, solution: numpy.ndarray) -> float:
-        """Evaluate the solution based on the action and status coverage of the selected traces in the solution,
+        """
+        Evaluate the solution based on the selected coverage of the selected traces in the solution,
         out of all the traces in the trace set.
 
         Args:
@@ -183,133 +150,140 @@ class ActionStatusCoverage(ObjectiveFunction):
                 On every position, 1 means the trace at the position is selected, and 0 means not selected.
 
         Returns:
-            The percentage of the action and status coverage of the selected traces out of the total action status
-            coverage of the trace set
+            The percentage of the selected coverage of the selected traces out of the total action status
+                coverage of the trace set
         """
         if np.sum(solution) > self.num_of_traces:
             return (np.sum(solution) - self.num_of_traces) * -1
         solution_action_status_coverage = set()
         solution = np.array(solution, dtype=bool)
-        for trace_coverage in self.trace_action_status_coverage[solution]:
+        for trace_coverage in self.trace_coverage[solution]:
             solution_action_status_coverage = solution_action_status_coverage.union(trace_coverage)
         return len(solution_action_status_coverage) / len(self.total_coverage)
 
 
-class EventCoverage(ObjectiveFunction):
-    """ An objective function that calculates the event action coverage of the selected traces in the
-    solution, out of all the traces in the trace set.
-    """
-    # TODO: Passed in optional lambda function
-    def __init__(self, trace_set: TraceSet, num_of_traces: int):
-        """Constructor for the action coverage objective function
-        Pre calculates the action coverage of each trace in the trace set
-        Pre calculates the total action coverage of the trace set
-
-        Args:
-            trace_set (TraceSet): The set of traces.
-            num_of_traces (int): The number of traces to be selected as a test suite
-        """
-        super().__init__(trace_set, num_of_traces)
-        self.trace_action_coverage = []
-        self.total_action_coverage = set()
-        for trace in self.trace_set:
-            self.total_action_coverage = self.total_action_coverage.union(set(trace.action_counts().keys()))
-            self.trace_action_coverage.append(set(trace.action_counts().keys()))
-        self.trace_action_coverage = np.array(self.trace_action_coverage)
-
-    def evaluate(self, solution: numpy.ndarray) -> float:
-        """Evaluate the solution based on action coverage of the selected traces out of the traces of the trace set
-
-        Args:
-            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
-                On every position, 1 means the trace at the position is selected, and 0 means not selected.
-
-        Returns:
-            The action coverage of the selected traces out of total action coverage of the trace set
-        """
-        if np.sum(solution) > self.num_of_traces:
-            return (np.sum(solution) - self.num_of_traces) * -1
-        solution_action_coverage = set()
-        solution = np.array(solution, dtype=bool)
-        for trace_coverage in self.trace_action_coverage[solution]:
-            solution_action_coverage = solution_action_coverage.union(trace_coverage)
-        return len(solution_action_coverage) / len(self.total_action_coverage)
-
-
-class StatusCoverage(ObjectiveFunction):
-    """ An objective function that calculates the event status coverage of the selected traces in the
-    solution, out of all the traces in the trace set. If an Event does not have a status in the output, status would
-    be 0.
-    """
-
-    def __init__(self, trace_set: TraceSet, num_of_traces: int):
-        """Constructor for the status coverage objective function
-        Pre calculates the status coverage of each trace in the trace set
-        Pre calculates the total status coverage of the trace set
-
-        Args:
-            trace_set (TraceSet): The set of traces.
-            num_of_traces (int): The number of traces to be selected as a test suite
-        """
-        super().__init__(trace_set, num_of_traces)
-        self.trace_status_coverage = []
-        self.total_status_coverage = set()
-        for trace in self.trace_set:
-            trace_status_coverage = set()
-            for event in trace:
-                trace_status_coverage.add(event.status)
-            self.trace_status_coverage.append(trace_status_coverage)
-            self.total_status_coverage = self.total_status_coverage.union(trace_status_coverage)
-        self.trace_status_coverage = np.array(self.trace_status_coverage)
-
-    def evaluate(self, solution: numpy.ndarray) -> float:
-        """Evaluate the solution based on the event status coverage of the selected traces in the solution, out of all
-        the traces in the trace set.
-
-        Args:
-            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
-                On every position, 1 means the trace at the position is selected, and 0 means not selected.
-
-        Returns:
-            The status coverage of the selected traces out of the total status coverage of the trace set
-        """
-        if np.sum(solution) > self.num_of_traces:
-            return (np.sum(solution) - self.num_of_traces) * -1
-        solution_status_coverage = set()
-        solution = np.array(solution, dtype=bool)
-        for trace_coverage in self.trace_status_coverage[solution]:
-            solution_status_coverage = solution_status_coverage.union(trace_coverage)
-        return len(solution_status_coverage) / len(self.total_status_coverage)
-
-
 class EventPairCoverage(ObjectiveFunction):
-    """An objective function that calculates the action pair coverage of the selected traces in the solution, out of the
-    all traces in the trace set.
+    """
+    An objective function that calculates the coverage of the event pairs of the selected traces in the solution,
+    out of all the traces in the trace set. Typical usage would be action pair coverage, status pair coverage and
+    action status pair coverage. If an Event does not have a status in the output, status would be 0.
     For example, for a trace, the events in a trace are "unlock, scan, scan, checkout". The action pairs would be
     "unlock_scan, scan_scan, scan_checkout".
     """
-    #TODO: Use lambda
-    def __init__(self, trace_set: TraceSet, num_of_traces: int):
+
+    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Callable = None):
+        """
+        Constructor for the event pair coverage objective function.
+
+        Pass in a lambda function to extract the data on the events in the trace and use it to precalculate coverage of
+        each trace in the trace set, and the total coverage of the trace set.
+
+        To calculate action pair coverage, pass in event_to_string=lambda ev: ev.action.
+        To calculate status pair coverage, pass in event_to_string=lambda ev: str(ev.status).
+        To calculate action_status pair coverage, pass in event_to_string = lambda ev: ev.action + "_" + str(ev.status).
+
+        Args:
+            trace_set (TraceSet): The set of traces.
+            num_of_traces (int): The number of traces to be selected as a test suite.
+            event_to_str (Callable): The function used to extract data on the events in the trace.
+        """
         super().__init__(trace_set, num_of_traces)
-        self.trace_action_pair_coverage = []
-        self.total_action_pair_coverage = set()
+        self.event_to_str = event_to_str
+        if self.event_to_str is None:
+            self.event_to_str = (lambda ev: ev.action)
+        self.trace_coverage = []
+        self.total_coverage = set()
         for trace in self.trace_set:
-            trace_action_pair = set()
+            trace_coverage = set()
             for i in range(len(trace) - 1):
-                trace_action_pair.add(trace[i].action + "_" + trace[i + 1].action)
-            self.total_action_pair_coverage = self.total_action_pair_coverage.union(trace_action_pair)
-            self.trace_action_pair_coverage.append(trace_action_pair)
-        self.trace_action_pair_coverage = np.array(self.trace_action_pair_coverage)
+                trace_coverage.add(event_to_str(trace[i]) + "_" + event_to_str(trace[i + 1]))
+            self.trace_coverage.append(trace_coverage)
+            self.total_coverage = self.total_coverage.union(trace_coverage)
+        self.trace_coverage = np.array(self.trace_coverage)
 
     def evaluate(self, solution: numpy.ndarray) -> float:
-        # TODO: Should we consider < ?
+        """
+        Evaluate the solution based on the selected coverage of the selected traces in the solution,
+        out of all the traces in the trace set.
+
+        Args:
+            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
+
+        Returns:
+            The percentage of the selected coverage of the selected traces out of the total action status
+                coverage of the trace set
+        """
         if np.sum(solution) > self.num_of_traces:
             return (np.sum(solution) - self.num_of_traces) * -1
         solution_action_pair_coverage = set()
         solution = np.array(solution, dtype=bool)
-        for trace_coverage in self.trace_action_pair_coverage[solution]:
+        for trace_coverage in self.trace_coverage[solution]:
             solution_action_pair_coverage = solution_action_pair_coverage.union(trace_coverage)
-        return len(solution_action_pair_coverage) / len(self.total_action_pair_coverage)
+        return len(solution_action_pair_coverage) / len(self.total_coverage)
+
+
+class TraceSetOptimizer:
+    """
+    An abstract class for different optimizers with different optimization algorithms for a given trace set.
+
+    Given a trace set, an (or a list of) objective function(s), and the number of traces to be extracted,
+    the optimizer runs the optimization algorithms and tries to extract a set of traces that maximize the objective
+    values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
+    """
+
+    # TODO: Refactor to use objective function class input!
+
+    def __init__(self, trace_set: TraceSet,
+                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
+                 number_of_traces: int):
+        """
+        Constructor for a trace set optimizer.
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            objective_functions (ObjectiveFunction or List[ObjectiveFunction]): The objective functions to be used to
+                evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
+                Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
+                that class.
+
+            number_of_traces (int): The number of traces wanted to be selected from the trace set.
+                For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
+                optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
+                objective values returned by the objective functions.
+        """
+        self.trace_set = trace_set
+        self.objective_functions = [objective_functions] if isinstance(objective_functions,
+                                                                       ObjectiveFunction) else objective_functions
+        self.number_of_traces = number_of_traces
+        try:
+            for objective_function in self.objective_functions:
+                if not isinstance(objective_function, ObjectiveFunction):
+                    raise ValueError(
+                        "Please provide valid built in objective functions or your custom objective functions")
+        except ValueError as error:
+            print(error)
+
+    def objective(self, solution: np.ndarray) -> float:
+        """
+        Evaluate the solution with all objective functions passed in, assign an equal weight to them based on the
+        number of objective functions passed in and combine them.
+
+        Args:
+            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
+
+        Returns:
+            Combined the different objective values with an equal weight based on the number of the objective
+                functions, and return it. Result would be between 0 and 1
+        """
+        # TODO: Can we have a way to share the parameters like trace_set, num_of_traces, etc..
+        number_of_objective_functions = len(self.objective_functions)
+        total_objective_value = 0
+        for objective_function in self.objective_functions:
+            objective_value = objective_function.evaluate(solution)
+            total_objective_value += objective_value * (1 / number_of_objective_functions)
+        return total_objective_value
 
 
 class GreedyOptimizer(TraceSetOptimizer):
@@ -553,6 +527,5 @@ class GeneticOptimizer(TraceSetOptimizer):
             selected_parents_indexes.append(index)
             selected_parents.append(population[index])
         return selected_parents
-
 
     # def optimize(self):
