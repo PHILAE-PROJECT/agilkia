@@ -9,7 +9,7 @@ import math
 import random
 import numpy as np
 import numpy
-from typing import List, Union, Callable, Tuple
+from typing import List, Union, Callable, Tuple, Optional
 from agilkia.json_traces import TraceSet
 
 
@@ -21,6 +21,7 @@ class ObjectiveFunction:
     this abstract class. See more instruction in the documentation of the constructor and evaluate method below.
     """
 
+    # TODO: Empty init. Create set_traces method to store data. Same for optimizer
     def __init__(self, trace_set: TraceSet, num_of_traces: int):
         """
         Constructor for an objective function.
@@ -111,8 +112,7 @@ class EventCoverage(ObjectiveFunction):
     status coverage. If an Event does not have a status in the output, status would be 0.
     """
 
-    # TODO: Need to put Optional[]?
-    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Callable = None):
+    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Optional[Callable] = None):
         """
         Constructor for the event coverage objective function.
 
@@ -171,7 +171,7 @@ class EventPairCoverage(ObjectiveFunction):
     "unlock_scan, scan_scan, scan_checkout".
     """
 
-    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Callable = None):
+    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Optional[Callable] = None):
         """
         Constructor for the event pair coverage objective function.
 
@@ -232,8 +232,6 @@ class TraceSetOptimizer:
     values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
     """
 
-    # TODO: Refactor to use objective function class input!
-
     def __init__(self, trace_set: TraceSet,
                  objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
                  number_of_traces: int):
@@ -252,9 +250,10 @@ class TraceSetOptimizer:
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
+        # TODO: Rename number of traces. It's ambiguous
         self.trace_set = trace_set
-        self.objective_functions = [objective_functions] if isinstance(objective_functions,
-                                                                       ObjectiveFunction) else objective_functions
+        self.objective_functions = [objective_functions] if not isinstance(objective_functions,
+                                                                           list) else objective_functions
         self.number_of_traces = number_of_traces
         try:
             for objective_function in self.objective_functions:
@@ -263,6 +262,7 @@ class TraceSetOptimizer:
                         "Please provide valid built in objective functions or your custom objective functions")
         except ValueError as error:
             print(error)
+            raise error
 
     def objective(self, solution: np.ndarray) -> float:
         """
@@ -277,7 +277,6 @@ class TraceSetOptimizer:
             Combined the different objective values with an equal weight based on the number of the objective
                 functions, and return it. Result would be between 0 and 1
         """
-        # TODO: Can we have a way to share the parameters like trace_set, num_of_traces, etc..
         number_of_objective_functions = len(self.objective_functions)
         total_objective_value = 0
         for objective_function in self.objective_functions:
@@ -293,20 +292,17 @@ class GreedyOptimizer(TraceSetOptimizer):
     """
 
     def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[Callable, List[Callable]],
+                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
                  number_of_traces: int):
         """Creates an optimizer that uses the Greedy Search Algorithm to search for a subset of traces that tries to
         maximize the objective value
 
         Args:
             trace_set (TraceSet): A set of traces chosen or output by some kind of model.
-            objective_functions (Callable or List[Callable]): The objective functions to be used to
+            objective_functions (ObjectiveFunction or List[ObjectiveFunction]): The objective functions to be used to
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
-                An objective function would take in three arguments, which are the trace set, a binary vector to
-                represent the solution (on every position, 1 means selected), and the number of traces wanted to be
-                selected. Any external variables needed for the objective function should be global variables that can
-                be accessed within the function. This is for the convenience to compute different objective values with
-                different objective functions and combine them.
+                Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
+                that class.
             number_of_traces (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
@@ -325,7 +321,6 @@ class GreedyOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        # TODO: Could the for loops possibly be optimized?
         print("Starting Greedy Search...Selecting", self.number_of_traces, "traces")
         num_of_variables = len(self.trace_set)
         solution = np.zeros(num_of_variables)
@@ -337,14 +332,13 @@ class GreedyOptimizer(TraceSetOptimizer):
                 if solution[i] != 1:
                     solution[i] = 1
                     objective_value = self.objective(solution)
-
                     if objective_value > best_objective_value:
                         best_objective_value = objective_value
                         best_index = i
                     solution[i] = 0
             solution[best_index] = 1
-        # TODO: NEED TESTS!!!
-        selected_traces = TraceSet(solution * self.trace_set)
+        selected_traces = [self.trace_set[i] for i in range(num_of_variables) if solution[i]]
+        selected_traces = TraceSet(selected_traces)
         return selected_traces, best_objective_value
 
 
@@ -355,7 +349,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
     """
 
     def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[Callable, List[Callable]],
+                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
                  number_of_traces: int, number_of_particles: int, number_of_iterations: int, c1: float, c2: float):
         """Creates an optimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of traces
         that tries to maximize the objective value. This is using the Binary version of PSO.
@@ -408,7 +402,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
         """
         print("Starting Particle Swarm with", self.number_of_particles, "particles,", self.number_of_iterations,
               "iterations,", "c1 as", self.c1, ", c2 as", self.c2, ", selecting", self.number_of_traces, "traces")
-
+        # TODO: Should these all be put in self?
         num_of_variables = len(self.trace_set)
 
         # Every bit in the solution can only be either 0 or 1
@@ -487,28 +481,35 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 temp = np.random.rand(num_of_variables) < sigmoid
                 temp = temp * 1
                 particle['X'] = temp
-        # TODO: NEED TESTS!!!
-        selected_traces = TraceSet(gbest_x * self.trace_set)
+        selected_traces = [self.trace_set[i] for i in range(num_of_variables) if gbest_x[i]]
+        selected_traces = TraceSet(selected_traces)
         return selected_traces, gbest_val
 
 
 class GeneticOptimizer(TraceSetOptimizer):
-    # Todo: Optional
     def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[Callable, List[Callable]],
-                 number_of_traces: int, number_of_chromosomes: int, prob_cross: float, prob_mutate: float,
-                 elitism_rate: float, number_of_iterations: int):
+                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
+                 number_of_traces: int, number_of_iterations: int, number_of_chromosomes: int, prob_cross: float,
+                 prob_mutate: float, elitism: Optional[bool] = False, elitism_rate: Optional[float] = 0):
         super().__init__(trace_set, objective_functions, number_of_traces)
+        self.number_of_iterations = number_of_iterations
         self.number_of_chromosomes = number_of_chromosomes
         self.number_of_genes = len(self.trace_set)
         self.prob_cross = prob_cross
         self.prob_mutate = prob_mutate
+        self.elitism = elitism
         self.elitism_rate = elitism_rate
-        self.number_of_iterations = number_of_iterations
-
         # Initialise population
         self.population = np.rint(np.random.rand(self.number_of_chromosomes, self.number_of_genes))
         self.new_population = np.zeros((self.number_of_chromosomes, self.number_of_genes))
+
+    def normalise_objective_values(self):
+        objective_values = np.apply_along_axis(self.objective, 1, self.population)
+        min_objective_value = min(objective_values)
+        if min_objective_value < 0:
+            objective_values = objective_values - min_objective_value + 1
+        normalised_objective_values = objective_values / np.sum(objective_values)
+        return normalised_objective_values
 
     def roulette_wheel(self, normalised_objective_values):
         cum_sum = np.cumsum(normalised_objective_values)
@@ -517,7 +518,7 @@ class GeneticOptimizer(TraceSetOptimizer):
             if condition:
                 return index
 
-    def selection(self, population, normalised_objective_values, number_of_parents):
+    def select(self, population, normalised_objective_values, number_of_parents):
         selected_parents_indexes = []
         selected_parents = []
         for i in range(number_of_parents):
@@ -526,6 +527,73 @@ class GeneticOptimizer(TraceSetOptimizer):
                 index = self.roulette_wheel(normalised_objective_values)
             selected_parents_indexes.append(index)
             selected_parents.append(population[index])
+        selected_parents = np.array(selected_parents)
         return selected_parents
 
-    # def optimize(self):
+    def crossover(self, parent1, parent2, crossover_name):
+        child1 = None
+        child2 = None
+        if crossover_name == "single":
+            crossover_point = random.randint(1, self.number_of_genes - 2)
+            child1 = np.concatenate([parent1[0:crossover_point], parent2[crossover_point: self.number_of_genes]])
+            child2 = np.concatenate([parent2[0:crossover_point], parent1[crossover_point: self.number_of_genes]])
+
+        if crossover_name == "double":
+            crossover_point1 = random.randint(1, self.number_of_genes - 2)
+            crossover_point2 = random.randint(1, self.number_of_genes - 2)
+            while crossover_point1 == crossover_point2:
+                crossover_point2 = random.randint(1, self.number_of_genes - 2)
+            if crossover_point1 > crossover_point2:
+                temp = crossover_point1
+                crossover_point1 = crossover_point2
+                crossover_point2 = temp
+            child1 = np.concatenate([parent1[0:crossover_point1], parent2[crossover_point1: crossover_point2],
+                                     parent1[crossover_point2:self.number_of_genes]])
+            child2 = np.concatenate([parent2[0:crossover_point1], parent1[crossover_point1: crossover_point2],
+                                     parent2[crossover_point2:self.number_of_genes]])
+
+        r1 = random.random()
+        child1 = child1 if r1 <= self.prob_cross else parent1
+        r2 = random.random()
+        child2 = child2 if r2 <= self.prob_cross else parent2
+        return child1, child2
+
+    def mutate(self, child):
+        for i in range(self.number_of_genes):
+            r = random.random()
+            if r <= self.prob_mutate:
+                child[i] = not child[i]
+        return child
+
+    def elitism(self):
+        number_of_elites = int(self.number_of_chromosomes * self.elitism_rate)
+        objective_values = np.apply_along_axis(self.objective, 1, self.population)
+        new_pop_objective_values = np.apply_along_axis(self.objective, 1, self.new_population)
+
+        for i in range(number_of_elites):
+            max_index = np.argmax(objective_values)
+            elite = self.population[max_index]
+            min_index = np.argmin(new_pop_objective_values)
+            if min(new_pop_objective_values) < max(objective_values):
+                self.new_population[min_index] = elite
+                new_pop_objective_values = np.delete(new_pop_objective_values, min_index, 0)
+                self.population = np.delete(self.population, max_index, 0)
+                objective_values = np.delete(objective_values, max_index, 0)
+            else:
+                break
+        return self.new_population
+
+    def optimize(self):
+        for i in range(self.number_of_iterations):
+            normalised_objective_values = self.normalise_objective_values()
+
+        for i in range(0, self.number_of_chromosomes, 2):
+            # Selection
+            [parent1, parent2] = self.select(self.population, normalised_objective_values, 2)
+            # Crossover
+            child1, child2 = crossover(parent1, parent2, prob_cross, "double")
+            # Mutation
+            child1 = mutate(child1, prob_mutate)
+            child2 = mutate(child2, prob_mutate)
+            newPopulation[i] = child1
+            newPopulation[i + 1] = child2
