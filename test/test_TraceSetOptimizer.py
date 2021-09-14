@@ -138,7 +138,6 @@ class TestTraceSetOptimizer(unittest.TestCase):
         objective_functions.extend([frequency_function, action_function])
         greedy_optimizer = agilkia.GreedyOptimizer(self.trace_set, objective_functions, 1)
         selected_traces, best_objective_value = greedy_optimizer.optimize()
-        # TODO: Implement TraceSet equals?
         self.assertEqual([self.trace4], selected_traces.traces)
         self.assertEqual(((3 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
 
@@ -172,7 +171,64 @@ class TestTraceSetOptimizer(unittest.TestCase):
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
         self.assertEqual(((2 / 3) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
 
+    def test_greedy5(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2,
+                                                         event_to_str=lambda ev: ev.action + "_" + str(ev.status))
+        objective_functions.extend([frequency_function, action_pair_function])
+        greedy_optimizer = agilkia.GreedyOptimizer(self.trace_set, objective_functions, 2)
+        selected_traces, best_objective_value = greedy_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_greedy6(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: str(ev.status))
+        objective_functions.extend([frequency_function, action_pair_function])
+        greedy_optimizer = agilkia.GreedyOptimizer(self.trace_set, objective_functions, 2)
+        selected_traces, best_objective_value = greedy_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
     def test_pso(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
+        action_function = agilkia.EventCoverage(self.trace_set, 1, event_to_str=lambda ev: ev.action)
+        objective_functions.extend([frequency_function, action_function])
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                       number_of_particles=50, number_of_iterations=50, c1=2.0,
+                                                       c2=2.0)
+        selected_traces, best_objective_value = pso_optimizer.optimize()
+        self.assertEqual([self.trace4], selected_traces.traces)
+        self.assertEqual(((3 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
+
+    def test_pso2(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
+        action_status_function = agilkia.EventCoverage(self.trace_set, 1,
+                                                       event_to_str=lambda ev: ev.action + "_" + str(ev.status))
+        objective_functions.extend([frequency_function, action_status_function])
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                       number_of_particles=50, number_of_iterations=50, c1=2.0,
+                                                       c2=2.0)
+        selected_traces, best_objective_value = pso_optimizer.optimize()
+        self.assertEqual([self.trace4], selected_traces.traces)
+        self.assertEqual(((2 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
+
+    def test_pso3(self):
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
+        status_function = agilkia.EventCoverage(self.trace_set, 1, event_to_str=lambda ev: str(ev.status))
+        objective_functions = [frequency_function, status_function]
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                       number_of_particles=50, number_of_iterations=50, c1=2.0,
+                                                       c2=2.0)
+        selected_traces, best_objective_value = pso_optimizer.optimize()
+        self.assertEqual([self.trace4], selected_traces.traces)
+        self.assertEqual(((2 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
+
+    def test_pso4(self):
         objective_functions = []
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: ev.action)
@@ -183,3 +239,101 @@ class TestTraceSetOptimizer(unittest.TestCase):
         selected_traces, best_objective_value = pso_optimizer.optimize()
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
         self.assertEqual(((2 / 3) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_pso5(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2,
+                                                         event_to_str=lambda ev: ev.action + "_" + str(ev.status))
+        objective_functions.extend([frequency_function, action_pair_function])
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                       number_of_particles=50, number_of_iterations=50, c1=2.0,
+                                                       c2=2.0)
+        selected_traces, best_objective_value = pso_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_pso6(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: str(ev.status))
+        objective_functions.extend([frequency_function, action_pair_function])
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                       number_of_particles=50, number_of_iterations=50, c1=2.0,
+                                                       c2=2.0)
+        selected_traces, best_objective_value = pso_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_ga(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: ev.action)
+        objective_functions.extend([frequency_function, action_pair_function])
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
+                                                prob_mutate=0.005, elitism=True, elitism_rate=0.2)
+        selected_traces, best_objective_value = ga_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 3) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_ga2(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
+        action_status_function = agilkia.EventCoverage(self.trace_set, 1,
+                                                       event_to_str=lambda ev: ev.action + "_" + str(ev.status))
+        objective_functions.extend([frequency_function, action_status_function])
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
+                                                prob_mutate=0.005, elitism=True, elitism_rate=0.2)
+        selected_traces, best_objective_value = ga_optimizer.optimize()
+        self.assertEqual([self.trace4], selected_traces.traces)
+        self.assertEqual(((2 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
+
+    def test_ga3(self):
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
+        status_function = agilkia.EventCoverage(self.trace_set, 1, event_to_str=lambda ev: str(ev.status))
+        objective_functions = [frequency_function, status_function]
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
+                                                prob_mutate=0.005, elitism=True, elitism_rate=0.2)
+        selected_traces, best_objective_value = ga_optimizer.optimize()
+        self.assertEqual([self.trace4], selected_traces.traces)
+        self.assertEqual(((2 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
+
+    def test_ga4(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: ev.action)
+        objective_functions.extend([frequency_function, action_pair_function])
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
+                                                prob_mutate=0.005, elitism=True, elitism_rate=0.2)
+        selected_traces, best_objective_value = ga_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 3) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_ga5(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2,
+                                                         event_to_str=lambda ev: ev.action + "_" + str(ev.status))
+        objective_functions.extend([frequency_function, action_pair_function])
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
+                                                prob_mutate=0.005, elitism=True, elitism_rate=0.2)
+        selected_traces, best_objective_value = ga_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
+
+    def test_ga6(self):
+        objective_functions = []
+        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
+        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: str(ev.status))
+        objective_functions.extend([frequency_function, action_pair_function])
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+                                                number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
+                                                prob_mutate=0.005, elitism=True, elitism_rate=0.2)
+        selected_traces, best_objective_value = ga_optimizer.optimize()
+        self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
+        self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)

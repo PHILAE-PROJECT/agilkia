@@ -518,10 +518,10 @@ class GeneticOptimizer(TraceSetOptimizer):
             if condition:
                 return index
 
-    def select(self, population, normalised_objective_values, number_of_parents):
+    def select(self, population, normalised_objective_values):
         selected_parents_indexes = []
         selected_parents = []
-        for i in range(number_of_parents):
+        for i in range(2):
             index = self.roulette_wheel(normalised_objective_values)
             while index in selected_parents_indexes:
                 index = self.roulette_wheel(normalised_objective_values)
@@ -565,7 +565,7 @@ class GeneticOptimizer(TraceSetOptimizer):
                 child[i] = not child[i]
         return child
 
-    def elitism(self):
+    def add_elites(self):
         number_of_elites = int(self.number_of_chromosomes * self.elitism_rate)
         objective_values = np.apply_along_axis(self.objective, 1, self.population)
         new_pop_objective_values = np.apply_along_axis(self.objective, 1, self.new_population)
@@ -587,13 +587,23 @@ class GeneticOptimizer(TraceSetOptimizer):
         for i in range(self.number_of_iterations):
             normalised_objective_values = self.normalise_objective_values()
 
-        for i in range(0, self.number_of_chromosomes, 2):
-            # Selection
-            [parent1, parent2] = self.select(self.population, normalised_objective_values, 2)
-            # Crossover
-            child1, child2 = crossover(parent1, parent2, prob_cross, "double")
-            # Mutation
-            child1 = mutate(child1, prob_mutate)
-            child2 = mutate(child2, prob_mutate)
-            newPopulation[i] = child1
-            newPopulation[i + 1] = child2
+            for j in range(0, self.number_of_chromosomes, 2):
+                # Selection
+                [parent1, parent2] = self.select(self.population, normalised_objective_values)
+                # Crossover
+                child1, child2 = self.crossover(parent1, parent2, "double")
+                # Mutation
+                child1 = self.mutate(child1)
+                child2 = self.mutate(child2)
+                self.new_population[j] = child1
+                self.new_population[j + 1] = child2
+                if self.elitism:
+                    self.new_population = self.add_elites()
+                self.population = self.new_population
+        objective_values = np.apply_along_axis(self.objective, 1, self.population)
+        best_objective_value = np.max(objective_values)
+        best_index = np.argmax(objective_values)
+        solution = self.population[best_index]
+        selected_traces = [self.trace_set[i] for i in range(self.number_of_genes) if solution[i]]
+        selected_traces = TraceSet(selected_traces)
+        return selected_traces, best_objective_value
