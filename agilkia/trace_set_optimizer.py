@@ -231,10 +231,10 @@ class TraceSetOptimizer:
     the optimizer runs the optimization algorithms and tries to extract a set of traces that maximize the objective
     values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
     """
-
+    # TODO: Should we allow different weights for different objective functions?
     def __init__(self, trace_set: TraceSet,
                  objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 number_of_traces: int):
+                 num_of_selected_traces: int):
         """
         Constructor for a trace set optimizer.
 
@@ -245,16 +245,15 @@ class TraceSetOptimizer:
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
 
-            number_of_traces (int): The number of traces wanted to be selected from the trace set.
+            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
-        # TODO: Rename number of traces. It's ambiguous
         self.trace_set = trace_set
         self.objective_functions = [objective_functions] if not isinstance(objective_functions,
                                                                            list) else objective_functions
-        self.number_of_traces = number_of_traces
+        self.num_of_selected_traces = num_of_selected_traces
         try:
             for objective_function in self.objective_functions:
                 if not isinstance(objective_function, ObjectiveFunction):
@@ -293,7 +292,7 @@ class GreedyOptimizer(TraceSetOptimizer):
 
     def __init__(self, trace_set: TraceSet,
                  objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 number_of_traces: int):
+                 num_of_selected_traces: int):
         """Creates an optimizer that uses the Greedy Search Algorithm to search for a subset of traces that tries to
         maximize the objective value
 
@@ -303,13 +302,13 @@ class GreedyOptimizer(TraceSetOptimizer):
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
-            number_of_traces (int): The number of traces wanted to be selected from the trace set.
+            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
         super().__init__(trace_set=trace_set, objective_functions=objective_functions,
-                         number_of_traces=number_of_traces)
+                         num_of_selected_traces=num_of_selected_traces)
 
     def optimize(self) -> Tuple[TraceSet, float]:
         """ Implements the greedy search algorithm and applies it on the trace set passed in.
@@ -321,13 +320,13 @@ class GreedyOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        print("Starting Greedy Search...Selecting", self.number_of_traces, "traces")
+        print("Starting Greedy Search...Selecting", self.num_of_selected_traces, "traces")
         num_of_variables = len(self.trace_set)
         solution = np.zeros(num_of_variables)
         best_objective_value = 0
         best_index = None
 
-        for j in range(self.number_of_traces):
+        for j in range(self.num_of_selected_traces):
             for i in range(num_of_variables):
                 if solution[i] != 1:
                     solution[i] = 1
@@ -350,7 +349,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
     def __init__(self, trace_set: TraceSet,
                  objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 number_of_traces: int, number_of_particles: int, number_of_iterations: int, c1: float, c2: float):
+                 num_of_selected_traces: int, number_of_particles: int, number_of_iterations: int, c1: float,
+                 c2: float):
         """Creates an optimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of traces
         that tries to maximize the objective value. This is using the Binary version of PSO.
 
@@ -363,7 +363,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 selected. Any external variables needed for the objective function should be global variables that can
                 be accessed within the function. This is for the convenience to compute different objective values with
                 different objective functions and combine them.
-            number_of_traces (int): The number of traces wanted to be selected from the trace set.
+            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
@@ -375,11 +375,15 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 particle's velocity during update
         """
         super().__init__(trace_set=trace_set, objective_functions=objective_functions,
-                         number_of_traces=number_of_traces)
+                         num_of_selected_traces=num_of_selected_traces)
         self.number_of_iterations = number_of_iterations
         self.number_of_particles = number_of_particles
         self.c1 = c1
         self.c2 = c2
+        self.num_of_variables = len(self.trace_set)
+        # Every bit in the solution can only be either 0 or 1
+        self.upper_bound = np.ones(self.num_of_variables)
+        self.lower_bound = np.zeros(self.num_of_variables)
 
     def optimize(self) -> Tuple[TraceSet, float]:
         """ Implements the Particle Swarm Optimization Algorithm and applies it on the trace set passed in.
@@ -401,13 +405,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
         print("Starting Particle Swarm with", self.number_of_particles, "particles,", self.number_of_iterations,
-              "iterations,", "c1 as", self.c1, ", c2 as", self.c2, ", selecting", self.number_of_traces, "traces")
-        # TODO: Should these all be put in self?
-        num_of_variables = len(self.trace_set)
-
-        # Every bit in the solution can only be either 0 or 1
-        upper_bound = np.ones(num_of_variables)
-        lower_bound = np.zeros(num_of_variables)
+              "iterations,", "c1 as", self.c1, ", c2 as", self.c2, ", selecting", self.num_of_selected_traces, "traces")
 
         # Define the upper bound and lower bound of the controlling parameter of the influence for the previous
         # velocity on the particle's velocity during update
@@ -416,12 +414,12 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
         # Define maximum and minimum velocity to avoid exceeding this limit. The value 6 is suggested by the author of
         # the algorithm
-        v_max = np.ones(num_of_variables) * 6
+        v_max = np.ones(self.num_of_variables) * 6
         v_min = -v_max
 
         # Initialise the particle container, global best position, and global best objective value
         particles = []
-        gbest_x = np.zeros(num_of_variables)
+        gbest_x = np.zeros(self.num_of_variables)
         gbest_val = -math.inf
 
         # Initialise the particle population
@@ -429,11 +427,12 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
             particle = {}
             # Round positions to nearest integers
             particle['X'] = np.rint(
-                np.add(np.subtract(upper_bound, lower_bound) * np.random.rand(num_of_variables), lower_bound))
+                np.add(np.subtract(self.upper_bound, self.lower_bound) * np.random.rand(self.num_of_variables),
+                       self.lower_bound))
             # Velocity
-            particle['V'] = np.zeros(num_of_variables)
+            particle['V'] = np.zeros(self.num_of_variables)
             # Position of a particle, this is the solution the particle holds
-            particle['PBESTX'] = np.zeros(num_of_variables)
+            particle['PBESTX'] = np.zeros(self.num_of_variables)
             # Objective value of the solution
             particle['PBESTO'] = -math.inf
             particles.append(particle)
@@ -462,9 +461,9 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
             for index, particle in enumerate(particles):
                 particle['V'] = w * particle['V'] + \
-                                self.c1 * np.random.rand(num_of_variables) * np.subtract(particle['PBESTX'],
-                                                                                         particle['X']) + \
-                                self.c2 * np.random.rand(num_of_variables) * np.subtract(gbest_x, particle['X'])
+                                self.c1 * np.random.rand(self.num_of_variables) * np.subtract(particle['PBESTX'],
+                                                                                              particle['X']) + \
+                                self.c2 * np.random.rand(self.num_of_variables) * np.subtract(gbest_x, particle['X'])
 
                 # Check min max velocity
                 index_greater = np.where(particle['V'] > v_max)[0].tolist()
@@ -478,20 +477,48 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
                 # Sigmoid transfer
                 sigmoid = 1 / (1 + np.exp(-particle['V']))
-                temp = np.random.rand(num_of_variables) < sigmoid
+                temp = np.random.rand(self.num_of_variables) < sigmoid
                 temp = temp * 1
                 particle['X'] = temp
-        selected_traces = [self.trace_set[i] for i in range(num_of_variables) if gbest_x[i]]
+        selected_traces = [self.trace_set[i] for i in range(self.num_of_variables) if gbest_x[i]]
         selected_traces = TraceSet(selected_traces)
         return selected_traces, gbest_val
 
 
 class GeneticOptimizer(TraceSetOptimizer):
+    """
+    A subclass of TraceSetOptimizer that uses the Genetic Algorithm to search for a subset of traces that tries to
+    maximize the objective value
+    """
+
     def __init__(self, trace_set: TraceSet,
                  objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 number_of_traces: int, number_of_iterations: int, number_of_chromosomes: int, prob_cross: float,
+                 num_of_selected_traces: int, number_of_iterations: int, number_of_chromosomes: int, prob_cross: float,
                  prob_mutate: float, elitism: Optional[bool] = False, elitism_rate: Optional[float] = 0):
-        super().__init__(trace_set, objective_functions, number_of_traces)
+        """Creates an optimizer that uses the Genetic Algorithm to search for a subset of traces that tries to maximize
+        the objective value.
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            objective_functions (Callable or List[Callable]): The objective functions to be used to
+                evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
+                An objective function would take in three arguments, which are the trace set, a binary vector to
+                represent the solution (on every position, 1 means selected), and the number of traces wanted to be
+                selected. Any external variables needed for the objective function should be global variables that can
+                be accessed within the function. This is for the convenience to compute different objective values with
+                different objective functions and combine them.
+            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
+                For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
+                optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
+                objective values returned by the objective functions.
+            number_of_iterations (int): Number of iterations of the algorithm.
+            number_of_chromosomes (int): Number of solutions in the population.
+            prob_cross (float): probability of crossover.
+            prob_mutate (float): probability of mutate.
+            elitism (bool): Indicate to use elitism or not.
+            elitism_rate (float): Rate of elitism.
+        """
+        super().__init__(trace_set, objective_functions, num_of_selected_traces)
         self.number_of_iterations = number_of_iterations
         self.number_of_chromosomes = number_of_chromosomes
         self.number_of_genes = len(self.trace_set)
@@ -503,7 +530,15 @@ class GeneticOptimizer(TraceSetOptimizer):
         self.population = np.rint(np.random.rand(self.number_of_chromosomes, self.number_of_genes))
         self.new_population = np.zeros((self.number_of_chromosomes, self.number_of_genes))
 
-    def normalise_objective_values(self):
+    def normalise_objective_values(self) -> numpy.ndarray:
+        """After initialising the population of solutions, there might be some solutions that have a negative objective
+        value because of the random initialisation. To be able to select parents using the roulette_wheel method below,
+        we need to have all objective values to be not negative. We normalise the objective values so that they are all
+        between 0 and 1.
+
+        Returns:
+            The normalised objective values.
+        """
         objective_values = np.apply_along_axis(self.objective, 1, self.population)
         min_objective_value = min(objective_values)
         if min_objective_value < 0:
@@ -511,14 +546,34 @@ class GeneticOptimizer(TraceSetOptimizer):
         normalised_objective_values = objective_values / np.sum(objective_values)
         return normalised_objective_values
 
-    def roulette_wheel(self, normalised_objective_values):
+    def roulette_wheel(self, normalised_objective_values: numpy.ndarray) -> int:
+        """Calculate the cumulative sum of the objective values and output the selected index based on probability
+
+        Args:
+            normalised_objective_values (numpy.ndarray): Normalised objective values of the population, which are all
+                between 0 and 1.
+
+        Returns:
+            Selected index.
+        """
         cum_sum = np.cumsum(normalised_objective_values)
         r = random.random()
         for index, condition in enumerate(r <= cum_sum):
             if condition:
                 return index
 
-    def select(self, population, normalised_objective_values):
+    def select(self, population: numpy.ndarray, normalised_objective_values: numpy.ndarray) -> numpy.ndarray:
+        # TODO: Selecting more than 2 parents? How to apply the crossover method on more than 2?
+        """Use the roulette_wheel method to select 2 solutions from the population as parents. The selected parents are
+        passed in to crossover method.
+
+        Args:
+            population (numpy.ndarray): The population of solutions
+            normalised_objective_values (numpy.ndarray): The normalised objective values of the solutions.
+
+        Returns:
+            The selected solutions as parents.
+        """
         selected_parents_indexes = []
         selected_parents = []
         for i in range(2):
@@ -530,15 +585,29 @@ class GeneticOptimizer(TraceSetOptimizer):
         selected_parents = np.array(selected_parents)
         return selected_parents
 
-    def crossover(self, parent1, parent2, crossover_name):
+    def crossover(self, parent1: numpy.ndarray, parent2: numpy.ndarray, crossover_method: Optional[str] = "double") -> \
+            Tuple[numpy.ndarray, numpy.ndarray]:
+        """Exchange a subset of the two parents and produce new solutions. With single point crossover, randomly pick a
+        point in the solution and exchange the other part. With double point crossover, randomly pick two points in the
+        solution and exchange two different parts. After crossover, use probability to decide whether to keep the
+        changed solution or not.
+
+        Args:
+            parent1 (numpy.ndarray): A solution used to crossover.
+            parent2 (numpy.ndarray): A solution used to crossover.
+            crossover_method (str): The method used to crossover.
+
+        Returns:
+            Either the changed solutions or the original solutions based on probability.
+        """
         child1 = None
         child2 = None
-        if crossover_name == "single":
+        if crossover_method == "single":
             crossover_point = random.randint(1, self.number_of_genes - 2)
             child1 = np.concatenate([parent1[0:crossover_point], parent2[crossover_point: self.number_of_genes]])
             child2 = np.concatenate([parent2[0:crossover_point], parent1[crossover_point: self.number_of_genes]])
 
-        if crossover_name == "double":
+        if crossover_method == "double":
             crossover_point1 = random.randint(1, self.number_of_genes - 2)
             crossover_point2 = random.randint(1, self.number_of_genes - 2)
             while crossover_point1 == crossover_point2:
@@ -558,7 +627,15 @@ class GeneticOptimizer(TraceSetOptimizer):
         child2 = child2 if r2 <= self.prob_cross else parent2
         return child1, child2
 
-    def mutate(self, child):
+    def mutate(self, child: numpy.ndarray) -> numpy.ndarray:
+        """After crossover, for every bit in the solution, flip the bit (0 to 1 or 1 to 0) based on probability.
+
+        Args:
+            child (numpy.ndarray): Solution returned by crossover method.
+
+        Returns:
+            Solution with bits flipped based on probability.
+        """
         for i in range(self.number_of_genes):
             r = random.random()
             if r <= self.prob_mutate:
@@ -566,6 +643,12 @@ class GeneticOptimizer(TraceSetOptimizer):
         return child
 
     def add_elites(self):
+        """ After crossover and mutate, before entering the next generation, keep the best solutions from last
+        generation which have the highest objective values. The number of elites are controlled by the elitism rate.
+
+        Returns:
+            The next generation of population.
+        """
         number_of_elites = int(self.number_of_chromosomes * self.elitism_rate)
         objective_values = np.apply_along_axis(self.objective, 1, self.population)
         new_pop_objective_values = np.apply_along_axis(self.objective, 1, self.new_population)
@@ -584,6 +667,19 @@ class GeneticOptimizer(TraceSetOptimizer):
         return self.new_population
 
     def optimize(self):
+        """Implements the Genetic Algorithm and applies it on the trace set passed in.
+        The algorithms initialise the population. Each chromosome is a solution with the length of the trace set. Each
+        bit in the chromosome indicates the trace in the trace set is selected or not.
+        In each iteration, two parents are selected from the population based on probability. Two children are produced
+        by applying crossover on the parents, controlled by probability of crossover. The children mutate based on
+        probability and controlled by probability of mutate. The mutated children are added to the new population, which
+        are also randomly initialised. If elitism is enabled, apply elitism to keep the best solutions from last
+        generation, controlled by the elitism rate. Keep track of the best solution found so far and enter the next
+        iteration (generation).
+
+        Returns:
+            The algorithm returns the best trace set it found and the objective value the solution achieves.
+        """
         for i in range(self.number_of_iterations):
             normalised_objective_values = self.normalise_objective_values()
 

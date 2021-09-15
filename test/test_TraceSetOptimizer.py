@@ -197,7 +197,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
         action_function = agilkia.EventCoverage(self.trace_set, 1, event_to_str=lambda ev: ev.action)
         objective_functions.extend([frequency_function, action_function])
-        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                        number_of_particles=50, number_of_iterations=50, c1=2.0,
                                                        c2=2.0)
         selected_traces, best_objective_value = pso_optimizer.optimize()
@@ -210,7 +210,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         action_status_function = agilkia.EventCoverage(self.trace_set, 1,
                                                        event_to_str=lambda ev: ev.action + "_" + str(ev.status))
         objective_functions.extend([frequency_function, action_status_function])
-        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                        number_of_particles=50, number_of_iterations=50, c1=2.0,
                                                        c2=2.0)
         selected_traces, best_objective_value = pso_optimizer.optimize()
@@ -221,7 +221,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
         status_function = agilkia.EventCoverage(self.trace_set, 1, event_to_str=lambda ev: str(ev.status))
         objective_functions = [frequency_function, status_function]
-        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                        number_of_particles=50, number_of_iterations=50, c1=2.0,
                                                        c2=2.0)
         selected_traces, best_objective_value = pso_optimizer.optimize()
@@ -233,7 +233,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: ev.action)
         objective_functions.extend([frequency_function, action_pair_function])
-        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                        number_of_particles=50, number_of_iterations=50, c1=2.0,
                                                        c2=2.0)
         selected_traces, best_objective_value = pso_optimizer.optimize()
@@ -246,7 +246,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2,
                                                          event_to_str=lambda ev: ev.action + "_" + str(ev.status))
         objective_functions.extend([frequency_function, action_pair_function])
-        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                        number_of_particles=50, number_of_iterations=50, c1=2.0,
                                                        c2=2.0)
         selected_traces, best_objective_value = pso_optimizer.optimize()
@@ -258,7 +258,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: str(ev.status))
         objective_functions.extend([frequency_function, action_pair_function])
-        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        pso_optimizer = agilkia.ParticleSwarmOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                        number_of_particles=50, number_of_iterations=50, c1=2.0,
                                                        c2=2.0)
         selected_traces, best_objective_value = pso_optimizer.optimize()
@@ -270,7 +270,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: ev.action)
         objective_functions.extend([frequency_function, action_pair_function])
-        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                 number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
                                                 prob_mutate=0.005, elitism=True, elitism_rate=0.2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
@@ -283,7 +283,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         action_status_function = agilkia.EventCoverage(self.trace_set, 1,
                                                        event_to_str=lambda ev: ev.action + "_" + str(ev.status))
         objective_functions.extend([frequency_function, action_status_function])
-        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                 number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
                                                 prob_mutate=0.005, elitism=True, elitism_rate=0.2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
@@ -294,7 +294,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 1)
         status_function = agilkia.EventCoverage(self.trace_set, 1, event_to_str=lambda ev: str(ev.status))
         objective_functions = [frequency_function, status_function]
-        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                 number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
                                                 prob_mutate=0.005, elitism=True, elitism_rate=0.2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
@@ -306,7 +306,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: ev.action)
         objective_functions.extend([frequency_function, action_pair_function])
-        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                 number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
                                                 prob_mutate=0.005, elitism=True, elitism_rate=0.2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
@@ -319,7 +319,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2,
                                                          event_to_str=lambda ev: ev.action + "_" + str(ev.status))
         objective_functions.extend([frequency_function, action_pair_function])
-        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                 number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
                                                 prob_mutate=0.005, elitism=True, elitism_rate=0.2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
@@ -331,7 +331,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
         action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2, event_to_str=lambda ev: str(ev.status))
         objective_functions.extend([frequency_function, action_pair_function])
-        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, number_of_traces=2,
+        ga_optimizer = agilkia.GeneticOptimizer(self.trace_set, objective_functions, num_of_selected_traces=2,
                                                 number_of_iterations=50, number_of_chromosomes=50, prob_cross=0.85,
                                                 prob_mutate=0.005, elitism=True, elitism_rate=0.2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
