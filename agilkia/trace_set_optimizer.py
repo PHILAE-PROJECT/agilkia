@@ -12,7 +12,7 @@ import numpy
 from typing import List, Union, Callable, Tuple, Optional
 from agilkia.json_traces import TraceSet
 
-
+# TODO: Test using scanner problem
 class ObjectiveFunction:
     """
     An abstract class for objective functions that can evaluate a solution based on the chosen metrics.
@@ -21,8 +21,9 @@ class ObjectiveFunction:
     this abstract class. See more instruction in the documentation of the constructor and evaluate method below.
     """
 
-    # TODO: Empty init. Create set_traces method to store data. Same for optimizer
-    def __init__(self, trace_set: TraceSet, num_of_traces: int):
+    # TODO: Empty init. Set to None. Use a set_data method to set data.
+    # TODO: Set weight to be a hyper parameter
+    def __init__(self, weight: float = 1.0):
         """
         Constructor for an objective function.
 
@@ -35,8 +36,13 @@ class ObjectiveFunction:
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
+        self.trace_set = None
+        self.select = 10
+        self.weight = weight
+
+    def set_data(self, trace_set, select):
         self.trace_set = trace_set
-        self.num_of_traces = num_of_traces
+        self.select = select
 
     def evaluate(self, solution: numpy.ndarray) -> float:
         """
@@ -231,10 +237,9 @@ class TraceSetOptimizer:
     the optimizer runs the optimization algorithms and tries to extract a set of traces that maximize the objective
     values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
     """
+
     # TODO: Should we allow different weights for different objective functions?
-    def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_selected_traces: int):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]], ):
         """
         Constructor for a trace set optimizer.
 
@@ -250,10 +255,10 @@ class TraceSetOptimizer:
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
-        self.trace_set = trace_set
+        self.trace_set = None
         self.objective_functions = [objective_functions] if not isinstance(objective_functions,
                                                                            list) else objective_functions
-        self.num_of_selected_traces = num_of_selected_traces
+        self.select = 10
         try:
             for objective_function in self.objective_functions:
                 if not isinstance(objective_function, ObjectiveFunction):
@@ -262,6 +267,13 @@ class TraceSetOptimizer:
         except ValueError as error:
             print(error)
             raise error
+
+    def set_data(self, trace_set, select):
+        # TODO: Pass in empty objective function then call set data
+        self.trace_set = trace_set
+        self.select = select
+        for obj_func in self.objective_functions:
+            obj_func.set_data(trace_set, select)
 
     def objective(self, solution: np.ndarray) -> float:
         """
@@ -276,12 +288,13 @@ class TraceSetOptimizer:
             Combined the different objective values with an equal weight based on the number of the objective
                 functions, and return it. Result would be between 0 and 1
         """
-        number_of_objective_functions = len(self.objective_functions)
+        # TODO: Work out the maths
         total_objective_value = 0
-        for objective_function in self.objective_functions:
-            objective_value = objective_function.evaluate(solution)
-            total_objective_value += objective_value * (1 / number_of_objective_functions)
-        return total_objective_value
+        total_weight = 0
+        for obj_func in self.objective_functions:
+            total_weight += obj_func.weight
+            total_objective_value += obj_func.evaluate(solution) * obj_func.weight
+        return total_objective_value / total_weight
 
 
 class GreedyOptimizer(TraceSetOptimizer):
@@ -494,7 +507,7 @@ class GeneticOptimizer(TraceSetOptimizer):
     def __init__(self, trace_set: TraceSet,
                  objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
                  num_of_selected_traces: int, number_of_iterations: int, number_of_chromosomes: int, prob_cross: float,
-                 prob_mutate: float, elitism: Optional[bool] = False, elitism_rate: Optional[float] = 0):
+                 prob_mutate: float, elitism_rate: Optional[float] = 0):
         """Creates an optimizer that uses the Genetic Algorithm to search for a subset of traces that tries to maximize
         the objective value.
 
@@ -515,7 +528,6 @@ class GeneticOptimizer(TraceSetOptimizer):
             number_of_chromosomes (int): Number of solutions in the population.
             prob_cross (float): probability of crossover.
             prob_mutate (float): probability of mutate.
-            elitism (bool): Indicate to use elitism or not.
             elitism_rate (float): Rate of elitism.
         """
         super().__init__(trace_set, objective_functions, num_of_selected_traces)
@@ -524,7 +536,6 @@ class GeneticOptimizer(TraceSetOptimizer):
         self.number_of_genes = len(self.trace_set)
         self.prob_cross = prob_cross
         self.prob_mutate = prob_mutate
-        self.elitism = elitism
         self.elitism_rate = elitism_rate
         # Initialise population
         self.population = np.rint(np.random.rand(self.number_of_chromosomes, self.number_of_genes))
@@ -693,7 +704,7 @@ class GeneticOptimizer(TraceSetOptimizer):
                 child2 = self.mutate(child2)
                 self.new_population[j] = child1
                 self.new_population[j + 1] = child2
-                if self.elitism:
+                if self.elitism_rate > 0:
                     self.new_population = self.add_elites()
                 self.population = self.new_population
         objective_values = np.apply_along_axis(self.objective, 1, self.population)

@@ -172,12 +172,10 @@ class TestTraceSetOptimizer(unittest.TestCase):
         self.assertEqual(((2 / 3) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
 
     def test_greedy5(self):
-        objective_functions = []
-        frequency_function = agilkia.FrequencyCoverage(self.trace_set, 2)
-        action_pair_function = agilkia.EventPairCoverage(self.trace_set, 2,
-                                                         event_to_str=lambda ev: ev.action + "_" + str(ev.status))
-        objective_functions.extend([frequency_function, action_pair_function])
-        greedy_optimizer = agilkia.GreedyOptimizer(self.trace_set, objective_functions, 2)
+        action_pair_function = agilkia.EventPairCoverage(event_to_str=lambda ev: ev.action + "_" + str(ev.status))
+        objective_functions = [agilkia.FrequencyCoverage(), action_pair_function]
+        greedy_optimizer = agilkia.GreedyOptimizer(objective_functions)
+        greedy_optimizer.set_data(self.trace_set, 2)
         selected_traces, best_objective_value = greedy_optimizer.optimize()
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
         self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
