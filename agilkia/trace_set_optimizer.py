@@ -12,6 +12,7 @@ import numpy
 from typing import List, Union, Callable, Tuple, Optional
 from agilkia.json_traces import TraceSet
 
+
 # TODO: Test using scanner problem
 class ObjectiveFunction:
     """
@@ -24,23 +25,30 @@ class ObjectiveFunction:
     # TODO: Empty init. Set to None. Use a set_data method to set data.
     # TODO: Set weight to be a hyper parameter
     def __init__(self, weight: float = 1.0):
-        """
-        Constructor for an objective function.
+        """Constructor for an objective function.
+        Set an empty trace set and 0 selected traces. Set the weight of this objective function.
+        Use the set_data method below to set the trace set and selected traces, with more flexibility.
 
-        Use the constructor to pre compute any meta data objective function needs to evaluate a solution and store it.
+        Args:
+            weight (float): Weight of this objective function.
+        """
+        self.trace_set = None
+        self.select = 0
+        self.weight = weight
+
+    def set_data(self, trace_set: TraceSet, select: int):
+        """Set the trace set and number of selected traces.
+        With this method, more flexibility is provided. This objective function can be used on different trace set and
+        different number of selected traces.
+        For specific objective function, pre-compute all necessary data in this method.
 
         Args:
             trace_set (TraceSet): A set of traces chosen or output by some kind of model.
-            num_of_traces (int): The number of traces wanted to be selected from the trace set.
+            select (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
-        self.trace_set = None
-        self.select = 10
-        self.weight = weight
-
-    def set_data(self, trace_set, select):
         self.trace_set = trace_set
         self.select = select
 
@@ -69,21 +77,34 @@ class FrequencyCoverage(ObjectiveFunction):
     other objective functions or create your own custom function.
     """
 
-    def __init__(self, trace_set: TraceSet, num_of_traces: int):
-        """
-        Constructor for a frequency coverage objective function.
+    def __init__(self, weight: float = 1.0):
+        """Constructor for a frequency coverage objective function.
+        Set an empty trace set and 0 selected traces. Set the weight of this objective function.
+        Set an empty frequencies and total frequency coverage.
+        Use the set_data method below to set the trace set, selected traces, frequencies and total frequency coverage
+        with more flexibility.
 
-        Pre calculates the frequency coverage for each trace in the trace set and store it in a list.
-        Pre calculates the total frequency coverage.
+        Args:
+            weight (float): Weight of this objective function.
+        """
+        super().__init__(weight)
+        self.frequencies = None
+        self.total_frequency_coverage = None
+
+    def set_data(self, trace_set: TraceSet, select: int):
+        """Set the trace set, number of selected traces, frequencies and total frequency coverage.
+        With this method, more flexibility is provided. This objective function can be used on different trace set and
+        different number of selected traces.
+        Pre-calculates the frequency coverage for each trace in the trace set and store it in a list.
+        Pre-calculates the total frequency coverage.
         If there is no frequency information, throw an exception.
 
         Args:
             trace_set (TraceSet): A set of traces chosen or output by some kind of model.
-            num_of_traces (int): The number of traces wanted to be selected from the trace set.
+            select (int): The number of traces wanted to be selected from the trace set.
         """
-        super().__init__(trace_set, num_of_traces)
+        super().set_data(trace_set, select)
         self.frequencies = np.array([trace.get_meta("freq", 0) for trace in trace_set])
-
         try:
             self.total_frequency_coverage = sum(self.frequencies)
             if self.total_frequency_coverage == 0:
@@ -105,8 +126,8 @@ class FrequencyCoverage(ObjectiveFunction):
             The percentage of the frequency coverage of the selected traces out of the total frequency of the trace set
         """
         # If the number of selected traces in a solution is more than the number of traces wanted, return negative value
-        if np.sum(solution) > self.num_of_traces:
-            return (np.sum(solution) - self.num_of_traces) * -1
+        if np.sum(solution) > self.select:
+            return (np.sum(solution) - self.select) * -1
         solution_frequency_coverage = sum(np.array(self.frequencies) * solution)
         return solution_frequency_coverage / self.total_frequency_coverage
 
@@ -118,29 +139,44 @@ class EventCoverage(ObjectiveFunction):
     status coverage. If an Event does not have a status in the output, status would be 0.
     """
 
-    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Optional[Callable] = None):
+    def __init__(self, weight: float = 1.0, event_to_str: Optional[Callable] = None):
         """
         Constructor for the event coverage objective function.
+        Set an empty trace set and 0 selected traces. Set the weight of this objective function.
+        Set an empty trace coverage and total coverage.
+        Use the set_data method below to set the trace set, selected traces, trace coverage and total coverage with more
+        flexibility.
 
-        Pass in a lambda function to extract the data on the events in the trace and use it to precalculate coverage of
-        each trace in the trace set, and the total coverage of the trace set.
+        Pass in a lambda function to extract the data on the events in the trace
 
         To calculate action coverage, pass in event_to_string=lambda ev: ev.action.
         To calculate status coverage, pass in event_to_string=lambda ev: str(ev.status).
         To calculate action_status coverage, pass in event_to_string = lambda ev: ev.action + "_" + str(ev.status).
 
         Args:
-            trace_set (TraceSet): The set of traces.
-            num_of_traces (int): The number of traces to be selected as a test suite.
+            weight (float): Weight of this objective function.
             event_to_str (Callable): The function used to extract data on the events in the trace.
         """
-        super().__init__(trace_set, num_of_traces)
+        super().__init__(weight)
         self.event_to_str = event_to_str
         if self.event_to_str is None:
             self.event_to_str = (lambda ev: ev.action)
         self.trace_coverage = []
         self.total_coverage = set()
-        for trace in self.trace_set:
+
+    def set_data(self, trace_set: TraceSet, select: int):
+        """Set the trace set, number of selected traces and pre-compute the trace coverage and total coverage.
+        With this method, more flexibility is provided. This objective function can be used on different trace set and
+        different number of selected traces.
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            select (int): The number of traces wanted to be selected from the trace set.
+        """
+        super().set_data(trace_set, select)
+        self.trace_coverage = []
+        self.total_coverage = set()
+        for trace in trace_set:
             trace_coverage = set(trace.action_counts(event_to_str=self.event_to_str).keys())
             self.trace_coverage.append(trace_coverage)
             self.total_coverage = self.total_coverage.union(trace_coverage)
@@ -159,8 +195,8 @@ class EventCoverage(ObjectiveFunction):
             The percentage of the selected coverage of the selected traces out of the total action status
                 coverage of the trace set
         """
-        if np.sum(solution) > self.num_of_traces:
-            return (np.sum(solution) - self.num_of_traces) * -1
+        if np.sum(solution) > self.select:
+            return (np.sum(solution) - self.select) * -1
         solution_action_status_coverage = set()
         solution = np.array(solution, dtype=bool)
         for trace_coverage in self.trace_coverage[solution]:
@@ -177,32 +213,47 @@ class EventPairCoverage(ObjectiveFunction):
     "unlock_scan, scan_scan, scan_checkout".
     """
 
-    def __init__(self, trace_set: TraceSet, num_of_traces: int, event_to_str: Optional[Callable] = None):
+    def __init__(self, weight: float = 1.0, event_to_str: Optional[Callable] = None):
         """
         Constructor for the event pair coverage objective function.
+        Set an empty trace set and 0 selected traces. Set the weight of this objective function.
+        Set an empty trace coverage and total coverage.
+        Use the set_data method below to set the trace set, selected traces, trace coverage and total coverage with more
+        flexibility.
 
-        Pass in a lambda function to extract the data on the events in the trace and use it to precalculate coverage of
-        each trace in the trace set, and the total coverage of the trace set.
+        Pass in a lambda function to extract the data on the events in the trace
 
         To calculate action pair coverage, pass in event_to_string=lambda ev: ev.action.
         To calculate status pair coverage, pass in event_to_string=lambda ev: str(ev.status).
         To calculate action_status pair coverage, pass in event_to_string = lambda ev: ev.action + "_" + str(ev.status).
 
         Args:
-            trace_set (TraceSet): The set of traces.
-            num_of_traces (int): The number of traces to be selected as a test suite.
+            weight (float): Weight of this objective function.
             event_to_str (Callable): The function used to extract data on the events in the trace.
         """
-        super().__init__(trace_set, num_of_traces)
+        super().__init__(weight)
         self.event_to_str = event_to_str
         if self.event_to_str is None:
             self.event_to_str = (lambda ev: ev.action)
         self.trace_coverage = []
         self.total_coverage = set()
-        for trace in self.trace_set:
+
+    def set_data(self, trace_set: TraceSet, select: int):
+        """Set the trace set, number of selected traces and pre-compute the trace coverage and total coverage.
+        With this method, more flexibility is provided. This objective function can be used on different trace set and
+        different number of selected traces.
+
+        Args:
+            trace_set (TraceSet): The set of traces.
+            select (int): The number of traces to be selected as a test suite.
+        """
+        super().set_data(trace_set, select)
+        self.trace_coverage = []
+        self.total_coverage = set()
+        for trace in trace_set:
             trace_coverage = set()
             for i in range(len(trace) - 1):
-                trace_coverage.add(event_to_str(trace[i]) + "_" + event_to_str(trace[i + 1]))
+                trace_coverage.add(self.event_to_str(trace[i]) + "_" + self.event_to_str(trace[i + 1]))
             self.trace_coverage.append(trace_coverage)
             self.total_coverage = self.total_coverage.union(trace_coverage)
         self.trace_coverage = np.array(self.trace_coverage)
@@ -220,8 +271,8 @@ class EventPairCoverage(ObjectiveFunction):
             The percentage of the selected coverage of the selected traces out of the total action status
                 coverage of the trace set
         """
-        if np.sum(solution) > self.num_of_traces:
-            return (np.sum(solution) - self.num_of_traces) * -1
+        if np.sum(solution) > self.select:
+            return (np.sum(solution) - self.select) * -1
         solution_action_pair_coverage = set()
         solution = np.array(solution, dtype=bool)
         for trace_coverage in self.trace_coverage[solution]:
@@ -238,27 +289,22 @@ class TraceSetOptimizer:
     values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
     """
 
-    # TODO: Should we allow different weights for different objective functions?
-    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]], ):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
         """
         Constructor for a trace set optimizer.
+        Set an empty trace set and 0 selected traces. Use set_data method below to set the trace set and the number of
+        selected traces.
 
         Args:
-            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
             objective_functions (ObjectiveFunction or List[ObjectiveFunction]): The objective functions to be used to
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
-
-            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
-                For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
-                optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
-                objective values returned by the objective functions.
         """
         self.trace_set = None
         self.objective_functions = [objective_functions] if not isinstance(objective_functions,
                                                                            list) else objective_functions
-        self.select = 10
+        self.select = 0
         try:
             for objective_function in self.objective_functions:
                 if not isinstance(objective_function, ObjectiveFunction):
@@ -268,8 +314,16 @@ class TraceSetOptimizer:
             print(error)
             raise error
 
-    def set_data(self, trace_set, select):
-        # TODO: Pass in empty objective function then call set data
+    def set_data(self, trace_set: TraceSet, select: int):
+        """Set the trace set and the number of selected traces for the optimizer and the objective functions passed in
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            select (int): The number of traces wanted to be selected from the trace set.
+                For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
+                optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
+                objective values returned by the objective functions.
+        """
         self.trace_set = trace_set
         self.select = select
         for obj_func in self.objective_functions:
@@ -277,8 +331,7 @@ class TraceSetOptimizer:
 
     def objective(self, solution: np.ndarray) -> float:
         """
-        Evaluate the solution with all objective functions passed in, assign an equal weight to them based on the
-        number of objective functions passed in and combine them.
+        Evaluate the solution with all objective functions passed in and use the associated weights combine them.
 
         Args:
             solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
@@ -288,7 +341,6 @@ class TraceSetOptimizer:
             Combined the different objective values with an equal weight based on the number of the objective
                 functions, and return it. Result would be between 0 and 1
         """
-        # TODO: Work out the maths
         total_objective_value = 0
         total_weight = 0
         for obj_func in self.objective_functions:
@@ -303,25 +355,19 @@ class GreedyOptimizer(TraceSetOptimizer):
     maximize the objective value
     """
 
-    def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_selected_traces: int):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
         """Creates an optimizer that uses the Greedy Search Algorithm to search for a subset of traces that tries to
-        maximize the objective value
+        maximize the objective value.
+        Set an empty trace set and 0 selected traces. Use set_data method to set the trace set and the number of
+        selected traces.
 
         Args:
-            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
             objective_functions (ObjectiveFunction or List[ObjectiveFunction]): The objective functions to be used to
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
-            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
-                For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
-                optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
-                objective values returned by the objective functions.
         """
-        super().__init__(trace_set=trace_set, objective_functions=objective_functions,
-                         num_of_selected_traces=num_of_selected_traces)
+        super().__init__(objective_functions=objective_functions)
 
     def optimize(self) -> Tuple[TraceSet, float]:
         """ Implements the greedy search algorithm and applies it on the trace set passed in.
@@ -333,13 +379,13 @@ class GreedyOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        print("Starting Greedy Search...Selecting", self.num_of_selected_traces, "traces")
+        print("Starting Greedy Search...Selecting", self.select, "traces")
         num_of_variables = len(self.trace_set)
         solution = np.zeros(num_of_variables)
         best_objective_value = 0
         best_index = None
 
-        for j in range(self.num_of_selected_traces):
+        for j in range(self.select):
             for i in range(num_of_variables):
                 if solution[i] != 1:
                     solution[i] = 1
@@ -360,15 +406,13 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
     traces that tries to maximize the objective value
     """
 
-    def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_selected_traces: int, number_of_particles: int, number_of_iterations: int, c1: float,
-                 c2: float):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
         """Creates an optimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of traces
         that tries to maximize the objective value. This is using the Binary version of PSO.
+        Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
+        selected traces and the hyper parameters.
 
         Args:
-            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
             objective_functions (Callable or List[Callable]): The objective functions to be used to
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 An objective function would take in three arguments, which are the trace set, a binary vector to
@@ -376,24 +420,40 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 selected. Any external variables needed for the objective function should be global variables that can
                 be accessed within the function. This is for the convenience to compute different objective values with
                 different objective functions and combine them.
-            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
+        """
+        super().__init__(objective_functions=objective_functions)
+        self.num_of_iterations = 0
+        self.num_of_particles = 0
+        self.c1 = 0
+        self.c2 = 0
+        self.num_of_variables = 0
+        self.upper_bound = None
+        self.lower_bound = None
+
+    def set_data(self, trace_set: TraceSet, select: int, num_of_particles: int, num_of_iterations: int, c1: float,
+                 c2: float):
+        """Set the trace set and the number of selected traces of the optimizer and the objective functions passed in
+        Set the num of particles, num of iterations, c1 and c2
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            select (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
-            number_of_particles (int): Number of particles used in the algorithm
-            number_of_iterations (int): Number of iterations of the algorithm
+            num_of_particles (int): Number of particles used in the algorithm
+            num_of_iterations (int): Number of iterations of the algorithm
             c1 (float): Controlling parameter of the influence of the particle's personal best position on the
                 particle's velocity during update
             c2 (float): Controlling parameter of the influence of the population's global best position on the
                 particle's velocity during update
         """
-        super().__init__(trace_set=trace_set, objective_functions=objective_functions,
-                         num_of_selected_traces=num_of_selected_traces)
-        self.number_of_iterations = number_of_iterations
-        self.number_of_particles = number_of_particles
+        super().set_data(trace_set, select)
+        self.num_of_iterations = num_of_iterations
+        self.num_of_particles = num_of_particles
         self.c1 = c1
         self.c2 = c2
-        self.num_of_variables = len(self.trace_set)
+        self.num_of_variables = len(trace_set)
         # Every bit in the solution can only be either 0 or 1
         self.upper_bound = np.ones(self.num_of_variables)
         self.lower_bound = np.zeros(self.num_of_variables)
@@ -417,8 +477,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        print("Starting Particle Swarm with", self.number_of_particles, "particles,", self.number_of_iterations,
-              "iterations,", "c1 as", self.c1, ", c2 as", self.c2, ", selecting", self.num_of_selected_traces, "traces")
+        print("Starting Particle Swarm with", self.num_of_particles, "particles,", self.num_of_iterations,
+              "iterations,", "c1 as", self.c1, ", c2 as", self.c2, ", selecting", self.select, "traces")
 
         # Define the upper bound and lower bound of the controlling parameter of the influence for the previous
         # velocity on the particle's velocity during update
@@ -436,7 +496,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
         gbest_val = -math.inf
 
         # Initialise the particle population
-        for i in range(self.number_of_particles):
+        for i in range(self.num_of_particles):
             particle = {}
             # Round positions to nearest integers
             particle['X'] = np.rint(
@@ -451,7 +511,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
             particles.append(particle)
 
         # Start iteration
-        for t in range(self.number_of_iterations):
+        for t in range(self.num_of_iterations):
             if t % 100 == 0:
                 print(t, "iterations. Current global best:", gbest_val)
 
@@ -470,7 +530,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
             # Update particle's position and velocity
             # w would change adaptively according the current iteration
-            w = w_max - t * ((w_max - w_min) / self.number_of_iterations)
+            w = w_max - t * ((w_max - w_min) / self.num_of_iterations)
 
             for index, particle in enumerate(particles):
                 particle['V'] = w * particle['V'] + \
@@ -504,15 +564,14 @@ class GeneticOptimizer(TraceSetOptimizer):
     maximize the objective value
     """
 
-    def __init__(self, trace_set: TraceSet,
-                 objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_selected_traces: int, number_of_iterations: int, number_of_chromosomes: int, prob_cross: float,
-                 prob_mutate: float, elitism_rate: Optional[float] = 0):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
         """Creates an optimizer that uses the Genetic Algorithm to search for a subset of traces that tries to maximize
         the objective value.
+        Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
+        selected traces and hyper parameters.
 
         Args:
-            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+
             objective_functions (Callable or List[Callable]): The objective functions to be used to
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 An objective function would take in three arguments, which are the trace set, a binary vector to
@@ -520,26 +579,45 @@ class GeneticOptimizer(TraceSetOptimizer):
                 selected. Any external variables needed for the objective function should be global variables that can
                 be accessed within the function. This is for the convenience to compute different objective values with
                 different objective functions and combine them.
-            num_of_selected_traces (int): The number of traces wanted to be selected from the trace set.
+
+        """
+        super().__init__(objective_functions)
+        self.num_of_iterations = 0
+        self.num_of_chromosomes = 0
+        self.num_of_genes = 0
+        self.prob_cross = 0
+        self.prob_mutate = 0
+        self.elitism_rate = 0
+        self.population = None
+        self.new_population = None
+
+    def set_data(self, trace_set: TraceSet, select: int, num_of_iterations: int,
+                 num_of_chromosomes: int, prob_cross: float, prob_mutate: float, elitism_rate: float = 0.0):
+        """Set the trace set and the number of selected traces of the optimizer and the objective functions passed in
+        Set the num of chromosomes, num of iterations, probability of crossover, probability of mutate and elitism rate.
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            select (int): The number of traces wanted to be selected from the trace set.
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
-            number_of_iterations (int): Number of iterations of the algorithm.
-            number_of_chromosomes (int): Number of solutions in the population.
+            num_of_iterations (int): Number of iterations of the algorithm.
+            num_of_chromosomes (int): Number of solutions in the population.
             prob_cross (float): probability of crossover.
             prob_mutate (float): probability of mutate.
             elitism_rate (float): Rate of elitism.
         """
-        super().__init__(trace_set, objective_functions, num_of_selected_traces)
-        self.number_of_iterations = number_of_iterations
-        self.number_of_chromosomes = number_of_chromosomes
-        self.number_of_genes = len(self.trace_set)
+        super().set_data(trace_set, select)
+        self.num_of_iterations = num_of_iterations
+        self.num_of_chromosomes = num_of_chromosomes
+        self.num_of_genes = len(trace_set)
         self.prob_cross = prob_cross
         self.prob_mutate = prob_mutate
         self.elitism_rate = elitism_rate
         # Initialise population
-        self.population = np.rint(np.random.rand(self.number_of_chromosomes, self.number_of_genes))
-        self.new_population = np.zeros((self.number_of_chromosomes, self.number_of_genes))
+        self.population = np.rint(np.random.rand(num_of_chromosomes, self.num_of_genes))
+        self.new_population = np.zeros((num_of_chromosomes, self.num_of_genes))
 
     def normalise_objective_values(self) -> numpy.ndarray:
         """After initialising the population of solutions, there might be some solutions that have a negative objective
@@ -573,8 +651,7 @@ class GeneticOptimizer(TraceSetOptimizer):
             if condition:
                 return index
 
-    def select(self, population: numpy.ndarray, normalised_objective_values: numpy.ndarray) -> numpy.ndarray:
-        # TODO: Selecting more than 2 parents? How to apply the crossover method on more than 2?
+    def select_parents(self, population: numpy.ndarray, normalised_objective_values: numpy.ndarray) -> numpy.ndarray:
         """Use the roulette_wheel method to select 2 solutions from the population as parents. The selected parents are
         passed in to crossover method.
 
@@ -614,23 +691,23 @@ class GeneticOptimizer(TraceSetOptimizer):
         child1 = None
         child2 = None
         if crossover_method == "single":
-            crossover_point = random.randint(1, self.number_of_genes - 2)
-            child1 = np.concatenate([parent1[0:crossover_point], parent2[crossover_point: self.number_of_genes]])
-            child2 = np.concatenate([parent2[0:crossover_point], parent1[crossover_point: self.number_of_genes]])
+            crossover_point = random.randint(1, self.num_of_genes - 2)
+            child1 = np.concatenate([parent1[0:crossover_point], parent2[crossover_point: self.num_of_genes]])
+            child2 = np.concatenate([parent2[0:crossover_point], parent1[crossover_point: self.num_of_genes]])
 
         if crossover_method == "double":
-            crossover_point1 = random.randint(1, self.number_of_genes - 2)
-            crossover_point2 = random.randint(1, self.number_of_genes - 2)
+            crossover_point1 = random.randint(1, self.num_of_genes - 2)
+            crossover_point2 = random.randint(1, self.num_of_genes - 2)
             while crossover_point1 == crossover_point2:
-                crossover_point2 = random.randint(1, self.number_of_genes - 2)
+                crossover_point2 = random.randint(1, self.num_of_genes - 2)
             if crossover_point1 > crossover_point2:
                 temp = crossover_point1
                 crossover_point1 = crossover_point2
                 crossover_point2 = temp
             child1 = np.concatenate([parent1[0:crossover_point1], parent2[crossover_point1: crossover_point2],
-                                     parent1[crossover_point2:self.number_of_genes]])
+                                     parent1[crossover_point2:self.num_of_genes]])
             child2 = np.concatenate([parent2[0:crossover_point1], parent1[crossover_point1: crossover_point2],
-                                     parent2[crossover_point2:self.number_of_genes]])
+                                     parent2[crossover_point2:self.num_of_genes]])
 
         r1 = random.random()
         child1 = child1 if r1 <= self.prob_cross else parent1
@@ -647,7 +724,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         Returns:
             Solution with bits flipped based on probability.
         """
-        for i in range(self.number_of_genes):
+        for i in range(self.num_of_genes):
             r = random.random()
             if r <= self.prob_mutate:
                 child[i] = not child[i]
@@ -660,7 +737,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         Returns:
             The next generation of population.
         """
-        number_of_elites = int(self.number_of_chromosomes * self.elitism_rate)
+        number_of_elites = int(self.num_of_chromosomes * self.elitism_rate)
         objective_values = np.apply_along_axis(self.objective, 1, self.population)
         new_pop_objective_values = np.apply_along_axis(self.objective, 1, self.new_population)
 
@@ -691,12 +768,12 @@ class GeneticOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        for i in range(self.number_of_iterations):
+        for i in range(self.num_of_iterations):
             normalised_objective_values = self.normalise_objective_values()
 
-            for j in range(0, self.number_of_chromosomes, 2):
+            for j in range(0, self.num_of_chromosomes, 2):
                 # Selection
-                [parent1, parent2] = self.select(self.population, normalised_objective_values)
+                [parent1, parent2] = self.select_parents(self.population, normalised_objective_values)
                 # Crossover
                 child1, child2 = self.crossover(parent1, parent2, "double")
                 # Mutation
@@ -704,13 +781,13 @@ class GeneticOptimizer(TraceSetOptimizer):
                 child2 = self.mutate(child2)
                 self.new_population[j] = child1
                 self.new_population[j + 1] = child2
-                if self.elitism_rate > 0:
-                    self.new_population = self.add_elites()
-                self.population = self.new_population
+            if self.elitism_rate > 0:
+                self.new_population = self.add_elites()
+            self.population = self.new_population
         objective_values = np.apply_along_axis(self.objective, 1, self.population)
         best_objective_value = np.max(objective_values)
         best_index = np.argmax(objective_values)
         solution = self.population[best_index]
-        selected_traces = [self.trace_set[i] for i in range(self.number_of_genes) if solution[i]]
+        selected_traces = [self.trace_set[i] for i in range(self.num_of_genes) if solution[i]]
         selected_traces = TraceSet(selected_traces)
         return selected_traces, best_objective_value
