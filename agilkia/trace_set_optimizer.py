@@ -13,7 +13,6 @@ from typing import List, Union, Callable, Tuple, Optional
 from agilkia.json_traces import TraceSet
 
 
-# TODO: Test using scanner problem
 class ObjectiveFunction:
     """
     An abstract class for objective functions that can evaluate a solution based on the chosen metrics.
@@ -22,8 +21,6 @@ class ObjectiveFunction:
     this abstract class. See more instruction in the documentation of the constructor and evaluate method below.
     """
 
-    # TODO: Empty init. Set to None. Use a set_data method to set data.
-    # TODO: Set weight to be a hyper parameter
     def __init__(self, weight: float = 1.0):
         """Constructor for an objective function.
         Set an empty trace set and 0 selected traces. Set the weight of this objective function.
@@ -406,7 +403,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
     traces that tries to maximize the objective value
     """
 
-    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
+                 num_of_particles: int = 400, num_of_iterations: int = 600, c1: float = 2, c2: float = 2):
         """Creates an optimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of traces
         that tries to maximize the objective value. This is using the Binary version of PSO.
         Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
@@ -420,18 +418,23 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 selected. Any external variables needed for the objective function should be global variables that can
                 be accessed within the function. This is for the convenience to compute different objective values with
                 different objective functions and combine them.
+            num_of_particles (int): Number of particles used in the algorithm
+            num_of_iterations (int): Number of iterations of the algorithm
+            c1 (float): Controlling parameter of the influence of the particle's personal best position on the
+                particle's velocity during update
+            c2 (float): Controlling parameter of the influence of the population's global best position on the
+                particle's velocity during update
         """
         super().__init__(objective_functions=objective_functions)
-        self.num_of_iterations = 0
-        self.num_of_particles = 0
-        self.c1 = 0
-        self.c2 = 0
+        self.num_of_iterations = num_of_iterations
+        self.num_of_particles = num_of_particles
+        self.c1 = c1
+        self.c2 = c2
         self.num_of_variables = 0
         self.upper_bound = None
         self.lower_bound = None
 
-    def set_data(self, trace_set: TraceSet, select: int, num_of_particles: int, num_of_iterations: int, c1: float,
-                 c2: float):
+    def set_data(self, trace_set: TraceSet, select: int):
         """Set the trace set and the number of selected traces of the optimizer and the objective functions passed in
         Set the num of particles, num of iterations, c1 and c2
 
@@ -441,18 +444,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
-            num_of_particles (int): Number of particles used in the algorithm
-            num_of_iterations (int): Number of iterations of the algorithm
-            c1 (float): Controlling parameter of the influence of the particle's personal best position on the
-                particle's velocity during update
-            c2 (float): Controlling parameter of the influence of the population's global best position on the
-                particle's velocity during update
         """
         super().set_data(trace_set, select)
-        self.num_of_iterations = num_of_iterations
-        self.num_of_particles = num_of_particles
-        self.c1 = c1
-        self.c2 = c2
         self.num_of_variables = len(trace_set)
         # Every bit in the solution can only be either 0 or 1
         self.upper_bound = np.ones(self.num_of_variables)
@@ -564,7 +557,10 @@ class GeneticOptimizer(TraceSetOptimizer):
     maximize the objective value
     """
 
-    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
+    # TODO: Give default values for hyper parameters for PSO and GA
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
+                 num_of_iterations: int = 800, num_of_chromosomes: int = 400, prob_cross: float = 0.85,
+                 prob_mutate: float = 0.005, elitism_rate: float = 0.2, crossover: str = "double"):
         """Creates an optimizer that uses the Genetic Algorithm to search for a subset of traces that tries to maximize
         the objective value.
         Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
@@ -579,20 +575,25 @@ class GeneticOptimizer(TraceSetOptimizer):
                 selected. Any external variables needed for the objective function should be global variables that can
                 be accessed within the function. This is for the convenience to compute different objective values with
                 different objective functions and combine them.
-
+            num_of_iterations (int): Number of iterations of the algorithm.
+            num_of_chromosomes (int): Number of solutions in the population.
+            prob_cross (float): probability of crossover.
+            prob_mutate (float): probability of mutate.
+            elitism_rate (float): Rate of elitism.
+            crossover (str): The method used to crossover. Choose between double and single.
         """
         super().__init__(objective_functions)
-        self.num_of_iterations = 0
-        self.num_of_chromosomes = 0
+        self.num_of_iterations = num_of_iterations
+        self.num_of_chromosomes = num_of_chromosomes
         self.num_of_genes = 0
-        self.prob_cross = 0
-        self.prob_mutate = 0
-        self.elitism_rate = 0
+        self.prob_cross = prob_cross
+        self.prob_mutate = prob_mutate
+        self.elitism_rate = elitism_rate
         self.population = None
         self.new_population = None
+        self.crossover_method = crossover
 
-    def set_data(self, trace_set: TraceSet, select: int, num_of_iterations: int,
-                 num_of_chromosomes: int, prob_cross: float, prob_mutate: float, elitism_rate: float = 0.0):
+    def set_data(self, trace_set: TraceSet, select: int):
         """Set the trace set and the number of selected traces of the optimizer and the objective functions passed in
         Set the num of chromosomes, num of iterations, probability of crossover, probability of mutate and elitism rate.
 
@@ -602,22 +603,12 @@ class GeneticOptimizer(TraceSetOptimizer):
                 For example, if 10 out of 20 traces in the trace set are wanted to be returned as a test suite, the
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
-            num_of_iterations (int): Number of iterations of the algorithm.
-            num_of_chromosomes (int): Number of solutions in the population.
-            prob_cross (float): probability of crossover.
-            prob_mutate (float): probability of mutate.
-            elitism_rate (float): Rate of elitism.
         """
         super().set_data(trace_set, select)
-        self.num_of_iterations = num_of_iterations
-        self.num_of_chromosomes = num_of_chromosomes
         self.num_of_genes = len(trace_set)
-        self.prob_cross = prob_cross
-        self.prob_mutate = prob_mutate
-        self.elitism_rate = elitism_rate
         # Initialise population
-        self.population = np.rint(np.random.rand(num_of_chromosomes, self.num_of_genes))
-        self.new_population = np.zeros((num_of_chromosomes, self.num_of_genes))
+        self.population = np.rint(np.random.rand(self.num_of_chromosomes, self.num_of_genes))
+        self.new_population = np.zeros((self.num_of_chromosomes, self.num_of_genes))
 
     def normalise_objective_values(self) -> numpy.ndarray:
         """After initialising the population of solutions, there might be some solutions that have a negative objective
@@ -673,7 +664,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         selected_parents = np.array(selected_parents)
         return selected_parents
 
-    def crossover(self, parent1: numpy.ndarray, parent2: numpy.ndarray, crossover_method: Optional[str] = "double") -> \
+    def crossover(self, parent1: numpy.ndarray, parent2: numpy.ndarray) -> \
             Tuple[numpy.ndarray, numpy.ndarray]:
         """Exchange a subset of the two parents and produce new solutions. With single point crossover, randomly pick a
         point in the solution and exchange the other part. With double point crossover, randomly pick two points in the
@@ -683,19 +674,18 @@ class GeneticOptimizer(TraceSetOptimizer):
         Args:
             parent1 (numpy.ndarray): A solution used to crossover.
             parent2 (numpy.ndarray): A solution used to crossover.
-            crossover_method (str): The method used to crossover.
 
         Returns:
             Either the changed solutions or the original solutions based on probability.
         """
         child1 = None
         child2 = None
-        if crossover_method == "single":
+        if self.crossover_method == "single":
             crossover_point = random.randint(1, self.num_of_genes - 2)
             child1 = np.concatenate([parent1[0:crossover_point], parent2[crossover_point: self.num_of_genes]])
             child2 = np.concatenate([parent2[0:crossover_point], parent1[crossover_point: self.num_of_genes]])
 
-        if crossover_method == "double":
+        if self.crossover_method == "double":
             crossover_point1 = random.randint(1, self.num_of_genes - 2)
             crossover_point2 = random.randint(1, self.num_of_genes - 2)
             while crossover_point1 == crossover_point2:
@@ -775,7 +765,7 @@ class GeneticOptimizer(TraceSetOptimizer):
                 # Selection
                 [parent1, parent2] = self.select_parents(self.population, normalised_objective_values)
                 # Crossover
-                child1, child2 = self.crossover(parent1, parent2, "double")
+                child1, child2 = self.crossover(parent1, parent2)
                 # Mutation
                 child1 = self.mutate(child1)
                 child2 = self.mutate(child2)
