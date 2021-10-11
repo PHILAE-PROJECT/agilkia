@@ -685,7 +685,7 @@ class GeneticOptimizer(TraceSetOptimizer):
             child1 = np.concatenate([parent1[0:crossover_point], parent2[crossover_point: self.num_of_genes]])
             child2 = np.concatenate([parent2[0:crossover_point], parent1[crossover_point: self.num_of_genes]])
 
-        if self.crossover_method == "double":
+        elif self.crossover_method == "double":
             crossover_point1 = random.randint(1, self.num_of_genes - 2)
             crossover_point2 = random.randint(1, self.num_of_genes - 2)
             while crossover_point1 == crossover_point2:
