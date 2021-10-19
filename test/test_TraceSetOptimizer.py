@@ -23,6 +23,26 @@ class TestObjectiveFunctions(unittest.TestCase):
         self.objective_function.set_data(self.trace_set, 2)
         self.assertEqual(0, self.objective_function.evaluate(solution))
 
+    def test_objective_function2(self):
+        with pytest.raises(ValueError):
+            agilkia.ObjectiveFunction(weight=-0.5)
+
+    def test_objective_function3(self):
+        with pytest.raises(ValueError):
+            self.objective_function.set_data([self.trace1, self.trace2], 1)
+
+    def test_objective_function4(self):
+        with pytest.raises(ValueError):
+            self.objective_function.set_data(self.trace_set, 0)
+
+    def test_objective_function5(self):
+        with pytest.raises(ValueError):
+            self.objective_function.set_data(self.trace_set, 4)
+
+    def test_objective_function6(self):
+        with pytest.raises(ValueError):
+            self.objective_function.set_data(self.trace_set, 2.5)
+
     def test_frequency_objective_function(self):
         solution = np.array([1, 1, 0])
         self.frequency_function.set_data(self.trace_set, 2)
@@ -68,6 +88,12 @@ class TestObjectiveFunctions(unittest.TestCase):
         objective_function.set_data(self.trace_set, 2)
         self.assertEqual((np.sum(solution) - 2) * -1, objective_function.evaluate(solution))
 
+    def test_action_objective_function3(self):
+        solution = np.array([1, 1, 1])
+        objective_function = agilkia.EventCoverage()
+        objective_function.set_data(self.trace_set, 2)
+        self.assertEqual((np.sum(solution) - 2) * -1, objective_function.evaluate(solution))
+
     def test_status_objective_function(self):
         solution = np.array([1, 0, 0])
         objective_function = agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))
@@ -90,6 +116,15 @@ class TestObjectiveFunctions(unittest.TestCase):
             objective_function.evaluate(solution))
 
     def test_action_pair_objective_function2(self):
+        solution = np.array([1, 1, 0, 0])
+        trace_set = agilkia.TraceSet([self.trace1, self.trace2, self.trace3, self.trace4])
+        objective_function = agilkia.EventPairCoverage()
+        objective_function.set_data(trace_set, 2)
+        self.assertEqual(
+            len({"Order_Order", "Skip_Order"}) / len({"Order_Order", "Skip_Order", "Skip_Order", "Order_Skip"}),
+            objective_function.evaluate(solution))
+
+    def test_action_pair_objective_function3(self):
         solution = np.array([1, 1, 1])
         objective_function = agilkia.EventPairCoverage(event_to_str=lambda ev: ev.action)
         objective_function.set_data(self.trace_set, 2)
@@ -146,6 +181,30 @@ class TestTraceSetOptimizer(unittest.TestCase):
     def test_trace_set_optimizer2(self):
         with pytest.raises(ValueError):
             agilkia.TraceSetOptimizer(lambda ev: ev.action)
+
+    def test_trace_set_optimizer3(self):
+        with pytest.raises(ValueError):
+            objective_function = agilkia.FrequencyCoverage()
+            traceset_optimizer = agilkia.TraceSetOptimizer(objective_function)
+            traceset_optimizer.set_data([self.trace1, self.trace2], 1)
+
+    def test_trace_set_optimizer4(self):
+        with pytest.raises(ValueError):
+            objective_function = agilkia.FrequencyCoverage()
+            traceset_optimizer = agilkia.TraceSetOptimizer(objective_function)
+            traceset_optimizer.set_data(self.trace_set, 0)
+
+    def test_trace_set_optimizer5(self):
+        with pytest.raises(ValueError):
+            objective_function = agilkia.FrequencyCoverage()
+            traceset_optimizer = agilkia.TraceSetOptimizer(objective_function)
+            traceset_optimizer.set_data(self.trace_set, 5)
+
+    def test_trace_set_optimizer6(self):
+        with pytest.raises(ValueError):
+            objective_function = agilkia.FrequencyCoverage()
+            traceset_optimizer = agilkia.TraceSetOptimizer(objective_function)
+            traceset_optimizer.set_data(self.trace_set, 2.5)
 
     def test_greedy(self):
         objective_functions = [agilkia.FrequencyCoverage(), agilkia.EventCoverage(event_to_str=lambda ev: ev.action)]
@@ -253,6 +312,30 @@ class TestTraceSetOptimizer(unittest.TestCase):
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
         self.assertEqual(((2 / 4) * 0.5 + (1.5 / 2.6) * 0.5), best_objective_value)
 
+    def test_pso7(self):
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventPairCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.ParticleSwarmOptimizer(objective_functions, num_of_particles=0)
+
+    def test_pso8(self):
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventPairCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.ParticleSwarmOptimizer(objective_functions, num_of_iterations=0)
+
+    def test_pso9(self):
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventPairCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.ParticleSwarmOptimizer(objective_functions, c1=0)
+
+    def test_pso10(self):
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventPairCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.ParticleSwarmOptimizer(objective_functions, c2=0)
+
     def test_ga(self):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
@@ -323,9 +406,71 @@ class TestTraceSetOptimizer(unittest.TestCase):
         self.assertEqual([self.trace4], selected_traces.traces)
         self.assertEqual(((2 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
 
+    def test_ga8(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, crossover="triple")
+
+    def test_ga9(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, num_of_iterations=0)
+
+    def test_ga10(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, num_of_chromosomes=0)
+
+    def test_ga11(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, prob_cross=-0.1)
+
+    def test_ga12(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, prob_mutate=-0.1)
+
+    def test_ga13(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, prob_cross=2)
+
+    def test_ga14(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, prob_cross=2.5)
+
+    def test_ga15(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, prob_mutate=2)
+
+    def test_ga16(self):
+        set_seed()
+        objective_functions = [agilkia.FrequencyCoverage(),
+                               agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
+        with pytest.raises(ValueError):
+            agilkia.GeneticOptimizer(objective_functions, prob_mutate=2.5)
+
 
 class TestScanner(unittest.TestCase):
-    # TODO: Set seed to control the randomness
     trace_set = agilkia.TraceSet.load_from_json(Path("./fixtures/scanner.json"))
     objective_functions = [agilkia.FrequencyCoverage(),
                            agilkia.EventCoverage(event_to_str=lambda ev: ev.action + "_" + str(ev.status))]

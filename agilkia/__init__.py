@@ -34,3 +34,5 @@ from . json_traces import (Event, Trace, TraceSet, TraceEncoder, TRACE_SET_VERSI
                            MetaData, xml_decode, all_action_names, safe_name,
                            default_map_to_chars, trace_to_string, traces_to_pandas)
 from . trace_set_optimizer import *
+
+# from . generate_input_data import *

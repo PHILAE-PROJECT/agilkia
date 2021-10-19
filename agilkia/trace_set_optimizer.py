@@ -29,14 +29,9 @@ class ObjectiveFunction:
         Args:
             weight (float): Weight of this objective function.
         """
-        # TODO: Is this the correct way to raise an error? Or directly evaluate weight then raise error
-        try:
-            self.weight = weight
-            if self.weight <= 0 or type(self.weight) != float:
-                raise ValueError("Weight has to be a positive number!")
-        except ValueError as error:
-            print(error)
-            raise error
+        if not weight > 0:
+            raise ValueError(f"Weight has to be a positive number, not {weight}")
+        self.weight = weight
         self.trace_set = None
         self.select = 0
 
@@ -53,23 +48,18 @@ class ObjectiveFunction:
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
-        # TODO: Same. Also should we evaluate select to be less than the number of traces in the trace set here so that user doesn't need to run the algorithms?
-        try:
-            self.trace_set = trace_set
-            if type(self.trace_set) != TraceSet:
-                raise ValueError("Trace set must be a TraceSet object!")
-        except ValueError as error:
-            print(error)
-            raise error
-
-        try:
-            if self.select <= 0 or type(select) != int:
-                raise ValueError("Select must be a positive integer!")
-            elif self.select > len(self.trace_set):
-                raise ValueError("Select must be smaller than the number of traces in the trace set!")
-        except ValueError as error:
-            print(error)
-            raise error
+        if not type(trace_set) == TraceSet:
+            raise ValueError(f"Trace set must be a TraceSet object, not {type(trace_set)}")
+        if not select > 0:
+            raise ValueError(f"Select must be positive, not {select}")
+        if not type(select) == int:
+            raise ValueError(f"Select must be an integer, not {type(select)}")
+        if not select <= len(trace_set):
+            raise ValueError(
+                f"Select must be smaller than the number of traces in the trace set, length of trace set "
+                f"is {len(trace_set)}, select is {select}")
+        self.trace_set = trace_set
+        self.select = select
 
     def evaluate(self, solution: numpy.ndarray) -> float:
         """
@@ -124,13 +114,9 @@ class FrequencyCoverage(ObjectiveFunction):
         """
         super().set_data(trace_set, select)
         self.frequencies = np.array([trace.get_meta("freq", 0) for trace in trace_set])
-        try:
-            self.total_frequency_coverage = sum(self.frequencies)
-            if self.total_frequency_coverage == 0:
-                raise ValueError("There is no frequency information of the traces")
-        except ValueError as error:
-            print(error)
-            raise error
+        self.total_frequency_coverage = sum(self.frequencies)
+        if not self.total_frequency_coverage != 0:
+            raise ValueError("There is no frequency information of the traces")
 
     def evaluate(self, solution: numpy.ndarray) -> float:
         """
@@ -324,15 +310,11 @@ class TraceSetOptimizer:
         self.objective_functions = [objective_functions] if not isinstance(objective_functions,
                                                                            list) else objective_functions
         self.select = 0
-        # TODO: Same issue
-        try:
-            for objective_function in self.objective_functions:
-                if not isinstance(objective_function, ObjectiveFunction):
-                    raise ValueError(
-                        "Please provide valid built in objective functions or your custom objective functions")
-        except ValueError as error:
-            print(error)
-            raise error
+        for objective_function in self.objective_functions:
+            if not isinstance(objective_function, ObjectiveFunction):
+                raise ValueError(
+                    "Please provide valid built in objective functions or your custom objective functions "
+                    "created using the ObjectiveFunction class")
 
     def set_data(self, trace_set: TraceSet, select: int):
         """Set the trace set and the number of selected traces for the optimizer and the objective functions passed in
@@ -344,25 +326,20 @@ class TraceSetOptimizer:
                 optimizer runs the algorithms and tries to choose 10 traces from the trace set that maximize the
                 objective values returned by the objective functions.
         """
-        # TODO: Same issue
-        try:
-            self.trace_set = trace_set
-            if type(self.trace_set) != TraceSet:
-                raise ValueError("Trace set must be a TraceSet object!")
-        except ValueError as error:
-            print(error)
-            raise error
-
-        try:
-            if self.select <= 0 or type(select) != int:
-                raise ValueError("Select must be a positive integer!")
-            elif self.select > len(self.trace_set):
-                raise ValueError("Select must be smaller than the number of traces in the trace set!")
-        except ValueError as error:
-            print(error)
-            raise error
+        if not type(trace_set) == TraceSet:
+            raise ValueError(f"Trace set must be a TraceSet object, not {type(trace_set)}")
+        if not select > 0:
+            raise ValueError(f"Select must be positive, not {select}")
+        if not type(select) == int:
+            raise ValueError(f"Select must be an integer, not {type(select)}")
+        if not select <= len(trace_set):
+            raise ValueError(
+                f"Select must be smaller than the number of traces in the trace set, length of trace set "
+                f"is {len(trace_set)}, select is {select}")
         for obj_func in self.objective_functions:
             obj_func.set_data(trace_set, select)
+        self.trace_set = trace_set
+        self.select = select
 
     def objective(self, solution: np.ndarray) -> float:
         """
@@ -376,7 +353,6 @@ class TraceSetOptimizer:
             Combined the different objective values with an equal weight based on the number of the objective
                 functions, and return it. Result would be between 0 and 1
         """
-        # TODO: Did not evaluate the length of solution here as the solution is generated by the algorithm and the size should fit
         total_objective_value = 0
         total_weight = 0
         for obj_func in self.objective_functions:
@@ -465,18 +441,22 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 particle's velocity during update
         """
         super().__init__(objective_functions=objective_functions)
-        # TODO: Same issue
-        try:
-            self.num_of_iterations = num_of_iterations
-            self.num_of_particles = num_of_particles
-            self.c1 = c1
-            self.c2 = c2
-            if self.num_of_particles <= 0 or self.num_of_iterations <= 0 or self.c1 <= 0 or self.c2 <= 0:
-                raise ValueError("The hyper parameters for PSO should all be positive numbers!")
-        except ValueError as error:
-            print(error)
-            raise error
-
+        if not num_of_particles > 0:
+            raise ValueError(f"The number of particles should be positive, not {num_of_particles}")
+        if not type(num_of_particles) == int:
+            raise ValueError(f"The number of particles should be integer, not {type(num_of_particles)}")
+        if not num_of_iterations > 0:
+            raise ValueError(f"The number of iterations should be positive, not {num_of_iterations}")
+        if not type(num_of_iterations) == int:
+            raise ValueError(f"The number of iterations should be integer, not {type(num_of_particles)}")
+        if not c1 > 0:
+            raise ValueError(f"c1 should be positive, not {c1}")
+        if not c2 > 0:
+            raise ValueError(f"c2 should be positive, not {c2}")
+        self.num_of_iterations = num_of_iterations
+        self.num_of_particles = num_of_particles
+        self.c1 = c1
+        self.c2 = c2
         self.num_of_variables = 0
         self.upper_bound = None
         self.lower_bound = None
@@ -629,30 +609,31 @@ class GeneticOptimizer(TraceSetOptimizer):
             crossover (str): The method used to crossover. Choose between double and single.
         """
         super().__init__(objective_functions)
-        # TODO: Same issue
-        try:
-            self.crossover_method = crossover
-            if self.crossover_method != "single" or self.crossover_method != "double":
-                raise ValueError("Cross over method should only be single or double!")
-        except ValueError as error:
-            print(error)
-            raise error
-
-        try:
-            self.num_of_iterations = num_of_iterations
-            self.num_of_chromosomes = num_of_chromosomes
-            self.num_of_genes = 0
-            self.prob_cross = prob_cross
-            self.prob_mutate = prob_mutate
-            self.elitism_rate = elitism_rate
-            if self.num_of_iterations <= 0 or self.num_of_chromosomes <= 0 or self.num_of_genes <= 0 or self.prob_cross <= 0 or self.prob_mutate <= 0:
-                raise ValueError(
-                    "The hyper parameters of GA should be positive numbers, except for elitism rate. It can be 0 to disable elitism")
-        except ValueError as error:
-            print(error)
-            raise error
+        if not (crossover == "single" or crossover == "double"):
+            raise ValueError(f"Crossover method should only be single or double, not {crossover}")
+        if not (0 < prob_mutate < 1):
+            raise ValueError(f"Probability of mutate must be between 0 < ... < 1, not {prob_mutate}")
+        if not (0 < prob_cross < 1):
+            raise ValueError(f"Probability of crossover must be between 0 < ... < 1, not {prob_cross}")
+        if not num_of_iterations > 0:
+            raise ValueError(f"The number of iterations must be positive, not {num_of_iterations}")
+        if not type(num_of_iterations) == int:
+            raise ValueError(f"The number of iterations should be an integer, not {type(num_of_iterations)}")
+        if not num_of_chromosomes > 0:
+            raise ValueError(f"The number of chromosomes must be positive, not {num_of_chromosomes}")
+        if not type(num_of_chromosomes) == int:
+            raise ValueError(f"The number of chromosomes should be an integer, not {type(num_of_chromosomes)}")
+        if not (0 <= elitism_rate < 1):
+            raise ValueError(f"The elitism rate must be between 0 <= ... < 1, not {elitism_rate}")
+        self.num_of_iterations = num_of_iterations
+        self.num_of_chromosomes = num_of_chromosomes
+        self.prob_mutate = prob_mutate
+        self.prob_cross = prob_cross
+        self.elitism_rate = elitism_rate
+        self.crossover_method = crossover
         self.population = None
         self.new_population = None
+        self.num_of_genes = 0
 
     def set_data(self, trace_set: TraceSet, select: int):
         """Set the trace set and the number of selected traces of the optimizer and the objective functions passed in
@@ -671,7 +652,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         self.population = np.rint(np.random.rand(self.num_of_chromosomes, self.num_of_genes))
         self.new_population = np.zeros((self.num_of_chromosomes, self.num_of_genes))
 
-    def normalise_objective_values(self) -> numpy.ndarray:
+    def _normalise_objective_values(self) -> numpy.ndarray:
         """After initialising the population of solutions, there might be some solutions that have a negative objective
         value because of the random initialisation. To be able to select parents using the roulette_wheel method below,
         we need to have all objective values to be not negative. We normalise the objective values so that they are all
@@ -687,7 +668,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         normalised_objective_values = objective_values / np.sum(objective_values)
         return normalised_objective_values
 
-    def roulette_wheel(self, normalised_objective_values: numpy.ndarray) -> int:
+    def _roulette_wheel(self, normalised_objective_values: numpy.ndarray) -> int:
         """Calculate the cumulative sum of the objective values and output the selected index based on probability
 
         Args:
@@ -703,7 +684,7 @@ class GeneticOptimizer(TraceSetOptimizer):
             if condition:
                 return index
 
-    def select_parents(self, population: numpy.ndarray, normalised_objective_values: numpy.ndarray) -> numpy.ndarray:
+    def _select_parents(self, population: numpy.ndarray, normalised_objective_values: numpy.ndarray) -> numpy.ndarray:
         """Use the roulette_wheel method to select 2 solutions from the population as parents. The selected parents are
         passed in to crossover method.
 
@@ -717,15 +698,15 @@ class GeneticOptimizer(TraceSetOptimizer):
         selected_parents_indexes = []
         selected_parents = []
         for i in range(2):
-            index = self.roulette_wheel(normalised_objective_values)
+            index = self._roulette_wheel(normalised_objective_values)
             while index in selected_parents_indexes:
-                index = self.roulette_wheel(normalised_objective_values)
+                index = self._roulette_wheel(normalised_objective_values)
             selected_parents_indexes.append(index)
             selected_parents.append(population[index])
         selected_parents = np.array(selected_parents)
         return selected_parents
 
-    def crossover(self, parent1: numpy.ndarray, parent2: numpy.ndarray) -> \
+    def _crossover(self, parent1: numpy.ndarray, parent2: numpy.ndarray) -> \
             Tuple[numpy.ndarray, numpy.ndarray]:
         """Exchange a subset of the two parents and produce new solutions. With single point crossover, randomly pick a
         point in the solution and exchange the other part. With double point crossover, randomly pick two points in the
@@ -766,7 +747,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         child2 = child2 if r2 <= self.prob_cross else parent2
         return child1, child2
 
-    def mutate(self, child: numpy.ndarray) -> numpy.ndarray:
+    def _mutate(self, child: numpy.ndarray) -> numpy.ndarray:
         """After crossover, for every bit in the solution, flip the bit (0 to 1 or 1 to 0) based on probability.
 
         Args:
@@ -781,7 +762,7 @@ class GeneticOptimizer(TraceSetOptimizer):
                 child[i] = not child[i]
         return child
 
-    def add_elites(self):
+    def _add_elites(self):
         """ After crossover and mutate, before entering the next generation, keep the best solutions from last
         generation which have the highest objective values. The number of elites are controlled by the elitism rate.
 
@@ -820,20 +801,20 @@ class GeneticOptimizer(TraceSetOptimizer):
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
         for i in range(self.num_of_iterations):
-            normalised_objective_values = self.normalise_objective_values()
+            normalised_objective_values = self._normalise_objective_values()
 
             for j in range(0, self.num_of_chromosomes, 2):
                 # Selection
-                [parent1, parent2] = self.select_parents(self.population, normalised_objective_values)
+                [parent1, parent2] = self._select_parents(self.population, normalised_objective_values)
                 # Crossover
-                child1, child2 = self.crossover(parent1, parent2)
+                child1, child2 = self._crossover(parent1, parent2)
                 # Mutation
-                child1 = self.mutate(child1)
-                child2 = self.mutate(child2)
+                child1 = self._mutate(child1)
+                child2 = self._mutate(child2)
                 self.new_population[j] = child1
                 self.new_population[j + 1] = child2
             if self.elitism_rate > 0:
-                self.new_population = self.add_elites()
+                self.new_population = self._add_elites()
             self.population = self.new_population
         objective_values = np.apply_along_axis(self.objective, 1, self.population)
         best_objective_value = np.max(objective_values)
