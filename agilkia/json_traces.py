@@ -61,10 +61,10 @@ import decimal
 import datetime
 import re
 import xml.etree.ElementTree as ET
-import pandas as pd            # type: ignore
-import numpy as np             # type: ignore
-import sklearn.cluster         # type: ignore
-import sklearn.preprocessing   # type: ignore
+import pandas as pd  # type: ignore
+import numpy as np  # type: ignore
+import sklearn.cluster  # type: ignore
+import sklearn.preprocessing  # type: ignore
 import matplotlib.pyplot as plt
 import matplotlib.cm as pltcm
 import scipy.cluster.hierarchy as hierarchy
@@ -72,7 +72,6 @@ from sklearn.manifold import TSNE
 # liac-arff from https://pypi.org/project/liac-arff (via pip)
 # import arff                    # type: ignore
 from typing import List, Set, Mapping, Dict, Union, Any, Optional, Callable, cast
-
 
 TRACE_SET_VERSION = "0.2.1"
 
@@ -121,6 +120,10 @@ class Event:
         self.inputs = inputs
         self.outputs = outputs
         self.meta_data: MetaData = {} if meta_data is None else meta_data.copy()
+
+    def __eq__(self, other):
+        # TODO: Define equal. Meta data?
+        return self.action == other.action and self.inputs == other.inputs and self.outputs == other.outputs
 
     @property
     def status(self) -> int:
@@ -200,6 +203,10 @@ class Trace:
 
     def __getitem__(self, key):
         return self.events[key]
+
+    def __eq__(self, other):
+        # TODO: DOCUMENT. HOW TWO TRACES ARE EQUAL
+        return self.events == other.events
 
     def get_meta(self, key: str, default: Any = None) -> Optional[Any]:
         """Returns requested meta data, or default value if that key does not exist."""
@@ -297,7 +304,7 @@ class TraceSet:
     """
 
     meta_data: MetaData
-    _event_chars: Optional[Dict[str, str]]   # just a cache, not stored.
+    _event_chars: Optional[Dict[str, str]]  # just a cache, not stored.
 
     def __init__(self, traces: List[Trace], meta_data: Dict[str, Any] = None):
         """Create a TraceSet object from a list of Traces.
@@ -320,7 +327,7 @@ class TraceSet:
         self.traces = traces
         self._cluster_data: Optional[pd.DataFrame] = None
         self.cluster_labels: Optional[List[int]] = None  # for flat clustering
-        self.cluster_linkage: Optional[np.ndarray] = None   # scipy Linkage array for cluster trees.
+        self.cluster_linkage: Optional[np.ndarray] = None  # scipy Linkage array for cluster trees.
         trace_parents = set()
         # add all the trace to this set.
         for tr in self.traces:
@@ -352,6 +359,10 @@ class TraceSet:
     def __getitem__(self, key):
         return self.traces[key]
 
+    def __eq__(self, other):
+        # TODO: Documentation
+        return self.traces == other.traces
+
     def message(self, msg: str):
         """Print a progress message."""
         print("   ", msg)
@@ -362,11 +373,11 @@ class TraceSet:
         now = datetime.datetime.now().isoformat()
         user = Path(os.path.expanduser('~')).name  # usually correct, but can be tricked.
         meta_data: Dict[str, Any] = {
-                "date": now,
-                "author": user,
-                "dataset": "unknown",
-                "action_chars": None
-                }
+            "date": now,
+            "author": user,
+            "dataset": "unknown",
+            "action_chars": None
+        }
         if len(sys.argv) > 0:
             args = sys.argv.copy()
             # strip directory off
@@ -383,7 +394,7 @@ class TraceSet:
         else:
             return None
 
-    def set_meta(self, key: str, value:Any) -> Optional[Any]:
+    def set_meta(self, key: str, value: Any) -> Optional[Any]:
         """Sets the requested meta data, and returns the old value if any."""
         old = None
         if key in self.meta_data:
@@ -590,7 +601,7 @@ class TraceSet:
                 "attributes": attributes,
                 "data": data.values,  # [[tr] for tr in trace_summaries],
                 "description": "Events from " + name
-                }
+            }
             arff.dump(contents, output)
 
     def with_traces_split(self,
@@ -625,7 +636,7 @@ class TraceSet:
             split = (lambda e1, e2: e2.action == start_action)
         elif input_name is not None:
             if isinstance(input_name, str):
-                key = input_name   # rename the key makes mypy use a more precise type!
+                key = input_name  # rename the key makes mypy use a more precise type!
                 split = (lambda e1, e2: e1.inputs[key] != e2.inputs[key])
             else:
                 raise Exception(f"input_name must be a string, not {input_name}")
@@ -852,7 +863,7 @@ class TraceSet:
         if linkage is not None:
             hierarchy.is_valid_linkage(linkage, throw=True)
             self.cluster_linkage = linkage
-        self.cluster_labels = [int(c) for c in labels]   # convert to an ordinary list of int
+        self.cluster_labels = [int(c) for c in labels]  # convert to an ordinary list of int
 
     def get_clusters(self) -> Optional[List[int]]:
         """Get the list of cluster numbers for each trace.
@@ -864,7 +875,7 @@ class TraceSet:
     def visualize_clusters(self, algorithm=None, fit: bool = True,
                            xlim=None, ylim=None, cmap=None,
                            markers=None, markersize=None,
-                           filename:str = None, block:bool=True):
+                           filename: str = None, block: bool = True):
         """Visualize the clusters from create_clusters().
 
         Args:
@@ -943,7 +954,7 @@ class TraceSet:
             clusters = np.ma.array(self.cluster_labels)
             markchars = markers + "o" * num_clusters
             for curr in range(max(num_clusters, len(markers))):
-                #prepare for masking arrays - 'conventional' arrays won't do it
+                # prepare for masking arrays - 'conventional' arrays won't do it
                 mask = clusters != curr  # False means unmasked
                 x_masked = np.ma.array(tsne_obj[:, 0], mask=mask)
                 y_masked = np.ma.array(tsne_obj[:, 1], mask=mask)
@@ -954,7 +965,7 @@ class TraceSet:
                              label=f"c{curr}",
                              marker=markchars[curr],
                              markersize=markersize)
-            leg = ax.legend(loc='best') #, ncol=2, mode="expand", shadow=True, fancybox=True)
+            leg = ax.legend(loc='best')  # , ncol=2, mode="expand", shadow=True, fancybox=True)
             leg.get_frame().set_alpha(0.5)
         else:
             sc = plt.scatter(tsne_obj[:, 0], tsne_obj[:, 1], c=self.cluster_labels,
@@ -1026,7 +1037,7 @@ class TraceEncoder(json.JSONEncoder):
         if isinstance(obj, decimal.Decimal):
             return float(round(obj, 6))  # f"{o:.5f}"
         if isinstance(obj, (bytes, bytearray)):
-            return "BYTES..."    # TODO: handle these better: repr(o)?
+            return "BYTES..."  # TODO: handle these better: repr(o)?
         if isinstance(obj, (set, frozenset)):
             return list(obj)
         if isinstance(obj, (datetime.date, datetime.datetime, datetime.time)):
@@ -1037,7 +1048,7 @@ class TraceEncoder(json.JSONEncoder):
             result = {
                 "__class__": obj.__class__.__name__,
                 "__module__": obj.__module__
-                }
+            }
             if len(obj.__dict__) == 1 and "__values__" in obj.__dict__:
                 # zeep seems to hide the attributes in a __values__ dict.
                 # We lift them up to the top level to make the json more readable.
