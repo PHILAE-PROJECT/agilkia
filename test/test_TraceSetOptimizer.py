@@ -6,6 +6,9 @@ import pytest
 import agilkia
 
 
+THIS_DIR = Path(__file__).parent
+
+
 class TestObjectiveFunctions(unittest.TestCase):
     event1 = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 0})
     event1b = agilkia.Event("Order", {"Name": "Mark"}, {"Status": 2})
@@ -471,7 +474,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
 
 
 class TestScanner(unittest.TestCase):
-    trace_set = agilkia.TraceSet.load_from_json(Path("./fixtures/scanner.json"))
+    trace_set = agilkia.TraceSet.load_from_json(Path(THIS_DIR / "fixtures" / "scanner.json"))
     objective_functions = [agilkia.FrequencyCoverage(),
                            agilkia.EventCoverage(event_to_str=lambda ev: ev.action + "_" + str(ev.status))]
     greedy_optimizer = agilkia.GreedyOptimizer(objective_functions)
