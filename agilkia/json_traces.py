@@ -121,8 +121,15 @@ class Event:
         self.outputs = outputs
         self.meta_data: MetaData = {} if meta_data is None else meta_data.copy()
 
-    def __eq__(self, other):
-        # TODO: Define equal. Meta data?
+    def equal_event(self, other: 'Event'):
+        """Two events are equal iff they have the same action, inputs and outputs.
+
+        Note: we do not override == because events can be mutable.
+        However, this is a convenience method to check if two events are equivalent.
+        Meta-data is ignored.
+        """
+        if not isinstance(other, Event):
+            return False
         return self.action == other.action and self.inputs == other.inputs and self.outputs == other.outputs
 
     @property
@@ -204,9 +211,16 @@ class Trace:
     def __getitem__(self, key):
         return self.events[key]
 
-    def __eq__(self, other):
-        # TODO: DOCUMENT. HOW TWO TRACES ARE EQUAL
-        return self.events == other.events
+    def equal_events(self, other: 'Trace'):
+        """Two traces are equal iff their sequence of events is equal.
+        
+        Note: we do not override == because traces can be mutable.
+        However, this is a convenience method to check if two traces contain equivalent events.
+        Meta-data is ignored.
+        """
+        if not isinstance(other, Trace):
+            return False
+        return len(self.events) == len(other.events) and all([a.equal_event(b) for (a,b) in zip(self.events, other.events)])
 
     def get_meta(self, key: str, default: Any = None) -> Optional[Any]:
         """Returns requested meta data, or default value if that key does not exist."""
@@ -325,22 +339,29 @@ class TraceSet:
         """
         self.version = TRACE_SET_VERSION
         self.traces = traces
+        self.meta_data = {}
         self._cluster_data: Optional[pd.DataFrame] = None
         self.cluster_labels: Optional[List[int]] = None  # for flat clustering
         self.cluster_linkage: Optional[np.ndarray] = None  # scipy Linkage array for cluster trees.
-        trace_parents = set()
-        # add all the trace to this set.
+        trace_parent = None
+        copy_meta_data = False
+        # add all the traces to this set.
         for tr in self.traces:
             if isinstance(tr, Trace):
-                if tr._parent and tr._parent != self:
-                    trace_parents.add(tr._parent)
+                if tr._parent is not None:
+                    if trace_parent is None:
+                        trace_parent = tr._parent
+                        copy_meta_data = True   # one parent (so far)
+                    elif trace_parent != tr._parent:
+                        copy_meta_data = False  # multiple parents
                 tr._parent = self
             else:
                 raise Exception("TraceSet expects List[Trace], not: " + str(type(tr)))
         if meta_data is None:
-            if len(trace_parents) == 1:
-                # copy across meta-data, since all traces come from same place.
-                self.meta_data = next(iter(trace_parents)).meta_data.copy()
+            if copy_meta_data:
+                # copy across meta-data, since all traces come from the same parent.
+                print("DEBUG: copying meta-data from traces:", trace_parent)
+                self.meta_data = trace_parent.meta_data.copy()
                 # print("DEBUG: copyied meta-data from traces:", self.meta_data)
                 now = datetime.datetime.now().isoformat()
                 self.meta_data["date"] = now
@@ -359,9 +380,16 @@ class TraceSet:
     def __getitem__(self, key):
         return self.traces[key]
 
-    def __eq__(self, other):
-        # TODO: Documentation
-        return self.traces == other.traces
+    def equal_traces(self, other: 'TraceSet'):
+        """Checks if this trace set has the same traces as the other trace set.
+        
+        Note: we do not override == because trace sets are often mutable.
+        However, this is a convenience method to check if two trace sets contain equivalent traces.
+        Meta-data, version number, and optional clustering information are all ignored.
+        """
+        if not isinstance(other, TraceSet):
+            return False
+        return len(self.traces) == len(other.traces) and all([a.equal_events(b) for (a,b) in zip(self.traces, other.traces)])
 
     def message(self, msg: str):
         """Print a progress message."""
@@ -453,7 +481,7 @@ class TraceSet:
         return self._event_chars
 
     def __str__(self):
-        name = self.meta_data["dataset"]  # required meta data
+        name = self.meta_data.get("dataset", "???")  # required meta data
         return f"TraceSet '{name}' with {len(self)} traces."
 
     def save_to_json(self, file: Path) -> None:
