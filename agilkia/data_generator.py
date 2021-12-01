@@ -248,7 +248,7 @@ class NumericalGenerator:
     decimal : bool
         A boolean indicates if the numerical data in the target column is decimal (default is False)
     metrics : bool
-        A boolean indicates whether to show evaluation information
+        A boolean indicates whether to show evaluation metrics and graphs
     train_column_names : list
         List contains name of columns that will be used as training inputs
     train_column_types : list
@@ -268,7 +268,7 @@ class NumericalGenerator:
         Transform action sequence using fitted generator
     """
 
-    def __init__(self, generate_order: dict, current_index, decimal=False, metrics=True):
+    def __init__(self, generate_order: dict, current_index, decimal=False, metrics=False):
         """
         Parameters
         ----------
@@ -401,7 +401,7 @@ class CategoricalGenerator:
         Transform action sequence using fitted generator
     """
 
-    def __init__(self, generate_order: dict, current_index, metrics=True):
+    def __init__(self, generate_order: dict, current_index, metrics=False):
         """
         Parameters
         ----------
@@ -410,7 +410,7 @@ class CategoricalGenerator:
         current_index : int
             Specify the index of which column that is being generated
         metrics : bool
-            A boolean indicates whether to show evaluation information
+            A boolean indicates whether to show evaluation metrics and graphs
         """
 
         self.generate_order = generate_order
