@@ -161,6 +161,7 @@ class RandomTester:
     """
     def __init__(self,
                  urls: Union[str, List[str]],
+                 method_signatures: Dict[str, Signature] = None,
                  methods_to_test: List[str] = None,
                  input_rules: Dict[str, List] = None,
                  rand: random.Random = None,
@@ -169,6 +170,10 @@ class RandomTester:
         """Creates a random tester for the server url and set of web services on that server.
 
         Args:
+            urls: Optional list of WSDL URLs.  If this is the empty list, then
+                method_signatures must be provided.
+            method_signatures: Optional mapping from method names to input/output signatures.
+                This will be inferred automatically if urls is provided.
             urls (str or List[str]): URLs to the web services, used to find the WSDL files.
             methods_to_test (List[str]): only these methods will be tested (None means all).
             input_rules (Dict[str,List]): maps each input parameter name to a list of
@@ -198,8 +203,17 @@ class RandomTester:
         self.curr_events = new_trace.events  # mutable list to append to.
         self.trace_set = TraceSet([], meta)
         self.trace_set.append(new_trace)
-        for w in self.urls:
-            self.add_web_service(w)
+        if self.urls:
+            for w in self.urls:
+                self.add_web_service(w)
+        else:
+            # We allow user-supplied dummy signatures when running offline (no web service)
+            if method_signatures is None:
+                raise Exception("urls or method_signatures must be provided")
+            self.clients_and_methods.append((None, method_signatures))
+            self.trace_set.meta_data["method_signatures"].update(method_signatures)
+        if self.methods_to_test is None and method_signatures is not None:
+            self.methods_allowed += sorted(list(method_signatures.keys()))
 
     def set_username(self, username: str, password: str = None):
         """Set the username and (optional) password to be used for the subsequent operations.
@@ -553,19 +567,8 @@ class SmartSequenceGenerator(RandomTester):
             action_chars (Mapping[str, str]): optional action-to-character map, for visualisation.
             verbose (bool): True means print progress messages during test generation.
         """
-        if methods_to_test is None and method_signatures is not None:
-            methods_to_test = list(method_signatures.keys())
-        super().__init__(urls, methods_to_test=methods_to_test, input_rules=input_rules,
-                         rand=rand, action_chars=action_chars, verbose=verbose)
-        # Quick hack to get some dummy signatures set up when running offline (no web service)
-        if not urls:
-            if method_signatures is None:
-                raise Exception("urls or method_signatures must be provided")
-            service: Optional[zeep.Service] = None
-            self.clients_and_methods.append((service, method_signatures))
-            self.trace_set.meta_data["method_signatures"].update(method_signatures)
-        if self.methods_to_test is None and method_signatures is not None:
-            self.methods_allowed += sorted(list(method_signatures.keys()))
+        super().__init__(urls, method_signatures=method_signatures, methods_to_test=methods_to_test, 
+                        input_rules=input_rules, rand=rand, action_chars=action_chars, verbose=verbose)
 
     def generate_trace_with_model(self, model, start=True, length=20, event_factory=None):
         """Generates one sequence test steps, choosing actions using the given model.

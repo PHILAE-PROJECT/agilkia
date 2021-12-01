@@ -37,8 +37,11 @@ class TestReadInputRules(unittest.TestCase):
 class TestRandomTester(unittest.TestCase):
 
     def setUp(self):
+        need_str = {'optional': False, 'type': 'String(value)'}
+        signature = {"Method1": {"input": {"bstrParam1": need_str, "bstrParam2": need_str}}}
         self.tester = agilkia.RandomTester(
-                WSDL_EG,
+                [],
+                method_signatures=signature,
                 input_rules=test_input_rules,
                 rand=random.Random(1234))
 
