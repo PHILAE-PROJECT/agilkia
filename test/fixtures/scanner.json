@@ -1,0 +1,4304 @@
+{
+  "__class__": "TraceSet",
+  "__module__": "agilkia.json_traces",
+  "version": "0.2.1",
+  "traces": [
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.09408108489899704
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.08419268258228564
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.023308376889391157
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.015962706596976975
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "2"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.010312190987427604
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "1"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.009605876536233933
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.009018785314806209
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008801299344150013
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008723330964266252
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.00871708251414403
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "7"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008617036304562793
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008506872038375598
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008484705842561885
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008431511912015225
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008200869447067126
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "4"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.008193247633846589
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.0077745342765521384
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "8"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007769458963130386
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "4"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007769458963130386
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "9"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007769458963130386
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007763243852095266
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007653647068479357
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "2"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007628196072891652
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "-2"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ouvrirSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "ajouter",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "fermerSession",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007514455043794587
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "5"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.0073456702924141835
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "5"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007204407402175449
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "1"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007063144511936715
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "7"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.007063144511936715
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "8"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.006921881621697982
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.006780618731459246
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "3"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.006780618731459246
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "3"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.006215567170504309
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "9"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.006074304280265575
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "6"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.005933041390026841
+      }
+    },
+    {
+      "__class__": "Trace",
+      "__module__": "agilkia.json_traces",
+      "events": [
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "debloquer",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "scanner",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "transmission",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "abandon",
+          "inputs": {},
+          "outputs": {
+            "Status": "0"
+          },
+          "meta_data": {}
+        },
+        {
+          "__class__": "Event",
+          "__module__": "agilkia.json_traces",
+          "action": "payer",
+          "inputs": {},
+          "outputs": {
+            "Status": "6"
+          },
+          "meta_data": {}
+        }
+      ],
+      "meta_data": {
+        "freq": 0.005226726938833169
+      }
+    }
+  ],
+  "cluster_labels": null,
+  "cluster_linkage": null,
+  "meta_data": {
+    "date": "2021-09-22T01:10:45.333958",
+    "author": "shanefeng",
+    "dataset": "unknown",
+    "action_chars": null,
+    "source": "generate_missing_tests_scanette.py",
+    "cmdline": [
+      "generate_missing_tests_scanette.py"
+    ]
+  }
+}
