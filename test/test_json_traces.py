@@ -190,6 +190,14 @@ class TestEvent(unittest.TestCase):
     ev2 = agilkia.Event("Order", {"Name": "Other"}, {})
     ev3 = agilkia.Event("Order", {"Name": "Other"}, {"Status": "?"})
 
+    def test_equal_event(self):
+        self.assertTrue(self.ev1.equal_event(self.ev1))
+        self.assertFalse(self.ev1.equal_event(self.ev2))
+        self.assertFalse(self.ev3.equal_event(self.ev2))
+        self.assertFalse(self.ev3.equal_event(None))
+        ev2b = agilkia.Event("Order", {"Name": "Other"}, {}, {"foo": "bar"})
+        self.assertTrue(self.ev2.equal_event(ev2b))
+
     def test_status(self):
         self.assertEqual(-2, self.ev1.status)
         self.assertEqual(0, self.ev2.status)
@@ -241,6 +249,14 @@ class TestTrace(unittest.TestCase):
         self.assertEqual(3, len(tr1))
         self.assertEqual(self.ev2, tr1[0])
         self.assertEqual(self.ev3, tr1[-1])
+
+    def test_equal_events(self):
+        tr1 = agilkia.Trace([self.ev1, self.ev2, self.ev3])
+        self.assertTrue(tr1.equal_events(tr1))
+        self.assertTrue(tr1.equal_events(agilkia.Trace([self.ev1, self.ev2, self.ev3])))
+        self.assertFalse(tr1.equal_events(None))
+        self.assertFalse(tr1.equal_events(agilkia.Trace([self.ev1, self.ev2])))
+        self.assertFalse(tr1.equal_events(agilkia.Trace([self.ev1, self.ev2, self.ev2])))
 
     def test_traceset(self):
         parent = agilkia.TraceSet([], {})
@@ -411,6 +427,16 @@ class TestTraceSet(unittest.TestCase):
         # Not requested: self.assertListEqual([1, 1], list(data["Mark0"].values))
         self.assertListEqual([1, 0], list(data["Mark2"].values))
         self.assertListEqual([0, 1], list(data["Sue1"].values))
+
+    def test_equal_traces(self):
+        tr1 = agilkia.Trace([self.ev1, self.ev1b])
+        tr2 = agilkia.Trace([self.ev2, self.ev1])
+        set1 = agilkia.TraceSet([tr1, tr2])
+        self.assertTrue(set1.equal_traces(set1))
+        self.assertTrue(set1.equal_traces(agilkia.TraceSet([tr1, tr2])))
+        self.assertFalse(set1.equal_traces(agilkia.TraceSet([tr1])))
+        self.assertFalse(set1.equal_traces(agilkia.TraceSet([tr1, tr1])))
+        self.assertFalse(set1.equal_traces(None))
 
     def test_get_trace_data_pairs(self):
         def f(tr): return collections.Counter([f"{tr[i].action}_{tr[i+1].action}" for i in range(len(tr) - 1)])
