@@ -11,6 +11,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OrdinalEncoder
+from sklearn.compose import ColumnTransformer
 from sklearn.tree import DecisionTreeClassifier
 from matplotlib import pyplot as plt
 
@@ -49,7 +50,6 @@ class RandomNumberGenerator:
             current_index : int
                 Specify the index of which column that is being generated
         """
-
         self.generate_order = generate_order
         self.current_index = current_index
 
@@ -63,13 +63,9 @@ class RandomNumberGenerator:
         training : TraceSet
             Data used to train the model
         """
-
         self.target_column_name = list(self.generate_order.keys())[self.current_index]
         # Specified column's data in Pandas DataFrame
         column_data = training.to_pandas()[self.target_column_name].dropna()
-        # TODO: Why use index again here? Crashes
-        # self.low = column_data[self.target_column_name].min()
-        # self.high = column_data[self.target_column_name].max()
         self.low = column_data.min()
         self.high = column_data.max()
 
@@ -127,7 +123,6 @@ class RandomCategoryGenerator:
         current_index : int
             Specify the index of which column that is being generated
         """
-
         self.generate_order = generate_order
         self.current_index = current_index
 
@@ -141,7 +136,6 @@ class RandomCategoryGenerator:
         training : TraceSet
             Data used for training the model
         """
-
         self.target_column_name = list(self.generate_order.keys())[self.current_index]
         # Specified column's data in Pandas DataFrame
         column_data = training.to_pandas()[self.target_column_name].dropna()
@@ -160,7 +154,6 @@ class RandomCategoryGenerator:
         action_sequence : TraceSet
             Data that will be replaced with generated data
         """
-
         for tr in action_sequence:
             for ev in tr:
                 ev.inputs[self.target_column_name] = random.choices(population=self.category, weights=self.weights)[0]
@@ -198,7 +191,6 @@ class SessionGenerator:
         prefix : str
             prefix of the session number ex: "prefix0", "prefix1" ... (default is "session")
         """
-
         self.generate_order = generate_order
         self.current_index = current_index
         self.prefix = prefix
@@ -213,7 +205,6 @@ class SessionGenerator:
         training : TraceSet
             Not used
         """
-
         names = list(self.generate_order.keys())
         self.target_column_name = names[self.current_index]
 
@@ -227,7 +218,6 @@ class SessionGenerator:
         action_sequence : TraceSet
             Data that will be replaced with generated data
         """
-
         traceset_count = 0
         for tr in action_sequence:
             for ev in tr:
@@ -281,7 +271,6 @@ class NumericalGenerator:
         metrics : bool
             A boolean indicates whether to show evaluation information
         """
-
         self.generate_order = generate_order
         self.current_index = current_index
         self.decimal = decimal
@@ -298,7 +287,6 @@ class NumericalGenerator:
         training : TraceSet
             Data used for training the model
         """
-
         names = list(self.generate_order.keys())
         types = list(self.generate_order.values())
         self.train_column_names = names[:self.current_index]
@@ -333,7 +321,6 @@ class NumericalGenerator:
             plt.hist([predict, test_y], label=["Predict", "Real"])
             plt.legend(loc='upper right')
             plt.show()
-
             print("Coefficient of Determination (R2) :", reg.score(train_x, train_y))
 
     def transform(self, action_sequence):
@@ -347,7 +334,6 @@ class NumericalGenerator:
         action_sequence : TraceSet
             Data that will be replaced with generated data
         """
-
         actions_pandas = action_sequence.to_pandas()
         predict_x = actions_pandas[self.train_column_names].copy(deep=True)
         # Encode action_sequence columns
@@ -358,7 +344,6 @@ class NumericalGenerator:
                     pd.Series(list(self.encoders[categorical_count].transform(
                         predict_x[self.train_column_names[i]].values.reshape(-1, 1))))
                 categorical_count += 1
-
         row_count = 0
         for tr in action_sequence:
             for ev in tr:
@@ -406,13 +391,12 @@ class CategoricalGenerator:
         Parameters
         ----------
         generate_order : dict
-            A dictionary with input columns name as key and type as value in oder of generation
+            A dictionary with input columns name as key and type as value in order of generation
         current_index : int
-            Specify the index of which column that is being generated
+            Specify the index of the column that is being generated
         metrics : bool
             A boolean indicates whether to show evaluation metrics and graphs
         """
-
         self.generate_order = generate_order
         self.current_index = current_index
         self.metrics = metrics
@@ -428,7 +412,6 @@ class CategoricalGenerator:
         training : TraceSet
             Data used for training the model
         """
-
         names = list(self.generate_order.keys())
         types = list(self.generate_order.values())
         self.train_column_names = names[:self.current_index + 1]
@@ -447,15 +430,14 @@ class CategoricalGenerator:
         train_x[self.target_column_name] = output
 
         # Encode categorical columns in training inputs
-        self.encoders = []
-        for i in range(len(self.train_column_names)):
-            if self.train_column_types[i] == "categorical":
-                encoder = OrdinalEncoder()
-                encoder.fit(train_x[self.train_column_names[i]].values.reshape(-1, 1))
-                self.encoders.append(encoder)
-                train_x[self.train_column_names[i]] = pd.Series(list(encoder.transform(
-                    train_x[self.train_column_names[i]].values.reshape(-1, 1))))
-
+        # all categorical columns are transformed at once, with one OrdinalEncoder.
+        self.category_cols = [self.train_column_names[i] 
+                            for i in range(self.current_index + 1) 
+                            if self.train_column_types[i] == "categorical"]
+        # print(train_x.head(20))
+        # print("encoding columns:", self.category_cols, "out of", self.train_column_names)
+        self.transformer = ColumnTransformer([("categ", OrdinalEncoder(), self.category_cols)], remainder='passthrough')
+        train_x = self.transformer.fit_transform(train_x)
         train_y = training_pandas[self.target_column_name].fillna("NaN")
         if self.metrics:
             train_x, test_x, train_y, test_y = train_test_split(train_x, train_y, test_size=0.3)
@@ -494,31 +476,22 @@ class CategoricalGenerator:
         action_sequence : TraceSet
             Data that will be replaced with generated data
         """
-
         actions_pandas = action_sequence.to_pandas()
         predict_x = actions_pandas.loc[:, self.train_column_names[:-1]]
-        # Encode action_sequence columns
-        categorical_count = 0
-        for i in range(len(self.train_column_names[:-1])):
-            if self.train_column_types[i] == "categorical":
-                # predict_x[self.train_column_names[i]]
-                predict_x.loc[:, self.train_column_names[i]] = \
-                    pd.Series(list(self.encoders[categorical_count].transform(
-                        predict_x[self.train_column_names[i]].values.reshape(-1, 1))))
-                categorical_count += 1
+        predict_x[self.target_column_name] = "NaN"  # add final column for previous predicted value.
 
         row_count = 0
-        previous_predict = ["NaN"]
+        previous_predict = "NaN"
         for tr in action_sequence:
             for ev in tr:
-                inputs = predict_x.iloc[[row_count], :]
                 # Add previous predict to inputs
-                inputs[self.target_column_name] = self.encoders[-1].transform(
-                    np.asarray(previous_predict).reshape(-1, 1))
-                predict = self.model.predict(inputs)
+                predict_x.iloc[[row_count], -1] = previous_predict
+                inputs = predict_x.iloc[[row_count], :]
+                input_vec = self.transformer.transform(inputs)
+                predict = self.model.predict(input_vec)
                 # Record the predict data
-                previous_predict = predict
                 ev.inputs[self.target_column_name] = predict[0]
+                previous_predict = predict[0]
                 row_count += 1
 
 
