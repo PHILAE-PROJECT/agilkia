@@ -33,7 +33,7 @@ METHODS = {
     }
 
 
-training = TraceSet.load_from_json(Path("100043-steps.split.json"))
+training = TraceSet.load_from_json(Path("1026-steps.split.json")) # or "100043-steps.split.json"
 
 # learn a test-generation model of action sequences
 # -------------------------------------------------
@@ -76,6 +76,8 @@ for i,tr in enumerate(generated):
 #   telling each column i about the previous columns 0..(i-1), and then running the training and
 #   generation process (like the loop below).
 
+VERBOSE=False
+
 fields = {
     "Action": "categorical", 
     "Status": "numerical",
@@ -84,8 +86,8 @@ fields = {
     "param": "categorical"
     }
 generators = [SessionGenerator(fields, current_index=2, prefix="client"),
-              CategoricalGenerator(fields, current_index=3),
-              CategoricalGenerator(fields, current_index=4)]
+              CategoricalGenerator(fields, current_index=3, metrics=VERBOSE),
+              CategoricalGenerator(fields, current_index=4, metrics=VERBOSE)]
 
 print("Trace 0, showing missing inputs:")
 for ev in generated[0]:
