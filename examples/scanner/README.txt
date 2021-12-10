@@ -14,7 +14,9 @@ This folder contains several useful scripts:
  * cluster_hierarchical.py            = cluster tests hierarchically and show dendrogram.
  * generate_missing_tests_scanette.py = generate tests for some missing clusters.
  * analyse_scanette2.py               = cluster traces and compare against Scanette system tests.
- * test_scanner.py     = pyunit tests to check that the scripts are working.
+ * test_scanner.py                    = pyunit tests to check that the scripts are working.
+ * demo_optimize.py                   = demo script for minimising a test set (choose best traces).
+ * demo_generate_params.py            = demo script for generating input field values.
 
 
 Example run::
