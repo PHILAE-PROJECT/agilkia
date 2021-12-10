@@ -84,7 +84,6 @@ cd docs; make html
 #    agilkia/__init__.py
 #    docs/source/conf.py
 # and then commit these changes to the repository.
-cd agilkia
 pytest
 flit publish --repository testpypi
 # create a fresh Python environment to test the distribution
