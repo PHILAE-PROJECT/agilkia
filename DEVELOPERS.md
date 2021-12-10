@@ -82,7 +82,7 @@ cd docs; make html
 ```
 # NOTE: first upgrade agilkia version in:
 #    agilkia/__init__.py
-#    docs/sources/conf.py
+#    docs/source/conf.py
 # and then commit these changes to the repository.
 cd agilkia
 pytest
