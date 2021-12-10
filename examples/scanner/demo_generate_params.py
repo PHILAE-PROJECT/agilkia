@@ -61,8 +61,21 @@ for i,tr in enumerate(generated):
     print(f"  generated {i}:  {tr}")
 
 
-# generate all missing input or output values
-# -------------------------------------------
+# generate all missing input values
+# ---------------------------------
+#
+# NOTE: the current API is a bit non-intuitive, requiring an ordered dictionary and a list of generators.
+#   A better API might be to have just the list of generators (subclasses of a common GenColumn class)
+#   with the generators keeping track of the name and type of the column name to generate.
+#   Each GenColumn object has two main responsibilities::
+#     1. encoding values into numeric form suitable for machine learning
+#     2. generating values for this column as needed.
+#   The 'given' (non-generated) columns could be specified as non-generating subclasses of GenColumn
+#   that just pass the column through unchanged, but know how to encode it as a vector for learning.
+#   A top-level class would take a list of these GenColumn objects, initialise the whole system by
+#   telling each column i about the previous columns 0..(i-1), and then running the training and
+#   generation process (like the loop below).
+
 fields = {
     "Action": "categorical", 
     "Status": "numerical",
