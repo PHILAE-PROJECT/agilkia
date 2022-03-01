@@ -1,0 +1,185 @@
+[
+  [
+    {
+      "action": "Login",
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "version": "2.2.7"
+      },
+      "outputs": {
+        "__class__": "LoginOutput",
+        "__module__": "zeep.objects",
+        "Status": 0,
+        "Error": null,
+        "ClientCode": "ITM",
+        "Client": "ITM",
+        "StudentCardBlockNo": 5,
+        "Runs": {
+          "__class__": "ArrayOfRun",
+          "__module__": "zeep.objects",
+          "Run": [
+            {
+              "__class__": "Run",
+              "__module__": "zeep.objects",
+              "Type": "N",
+              "Code": "100PM",
+              "Description": "100 PM Run",
+              "Driver": "JU",
+              "Carer": null,
+              "AllowBulkCheckIns": false,
+              "ID": null,
+              "Start": null,
+              "Finish": null,
+              "Pickup": null,
+              "Setdown": null,
+              "Customer": null,
+              "CustomerName": null,
+              "Group": null,
+              "DriverName": null,
+              "Pax": null,
+              "VehicleType": null,
+              "Vehicle": null,
+              "Itinerary": null,
+              "ContactName": null,
+              "ContactMobile": null,
+              "ContactEmail": null,
+              "HubboStart": null,
+              "HubboFinish": null
+            }
+          ]
+        },
+        "PreCheckQuestions": {
+          "__class__": "ArrayOfPreCheckQuestion",
+          "__module__": "zeep.objects",
+          "PreCheckQuestion": [
+            {
+              "__class__": "PreCheckQuestion",
+              "__module__": "zeep.objects",
+              "ID": 1,
+              "Client": "ITM",
+              "Code": "SLEEP",
+              "Question": "Have you had enough sleep?",
+              "Active": true,
+              "NegativeQuestion": "Are you experiencing any symptoms of fatigue?",
+              "FailureMessage": "You must be well-rested.",
+              "PostCheck": false
+            },
+            {
+              "__class__": "PreCheckQuestion",
+              "__module__": "zeep.objects",
+              "ID": 3,
+              "Client": "ITM",
+              "Code": "SOBER",
+              "Question": "Do you confirm that in the last 24 hours, you have not had any alcohol, taken any drugs, or been involved in any parties where alcohol was consumed?",
+              "Active": true,
+              "NegativeQuestion": "In the last 24 hours, have you had any alcohol, taken any drugs, or been involved in any parties where alcohol was consumed?",
+              "FailureMessage": "You must be sober.",
+              "PostCheck": false
+            },
+            {
+              "__class__": "PreCheckQuestion",
+              "__module__": "zeep.objects",
+              "ID": 2,
+              "Client": "ITM",
+              "Code": "FIT",
+              "Question": "Are you fit for duty?",
+              "Active": true,
+              "NegativeQuestion": null,
+              "FailureMessage": null,
+              "PostCheck": false
+            }
+          ]
+        },
+        "PostCheckQuestions": {
+          "__class__": "ArrayOfPreCheckQuestion",
+          "__module__": "zeep.objects",
+          "PreCheckQuestion": [
+            {
+              "__class__": "PreCheckQuestion",
+              "__module__": "zeep.objects",
+              "ID": 49,
+              "Client": "ITM",
+              "Code": "CLEAN",
+              "Question": "Have you cleaned the bus?",
+              "Active": true,
+              "NegativeQuestion": "Is the bus still dirty?",
+              "FailureMessage": "You must clean the bus before clocking off.",
+              "PostCheck": true
+            }
+          ]
+        },
+        "TicketTypes": null,
+        "GPSPollingRate": 60.0,
+        "ClosestStopPollingRate": 10.0,
+        "NotificationPollingRate": 10.0,
+        "MapDisclaimer": "You are about to view this location in a third-party maps app.\\nPlease be aware that any directions this app provides are not endorsed by ITM Projects and may direct you via routes unsuitable for bus travel.",
+        "Features": {
+          "__class__": "ArrayOfString",
+          "__module__": "zeep.objects",
+          "string": [
+            "card_readers",
+            "extra_students",
+            "confirm_driver",
+            "app_messages"
+          ]
+        }
+      }
+    },
+    {
+      "action": "SNSBulkCheckIn",
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "ids": "[1, 2, 3]",
+        "run": "BAD",
+        "time": "13:33",
+        "latitude": "-26.6015600000",
+        "longitude": "152.9535000000"
+      },
+      "outputs": {
+        "__class__": "StatusOutput",
+        "__module__": "zeep.objects",
+        "Status": 0,
+        "Error": null,
+        "ClientCode": "ITM"
+      }
+    },
+    {
+      "action": "ConfirmPreCheck",
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "codes": "[{'Code': 'FIT', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}, {'Code': 'SOBER', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}, {'Code': 'SLEEP', 'YesOrNoQuestion': 'Y', 'Answer': 'Y'}]"
+      },
+      "outputs": {
+        "__class__": "StatusOutput",
+        "__module__": "zeep.objects",
+        "Status": 0,
+        "Error": null,
+        "ClientCode": "ITM"
+      }
+    },
+    {
+      "action": "SaveGPS",
+      "inputs": {
+        "username": "TestUser",
+        "password": "<GOOD_PASSWORD>",
+        "run": "420PM",
+        "latitude": "-26.6115600000",
+        "longitude": "152.9435000000",
+        "altitude": "35.0",
+        "heading": "180",
+        "speed": "10",
+        "time": "13:17"
+      },
+      "outputs": {
+        "__class__": "StatusOutput",
+        "__module__": "zeep.objects",
+        "Status": 0,
+        "Error": null,
+        "ClientCode": "ITM"
+      }
+    }
+  ]
+]

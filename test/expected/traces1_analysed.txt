@@ -1,0 +1,15 @@
+LNCa
+==== statistics ====
+Number of traces     : 1
+Average trace length : 4.0
+Number of events     : 4
+Number of event kinds: 4
+                     Ok  Err  Total
+    ConfirmPreCheck   1    0      1
+    Login             1    0      1
+    SNSBulkCheckIn    1    0      1
+    SaveGPS           1    0      1
+    Total             4    0      4
+Detailed error counts: (0.00%)
+    Series([], Name: Action, dtype: int64)
+Percent of status ok : 100.00%
