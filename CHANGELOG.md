@@ -6,6 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2021-12-10
+### Added
+- Added class TraceSetOptimizer and subclasses with various AI algorithms to minimize tracesets.
+- Added several classes (CategoricalGenerator etc.) for learning and generating data fields.
+
+### Changed
+- Allow RandomTester to be called with urls=[] so it can be used for test generation purposes.
+
+### Removed
+- Nothing.
+
+
 ## [0.7.0] - 2021-05-10
 ### Added
 - PrefixTraceExtractor supports more flexible ways of extracting ML features from traces.
@@ -27,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Support for hierarchical clustering in output JSON files.  See TraceSet.set_clusters etc.
 - Added example of hierarchical clustering in examples/scanner/cluster_hierarchical.py.
-- Add examples/scanner helper scripts for converting to/from Scanette *.csv files.
+- Add examples/scanner helper scripts for converting to/from Scanette CSV files.
 - Add examples/scanner scripts to illustrate clustering and choosing a given number of tests.
 - Added Event.status_float for non-integer status values, with NaN for missing/strange values.
 

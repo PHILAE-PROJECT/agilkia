@@ -66,8 +66,10 @@ during the Rosetta space mission.
 
 ## People
 
-* Architect and developer: AProf. Mark Utting
+* Agilkia architect and developer: A/Prof. Mark Utting, UQ
 * Project leader: Prof. Bruno Legeard
+* Test suite optimisers: Xinguo (Shane) Feng, UQ
+* Data-field generators: Liang-Hsun (Jimmy) Chen, UQ
 
 
 # Example Usages
@@ -127,5 +129,4 @@ sessions.save_to_json(Path("sessions_clustered.json"))
 ```
 
 For more complete examples, see the *.py scripts in the `examples/scanner` directory in the
-Agilkia source code distribution (`https://github.com/utting/agilkia`) and the README there.
->>>>>>> utting/master
+Agilkia source code distribution (`https://github.com/PHILAE-PROJECT/agilkia`) and the README there.

@@ -6,7 +6,7 @@ build-backend = "flit.buildapi"
 module = "agilkia"
 author = "Mark Utting"
 author-email = "m.utting@uq.edu.au"
-home-page = "https://github.com/utting/agilkia"
+home-page = "https://github.com/PHILAE-PROJECT/agilkia"
 description-file = "README.md"
 classifiers = [
     "License :: OSI Approved :: MIT License",
