@@ -130,7 +130,7 @@ def read_split_save(name: str, fields: List[str], split: str, cluster: bool):
             data = traces.get_trace_data()
             num = traces.create_clusters(data)
             msg = f", {num} clusters"
-    path2 = path.with_suffix(".agilkia.json")
+    path2 = path.with_suffix(".agilkia.json.gz")
     print(f"  {path} -> {path2} [{len(traces)} traces{msg}]")
     traces.save_to_json(path2)
 
@@ -153,7 +153,7 @@ def main(args):
         read_split_save(fileName, fields, split=splitBy, cluster=cluster)
     else:
         script = args[0] or "csv2agilkia.py"
-        print(f"Usage: python {script} [--split=inputName [--cluster]] file.csv field1=column1 field2=column2 ...")
+        print(f"usage: python {script} [--split=inputName [--cluster]] file.csv field1=column1 field2=column2 ...")
         print()
         print("This script converts CSV files into Agilkia JSON trace files.")
         for s in read_traces_csv.__doc__.split("\n")[2:]:
