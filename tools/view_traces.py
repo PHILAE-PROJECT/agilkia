@@ -73,7 +73,7 @@ def main():
     percent_ok = 100.0 * statuses[0] / df.shape[0]
     # print(df.head())
     print(f"Number of traces     : {len(traceset.traces)}")
-    print(f"Average trace length : {df.groupby('Trace').count().Action.mean()}")
+    print(f"Average trace length : {df.groupby('Trace').count().Action.mean():.2f}")
     print(f"Number of clusters   : {traceset.get_num_clusters()}")
     print(f"Number of events     : {df.shape[0]}")
     print(f"Number of event kinds: {len(actions)}")
