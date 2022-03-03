@@ -141,11 +141,11 @@ def main(args):
     splitBy = None
     cluster = False
     if start < len(args) and args[start].startswith("--split="):
-        start += 1
         splitBy = args[start].split("=")[1]
-    if start < len(args) and args[start] == "--cluster":
         start += 1
+    if start < len(args) and args[start] == "--cluster":
         cluster = True
+        start += 1
     if start + 1 < len(args):
         fileName = args[start]
         fields = args[start + 1: ]
@@ -153,7 +153,7 @@ def main(args):
         read_split_save(fileName, fields, split=splitBy, cluster=cluster)
     else:
         script = args[0] or "csv2agilkia.py"
-        print(f"Usage: python {script} [--split [--cluster]] file.csv field1=column1 field2=column2 ...")
+        print(f"Usage: python {script} [--split=inputName [--cluster]] file.csv field1=column1 field2=column2 ...")
         print()
         print("This script converts CSV files into Agilkia JSON trace files.")
         for s in read_traces_csv.__doc__.split("\n")[2:]:
