@@ -134,10 +134,17 @@ class TestJsonTraces(unittest.TestCase):
     def test_round_trip(self):
         """Test that load and save are the inverse of each other."""
         data2 = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures/traces1.json")
+        self.round_trip_helper(data2, Path("tmp2.json"))
+
+    def test_round_trip_gz(self):
+        """Test that load and save are the inverse of each other."""
+        data2 = agilkia.TraceSet.load_from_json(THIS_DIR / "fixtures/traces1.json")
+        self.round_trip_helper(data2, Path("tmp2.json.gz"))
+
+    def round_trip_helper(self, data2, tmp_output_path):
         self.assertEqual(agilkia.TRACE_SET_VERSION, data2.version)
-        tmp2_json = Path("tmp2.json")
-        data2.save_to_json(tmp2_json)
-        data3 = agilkia.TraceSet.load_from_json(tmp2_json)
+        data2.save_to_json(tmp_output_path)
+        data3 = agilkia.TraceSet.load_from_json(tmp_output_path)
         self.assertEqual(agilkia.TRACE_SET_VERSION, data3.version)
         self.assertEqual(data2.meta_data, data3.meta_data)
         assert len(data2.traces) == len(data3.traces)
@@ -149,7 +156,7 @@ class TestJsonTraces(unittest.TestCase):
             self.assertEqual(ev3.inputs, ev2.inputs)
             self.assertEqual(ev3.status, ev2.status)
         # if all went well, we can delete the temp file now.
-        tmp2_json.unlink()
+        tmp_output_path.unlink()
 
     def test_pickled_round_trip(self):
         """Loads some pickled zeep objects and checks that they save/load okay."""

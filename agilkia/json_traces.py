@@ -53,6 +53,7 @@ DONE
 
 import os
 import sys
+import gzip
 import math
 from pathlib import Path  # object-oriented filenames!
 from collections import defaultdict
@@ -487,14 +488,26 @@ class TraceSet:
     def save_to_json(self, file: Path) -> None:
         """Saves this TraceSet into the given file[.json] in JSON format.
 
-        The file extension is forced to be `.json` if it is not already that.
+        Preferred file names are::
+
+         * filename.agilkia.json (for uncompressed output)
+         * filename.agilkia.json.gz (for compressed output)
+
+        The file extension is forced to be `.json` if it is not already one of those.
         The file includes a version number so that older data files can be updated if possible.
         """
         if isinstance(file, str):
             print(f"WARNING: converting {file} to Path.  Please learn to speak pathlib.")
             file = Path(file)
-        with file.with_suffix(".json").open("w") as output:
+        suffs = file.suffixes
+        if suffs[-2:] == [".json", ".gz"]:
+            output = gzip.open(file, "wt")
+        else:
+            output = file.with_suffix(".json").open("w")
+        try:
             json.dump(self, output, indent=2, cls=TraceEncoder)
+        finally:
+            output.close()
 
     @classmethod
     def load_from_json(cls, file: Path) -> 'TraceSet':
@@ -507,8 +520,14 @@ class TraceSet:
             file = Path(file)
         if not isinstance(file, Path):
             raise Exception(f"load_from_json requires Path, not {file} (type={type(file)})")
-        # with open(filename, "r") as input:
-        data = json.loads(file.read_text())
+        if file.suffix == ".gz":
+            input = gzip.GzipFile(file, 'r')
+        else:
+            input = file.open('r')
+        try:
+            data = json.load(input)
+        finally:
+            input.close()
         # Now check version and upgrade if necessary.
         if isinstance(data, list):
             # this file was pre-TraceSet, so just a list of lists of events.
