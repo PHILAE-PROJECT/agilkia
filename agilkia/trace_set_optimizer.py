@@ -306,6 +306,7 @@ class TraceSetOptimizer:
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
         """
+        self.verbose = True   # TODO: let the caller turn this on/off
         self.trace_set = None
         self.objective_functions = [objective_functions] if not isinstance(objective_functions,
                                                                            list) else objective_functions
@@ -391,13 +392,16 @@ class GreedyOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        print("Starting Greedy Search...Selecting", self.select, "traces")
+        if self.verbose:
+            print(f"Starting Greedy Search with max traces={self.select}")
         num_of_variables = len(self.trace_set)
         solution = np.zeros(num_of_variables)
         best_objective_value = 0
         best_index = None
 
         for j in range(self.select):
+            if self.verbose:
+                print(f"  iter={j} best={best_objective_value}")
             for i in range(num_of_variables):
                 if solution[i] != 1:
                     solution[i] = 1
@@ -497,8 +501,9 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
-        print("Starting Particle Swarm with", self.num_of_particles, "particles,", self.num_of_iterations,
-              "iterations,", "c1 as", self.c1, ", c2 as", self.c2, ", selecting", self.select, "traces")
+        if self.verbose:
+            print(f"Starting Particle Swarm Optimizer with particles={self.num_of_particles} iterations={self.num_of_iterations}" +
+                f" c1={self.c1}, c2={self.c2}, max traces={self.select}")
 
         # Define the upper bound and lower bound of the controlling parameter of the influence for the previous
         # velocity on the particle's velocity during update
@@ -532,9 +537,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
         # Start iteration
         for t in range(self.num_of_iterations):
-            if t % 100 == 0:
-                print(t, "iterations. Current global best:", gbest_val)
-
+            if self.verbose and t % 10 == 0:
+                print(f"  iter={t} best={gbest_val:.4f}")
             # Update personal best and global best
             for index, particle in enumerate(particles):
                 current_x = particle['X']
@@ -800,8 +804,16 @@ class GeneticOptimizer(TraceSetOptimizer):
         Returns:
             The algorithm returns the best trace set it found and the objective value the solution achieves.
         """
+        if self.verbose:
+            print(f"Starting Genetic Algorithm with chromosomes={self.num_of_chromosomes} iterations={self.num_of_iterations}," +
+                f" mutate={self.prob_mutate}, crossover={self.prob_cross},{self.crossover_method}, elitism={self.elitism_rate}," +
+                f" max traces={self.select}")
         for i in range(self.num_of_iterations):
             normalised_objective_values = self._normalise_objective_values()
+            # progress message
+            if self.verbose and i % 10 == 0:
+                sofar = np.max(np.apply_along_axis(self.objective, 1, self.population))
+                print(f"  iter={i} best={sofar:.4f}")
 
             for j in range(0, self.num_of_chromosomes, 2):
                 # Selection
