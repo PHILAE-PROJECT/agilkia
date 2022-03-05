@@ -361,9 +361,7 @@ class TraceSet:
         if meta_data is None:
             if copy_meta_data:
                 # copy across meta-data, since all traces come from the same parent.
-                print("DEBUG: copying meta-data from traces:", trace_parent)
                 self.meta_data = trace_parent.meta_data.copy()
-                # print("DEBUG: copyied meta-data from traces:", self.meta_data)
                 now = datetime.datetime.now().isoformat()
                 self.meta_data["date"] = now
             else:
