@@ -343,7 +343,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
                                agilkia.EventPairCoverage(event_to_str=lambda ev: ev.action)]
-        ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+        ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=50)
         ga_optimizer.set_data(self.trace_set, select=2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
@@ -353,7 +353,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
                                agilkia.EventCoverage(event_to_str=lambda ev: ev.action + "_" + str(ev.status))]
-        ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+        ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=50)
         ga_optimizer.set_data(self.trace_set, select=1)
         selected_traces, best_objective_value = ga_optimizer.optimize()
         self.assertEqual([self.trace4], selected_traces.traces)
@@ -363,7 +363,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
                                agilkia.EventCoverage(event_to_str=lambda ev: str(ev.status))]
-        ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+        ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=50)
         ga_optimizer.set_data(self.trace_set, select=1)
         selected_traces, best_objective_value = ga_optimizer.optimize()
         self.assertEqual([self.trace4], selected_traces.traces)
@@ -373,7 +373,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
                                agilkia.EventPairCoverage(event_to_str=lambda ev: ev.action)]
-        ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+        ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=50)
         ga_optimizer.set_data(self.trace_set, select=2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
@@ -383,7 +383,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
                                agilkia.EventPairCoverage(event_to_str=lambda ev: ev.action + "_" + str(ev.status))]
-        ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+        ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=50)
         ga_optimizer.set_data(self.trace_set, select=2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
@@ -393,7 +393,7 @@ class TestTraceSetOptimizer(unittest.TestCase):
         set_seed()
         objective_functions = [agilkia.FrequencyCoverage(),
                                agilkia.EventPairCoverage(event_to_str=lambda ev: str(ev.status))]
-        ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+        ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=50)
         ga_optimizer.set_data(self.trace_set, select=2)
         selected_traces, best_objective_value = ga_optimizer.optimize()
         self.assertEqual({self.trace4, self.trace3}, set(selected_traces.traces))
@@ -478,8 +478,8 @@ class TestScanner(unittest.TestCase):
     objective_functions = [agilkia.FrequencyCoverage(),
                            agilkia.EventCoverage(event_to_str=lambda ev: ev.action + "_" + str(ev.status))]
     greedy_optimizer = agilkia.GreedyOptimizer(objective_functions)
-    pso_optimizer = agilkia.ParticleSwarmOptimizer(objective_functions)
-    ga_optimizer = agilkia.GeneticOptimizer(objective_functions)
+    pso_optimizer = agilkia.ParticleSwarmOptimizer(objective_functions, num_of_iterations=300, num_of_particles=300, c1=3)
+    ga_optimizer = agilkia.GeneticOptimizer(objective_functions, num_of_iterations=100, num_of_chromosomes=125)
     brute_force_results = [0.363, 0.455, 0.494, 0.532, 0.569, 0.606, 0.642, 0.679, 0.714]
 
     def test_greedy(self):
