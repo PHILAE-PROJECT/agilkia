@@ -20,17 +20,17 @@ class TestExamplesScanner(unittest.TestCase):
         return subprocess.run(args, cwd=SCANNER_DIR, check=True, capture_output=True, text=True)
 
     def test_analyze(self):
-        status = self.ok(["python", "analyse_scanette2.py", "--test"])
+        result = self.ok(["python", "analyse_scanette2.py", "--test"])
         with open("test_analyse.log", "w") as out:
-            out.write("status=" + str(status))
+            out.write("status=" + str(result.returncode))
 
     def test_generate(self):
         # Note: this assumes "log_split.json" as input.
         json = SCANNER_DIR / "log_split.json"
         self.assertTrue(json.exists(), "Needs log_split.json.  Run analyse_scanette2.py first.")
-        status = self.ok(["python", "generate_missing_tests_scanette.py", "--test"])
+        result = self.ok(["python", "generate_missing_tests_scanette.py", "--test"])
         with open("test_generate.log", "w") as out:
-            out.write("status=" + str(status))
+            out.write("status=" + str(result.returncode))
 
     def test_read_write(self):
         """Convert Scanette *.csv to Agilkia *.json and back again, and check it is the same."""
