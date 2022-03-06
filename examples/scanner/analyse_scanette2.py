@@ -37,7 +37,7 @@ import agilkia
 
 # %%
 
-DISPLAY_TIME = 3
+DISPLAY_TIME = 2
 TEST_MODE = "--test" in sys.argv
 if TEST_MODE:
     print(f"Running in test mode - all figures will close after {DISPLAY_TIME} seconds.")
