@@ -423,7 +423,7 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
     """
 
     def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_particles: int = 400, num_of_iterations: int = 600, c1: float = 2.0, c2: float = 2.0):
+                 num_of_particles: int = 400, num_of_iterations: int = 500, c1: float = 2.0, c2: float = 2.0):
         """Creates an optimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of traces
         that tries to maximize the objective value. This is using the Binary version of PSO.
         Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
@@ -589,10 +589,11 @@ class GeneticOptimizer(TraceSetOptimizer):
     """
 
     def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_iterations: int = 800, num_of_chromosomes: int = 400, prob_cross: float = 0.85,
+                 num_of_iterations: int = 500, num_of_chromosomes: int = 400, prob_cross: float = 0.85,
                  prob_mutate: float = 0.005, elitism_rate: float = 0.2, crossover: str = "double"):
         """Creates an optimizer that uses the Genetic Algorithm to search for a subset of traces that tries to maximize
         the objective value.
+        
         Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
         selected traces and hyper parameters.
 
@@ -630,7 +631,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         if not (0 <= elitism_rate < 1):
             raise ValueError(f"The elitism rate must be between 0 <= ... < 1, not {elitism_rate}")
         self.num_of_iterations = num_of_iterations
-        self.num_of_chromosomes = num_of_chromosomes
+        self.num_of_chromosomes = num_of_chromosomes + (num_of_chromosomes % 2)  # make it even!
         self.prob_mutate = prob_mutate
         self.prob_cross = prob_cross
         self.elitism_rate = elitism_rate
@@ -654,7 +655,6 @@ class GeneticOptimizer(TraceSetOptimizer):
         self.num_of_genes = len(trace_set)
         # Initialise population
         self.population = np.rint(np.random.rand(self.num_of_chromosomes, self.num_of_genes))
-        self.new_population = np.zeros((self.num_of_chromosomes, self.num_of_genes))
 
     def _normalise_objective_values(self) -> numpy.ndarray:
         """After initialising the population of solutions, there might be some solutions that have a negative objective
@@ -662,14 +662,18 @@ class GeneticOptimizer(TraceSetOptimizer):
         we need to have all objective values to be not negative. We normalise the objective values so that they are all
         between 0 and 1.
 
+        This reads self.objective_values and returns a normalized version of those probabilities, which
+        sums to 1.0.  It does not write to any self fields.
+ 
         Returns:
             The normalised objective values.
         """
-        objective_values = np.apply_along_axis(self.objective, 1, self.population)
-        min_objective_value = min(objective_values)
+        min_objective_value = min(self.objective_values)
         if min_objective_value < 0:
-            objective_values = objective_values - min_objective_value + 1
-        normalised_objective_values = objective_values / np.sum(objective_values)
+            temp = self.objective_values - min_objective_value + 1
+        else:
+            temp = self.objective_values
+        normalised_objective_values = temp / np.sum(temp)
         return normalised_objective_values
 
     def _roulette_wheel(self, normalised_objective_values: numpy.ndarray) -> int:
@@ -692,6 +696,8 @@ class GeneticOptimizer(TraceSetOptimizer):
         """Use the roulette_wheel method to select 2 solutions from the population as parents. The selected parents are
         passed in to crossover method.
 
+        This is a pure function of its inputs - it does not read or update any self fields.
+
         Args:
             population (numpy.ndarray): The population of solutions
             normalised_objective_values (numpy.ndarray): The normalised objective values of the solutions.
@@ -699,6 +705,8 @@ class GeneticOptimizer(TraceSetOptimizer):
         Returns:
             The selected solutions as parents.
         """
+        # TODO: improve this to use np.default_rng Generator
+        # return random.choices(population, normalised_objective_values, k=2)
         selected_parents_indexes = []
         selected_parents = []
         for i in range(2):
@@ -717,12 +725,15 @@ class GeneticOptimizer(TraceSetOptimizer):
         solution and exchange two different parts. After crossover, use probability to decide whether to keep the
         changed solution or not.
 
+        This never mutates the input parent1 or parent2.  It returns fresh child arrays, not aliased
+        with the parent arrays.
+
         Args:
             parent1 (numpy.ndarray): A solution used to crossover.
             parent2 (numpy.ndarray): A solution used to crossover.
 
         Returns:
-            Either the changed solutions or the original solutions based on probability.
+            Either the changed solutions or a copy of the original solutions based on probability.
         """
         child1 = None
         child2 = None
@@ -746,13 +757,15 @@ class GeneticOptimizer(TraceSetOptimizer):
                                      parent2[crossover_point2:self.num_of_genes]])
 
         r1 = random.random()
-        child1 = child1 if r1 <= self.prob_cross else parent1
+        child1 = child1 if r1 <= self.prob_cross else parent1.copy()  # copy, because we may mutate child
         r2 = random.random()
-        child2 = child2 if r2 <= self.prob_cross else parent2
+        child2 = child2 if r2 <= self.prob_cross else parent2.copy()
         return child1, child2
 
-    def _mutate(self, child: numpy.ndarray) -> numpy.ndarray:
+    def _mutate(self, child: numpy.ndarray):
         """After crossover, for every bit in the solution, flip the bit (0 to 1 or 1 to 0) based on probability.
+
+        This destructively mutates the input child array.
 
         Args:
             child (numpy.ndarray): Solution returned by crossover method.
@@ -764,31 +777,37 @@ class GeneticOptimizer(TraceSetOptimizer):
             r = random.random()
             if r <= self.prob_mutate:
                 child[i] = not child[i]
-        return child
 
-    def _add_elites(self):
+    def _add_elites(self, new_pop: np.ndarray, new_pop_objective_values: np.ndarray) -> np.ndarray:
         """ After crossover and mutate, before entering the next generation, keep the best solutions from last
         generation which have the highest objective values. The number of elites are controlled by the elitism rate.
+
+        This reads ``self.population`` but does not update any self fields.
 
         Returns:
             The next generation of population.
         """
         number_of_elites = int(self.num_of_chromosomes * self.elitism_rate)
-        objective_values = np.apply_along_axis(self.objective, 1, self.population)
-        new_pop_objective_values = np.apply_along_axis(self.objective, 1, self.new_population)
+        # we make a temporary copy of the objective values, so we can mutate it.
+        old_objective_values = self.objective_values.copy()
 
         for i in range(number_of_elites):
-            max_index = np.argmax(objective_values)
+            max_index = np.argmax(old_objective_values)
             elite = self.population[max_index]
+            max_value = old_objective_values[max_index]
+            assert max_value == self.objective(elite)
             min_index = np.argmin(new_pop_objective_values)
-            if min(new_pop_objective_values) < max(objective_values):
-                self.new_population[min_index] = elite
-                new_pop_objective_values = np.delete(new_pop_objective_values, min_index, 0)
-                self.population = np.delete(self.population, max_index, 0)
-                objective_values = np.delete(objective_values, max_index, 0)
+            min_value = new_pop_objective_values[min_index]
+            if min_value < max_value:
+                # assert new_pop_objective_values[min_index] == self.objective(new_pop[min_index])
+                new_pop[min_index, :] = elite
+                new_pop_objective_values[min_index] = max_value
+                # to 'delete' (hide) the elite entry and ensure it will not be picked again,
+                # we just set its objective value to -inf so that it will never be max. 
+                old_objective_values[max_index] = - np.inf
             else:
                 break
-        return self.new_population
+        return new_pop, new_pop_objective_values
 
     def optimize(self):
         """Implements the Genetic Algorithm and applies it on the trace set passed in.
@@ -808,29 +827,38 @@ class GeneticOptimizer(TraceSetOptimizer):
             print(f"Starting Genetic Algorithm with chromosomes={self.num_of_chromosomes} iterations={self.num_of_iterations}," +
                 f" mutate={self.prob_mutate}, crossover={self.prob_cross},{self.crossover_method}, elitism={self.elitism_rate}," +
                 f" max traces={self.select}")
+        self.objective_values = np.apply_along_axis(self.objective, 1, self.population)
+        best = np.max(self.objective_values)
         for i in range(self.num_of_iterations):
-            normalised_objective_values = self._normalise_objective_values()
+            new_best = np.max(self.objective_values)
+            if self.elitism_rate > 0:
+                assert new_best >= best  # we should always get better (at least no worse)
+            best = new_best
             # progress message
             if self.verbose and i % 10 == 0:
-                sofar = np.max(np.apply_along_axis(self.objective, 1, self.population))
-                print(f"  iter={i} best={sofar:.4f}")
+                print(f"  iter={i} best={best:.4f}")
 
+            new_population = np.zeros((self.num_of_chromosomes, self.num_of_genes))
+            normalised_objective_values = self._normalise_objective_values()
             for j in range(0, self.num_of_chromosomes, 2):
                 # Selection
                 [parent1, parent2] = self._select_parents(self.population, normalised_objective_values)
                 # Crossover
                 child1, child2 = self._crossover(parent1, parent2)
                 # Mutation
-                child1 = self._mutate(child1)
-                child2 = self._mutate(child2)
-                self.new_population[j] = child1
-                self.new_population[j + 1] = child2
+                self._mutate(child1)
+                self._mutate(child2)
+                new_population[j, :] = child1
+                new_population[j + 1, :] = child2
+            assert new_population.shape == self.population.shape
+            # objective function is expensive, so we try to calculate it only once per iteration!
+            new_objective_values = np.apply_along_axis(self.objective, 1, new_population)
             if self.elitism_rate > 0:
-                self.new_population = self._add_elites()
-            self.population = self.new_population
-        objective_values = np.apply_along_axis(self.objective, 1, self.population)
-        best_objective_value = np.max(objective_values)
-        best_index = np.argmax(objective_values)
+                new_population, new_objective_values = self._add_elites(new_population, new_objective_values)
+            self.population = new_population
+            self.objective_values = new_objective_values
+        best_index = np.argmax(self.objective_values)
+        best_objective_value = self.objective_values[best_index]
         solution = self.population[best_index]
         selected_traces = [self.trace_set[i] for i in range(self.num_of_genes) if solution[i]]
         selected_traces = TraceSet(selected_traces)
