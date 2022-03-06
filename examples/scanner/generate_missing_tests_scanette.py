@@ -103,7 +103,8 @@ signature = {
     
 # %% Some largish clusters that are missing system tests.
 
-missing = [3, 4, 5]
+# missing = [3, 4, 5]        # use this if you want to evaluate different ML algorithms
+missing = []               # use this to skip the ML comparison
 
 # %% Build models for those clusters and evaluate the models.
 for n in missing:
