@@ -285,6 +285,58 @@ class EventPairCoverage(ObjectiveFunction):
         return len(solution_action_pair_coverage) / len(self.total_coverage)
 
 
+
+class ClusterCoverage(ObjectiveFunction):
+    """
+    An objective function that calculates how many clusters are covered by the selected traces.
+    """
+
+    def __init__(self, weight: float = 1.0):
+        """
+        Constructor for the cluster coverage objective function.
+
+        Args:
+            weight (float): Weight of this objective function.
+        """
+        super().__init__(weight)
+        self.max_coverage = 1
+
+    def set_data(self, trace_set: TraceSet, select: int):
+        """Set the trace set and the number of desired traces.
+
+        This throws an exception if the given ``trace_set`` is not clustered.
+
+        Args:
+            trace_set (TraceSet): A set of traces chosen or output by some kind of model.
+            select (int): The number of traces wanted to be selected from the trace set.
+        """
+        super().set_data(trace_set, select)
+        if not trace_set.is_clustered():
+            raise ValueError("cluster coverage requires a trace set that is clustered")
+        self.max_coverage = trace_set.get_num_clusters()
+
+    def evaluate(self, solution: numpy.ndarray) -> float:
+        """
+        Evaluate the cluster coverage of the selected traces.
+
+        Args:
+            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
+
+        Returns:
+            The fraction of clusters covered by the selected traces.
+        """
+        if np.sum(solution) > self.select:
+            return (np.sum(solution) - self.select) * -1
+        cluster_num = self.trace_set.get_clusters()
+        coverage = set()
+        for i,s in enumerate(solution):
+            if s:
+                coverage.add(cluster_num[i])
+        return len(coverage) / self.max_coverage
+
+
+
 class TraceSetOptimizer:
     """
     An abstract class for different optimizers with different optimization algorithms for a given trace set.

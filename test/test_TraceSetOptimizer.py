@@ -161,6 +161,19 @@ class TestObjectiveFunctions(unittest.TestCase):
         objective_function.set_data(self.trace_set, 2)
         self.assertEqual((np.sum(solution) - 2) * -1, objective_function.evaluate(solution))
 
+    def test_cluster_objective_function1(self):
+        objective_function = agilkia.ClusterCoverage()
+        with pytest.raises(ValueError):
+            objective_function.set_data(self.trace_set, 2)
+        self.trace_set.set_clusters([0, 1, 0])
+        objective_function.set_data(self.trace_set, 2)
+        self.assertEqual(2, self.trace_set.get_num_clusters())
+        self.assertEqual(0, objective_function.evaluate(np.array([0, 0, 0])))
+        self.assertEqual(0.5, objective_function.evaluate(np.array([1, 0, 1])))
+        self.assertEqual(0.5, objective_function.evaluate(np.array([0, 1, 0])))
+        self.assertEqual(1.0, objective_function.evaluate(np.array([0, 1, 1])))
+        self.assertEqual(-1.0, objective_function.evaluate(np.array([1, 1, 1])))
+
 
 def set_seed():
     random.seed(3)
