@@ -228,7 +228,13 @@ class TestTraceSetOptimizer(unittest.TestCase):
         greedy_optimizer.set_data(self.trace_set, 1)
         selected_traces, best_objective_value = greedy_optimizer.optimize()
         self.assertEqual([self.trace4], selected_traces.traces)
-        self.assertEqual(((3 / 3) * 0.5 + (0.8 / 2.6) * 0.5), best_objective_value)
+        self.assertEqual(((0.8 / 2.6) * 0.5 + (3 / 3) * 0.5), best_objective_value)
+        # now check the solution vector and the individual (raw) objective function results
+        solution = greedy_optimizer.solution()
+        self.assertEqual(len(selected_traces), solution.sum())
+        expect = [0.8 / 2.6, 1.0]
+        actual = greedy_optimizer.objectives_raw(solution)
+        self.assertTrue(np.all(np.isclose(expect, actual)), msg=f"{expect} != {actual}")
 
     def test_greedy2(self):
         objective_functions = [agilkia.FrequencyCoverage(),
@@ -503,6 +509,7 @@ class TestScanner(unittest.TestCase):
 
     def test_pso(self):
         for i in range(2, 11):
+            set_seed()
             self.pso_optimizer.set_data(self.trace_set, select=i)
             selected_traces, best_objective_value = self.pso_optimizer.optimize()
             assert best_objective_value == pytest.approx(self.brute_force_results[i - 2], 0.01)
