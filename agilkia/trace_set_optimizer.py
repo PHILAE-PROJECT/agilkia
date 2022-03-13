@@ -350,7 +350,7 @@ class TraceSetOptimizer:
     values returned by the objective functions, scaled by the number of objective functions (equal weights for each).
     """
 
-    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]], verbose: bool = False):
         """
         Constructor for a trace set optimizer.
         Set an empty trace set and 0 selected traces. Use set_data method below to set the trace set and the number of
@@ -361,11 +361,11 @@ class TraceSetOptimizer:
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
+            verbose (bool): True means print progress messages.
         """
-        self.verbose = True   # TODO: let the caller turn this on/off
+        self.verbose = verbose
         self.trace_set = None
-        self.objective_functions = [objective_functions] if not isinstance(objective_functions,
-                                                                           list) else objective_functions
+        self.objective_functions = objective_functions if isinstance(objective_functions, list) else [objective_functions]
         self.select = 0
         self.solution_vector = None
         for objective_function in self.objective_functions:
@@ -398,6 +398,13 @@ class TraceSetOptimizer:
             obj_func.set_data(trace_set, select)
         self.trace_set = trace_set
         self.select = select
+
+    def progress_message(self, iteration, best, solution):
+        """Print a progress message, if verbose flag is set."""
+        if self.verbose:
+            raw = self.objectives_raw(solution)
+            metrics = ", ".join([f"{m:.4f}" for m in raw])
+            print(f"  iter={iteration} best={best:.4f} [{metrics}]")
 
     def objectives_raw(self, solution: np.ndarray) -> np.ndarray:
         """
@@ -464,7 +471,7 @@ class GreedyOptimizer(TraceSetOptimizer):
     maximize the objective value
     """
 
-    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]]):
+    def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]], verbose: bool = False):
         """Creates an optimizer that uses the Greedy Search Algorithm to search for a subset of traces that tries to
         maximize the objective value.
         Set an empty trace set and 0 selected traces. Use set_data method to set the trace set and the number of
@@ -475,8 +482,9 @@ class GreedyOptimizer(TraceSetOptimizer):
                 evaluate the chosen subset of traces. Built in functions or custom defined functions are acceptable.
                 Use ObjectiveFunction class to create your custom objective function. See more in the documentation of
                 that class.
+            verbose (bool): True means print progress messages.
         """
-        super().__init__(objective_functions=objective_functions)
+        super().__init__(objective_functions=objective_functions, verbose=verbose)
 
     def optimize(self) -> Tuple[TraceSet, float]:
         """ Implements the greedy search algorithm and applies it on the trace set passed in.
@@ -496,8 +504,7 @@ class GreedyOptimizer(TraceSetOptimizer):
         best_index = None
 
         for j in range(self.select):
-            if self.verbose:
-                print(f"  iter={j} best={best_objective_value}")
+            self.progress_message(j, best_objective_value, solution)
             for i in range(num_of_variables):
                 if solution[i] != 1:
                     solution[i] = 1
@@ -519,7 +526,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
     """
 
     def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
-                 num_of_particles: int = 400, num_of_iterations: int = 500, c1: float = 2.0, c2: float = 2.0):
+                 num_of_particles: int = 400, num_of_iterations: int = 500, c1: float = 2.0, c2: float = 2.0,
+                 verbose: bool = False):
         """Creates an optimizer that uses the Particle Swarm Optimization Algorithm to search for a subset of traces
         that tries to maximize the objective value. This is using the Binary version of PSO.
         Set an empty trace set and 0 selected traces. Use set_data method to set the trace set, number of
@@ -539,8 +547,9 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
                 particle's velocity during update
             c2 (float): Controlling parameter of the influence of the population's global best position on the
                 particle's velocity during update
+            verbose (bool): True means print progress messages.
         """
-        super().__init__(objective_functions=objective_functions)
+        super().__init__(objective_functions=objective_functions, verbose=verbose)
         if not num_of_particles > 0:
             raise ValueError(f"The number of particles should be positive, not {num_of_particles}")
         if not type(num_of_particles) == int:
@@ -632,8 +641,8 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
 
         # Start iteration
         for t in range(self.num_of_iterations):
-            if self.verbose and t % 10 == 0:
-                print(f"  iter={t} best={gbest_val:.4f}")
+            if t % 10 == 0:
+                self.progress_message(t, gbest_val, gbest_x)
             # Update personal best and global best
             for index, particle in enumerate(particles):
                 current_x = particle['X']
@@ -678,7 +687,8 @@ class GeneticOptimizer(TraceSetOptimizer):
 
     def __init__(self, objective_functions: Union[ObjectiveFunction, List[ObjectiveFunction]],
                  num_of_iterations: int = 500, num_of_chromosomes: int = 400, prob_cross: float = 0.85,
-                 prob_mutate: float = 0.005, elitism_rate: float = 0.2, crossover: str = "double"):
+                 prob_mutate: float = 0.005, elitism_rate: float = 0.2, crossover: str = "double",
+                 verbose: bool = False):
         """Creates an optimizer that uses the Genetic Algorithm to search for a subset of traces that tries to maximize
         the objective value.
         
@@ -700,8 +710,9 @@ class GeneticOptimizer(TraceSetOptimizer):
             prob_mutate (float): probability of mutate.
             elitism_rate (float): Rate of elitism.
             crossover (str): The method used to crossover. Choose between double and single.
+            verbose (bool): True means print progress messages.
         """
-        super().__init__(objective_functions)
+        super().__init__(objective_functions, verbose=verbose)
         if not (crossover == "single" or crossover == "double"):
             raise ValueError(f"Crossover method should only be single or double, not {crossover}")
         if not (0 < prob_mutate < 1):
@@ -742,6 +753,7 @@ class GeneticOptimizer(TraceSetOptimizer):
         super().set_data(trace_set, select)
         self.num_of_genes = len(trace_set)
         # Initialise population
+        # In NumPy, ndarray is stored in row-major order by default, so we make each chromosome a separate row.
         self.population = np.rint(np.random.rand(self.num_of_chromosomes, self.num_of_genes))
 
     def _normalise_objective_values(self) -> numpy.ndarray:
@@ -923,9 +935,9 @@ class GeneticOptimizer(TraceSetOptimizer):
                 assert new_best >= best  # we should always get better (at least no worse)
             best = new_best
             # progress message
-            if self.verbose and i % 10 == 0:
-                print(f"  iter={i} best={best:.4f}")
-
+            if i % 10 == 0:
+                best_pos = np.argmax(self.objective_values)
+                self.progress_message(i, best, self.population[best_pos, :])
             new_population = np.zeros((self.num_of_chromosomes, self.num_of_genes))
             normalised_objective_values = self._normalise_objective_values()
             for j in range(0, self.num_of_chromosomes, 2):
