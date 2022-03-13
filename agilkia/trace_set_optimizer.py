@@ -114,7 +114,7 @@ class FrequencyCoverage(ObjectiveFunction):
         """
         super().set_data(trace_set, select)
         self.frequencies = np.array([trace.get_meta("freq", 0) for trace in trace_set])
-        self.total_frequency_coverage = sum(self.frequencies)
+        self.total_frequency_coverage = np.sum(self.frequencies)
         if not self.total_frequency_coverage != 0:
             raise ValueError("There is no frequency information of the traces")
 
@@ -131,9 +131,10 @@ class FrequencyCoverage(ObjectiveFunction):
             The percentage of the frequency coverage of the selected traces out of the total frequency of the trace set
         """
         # If the number of selected traces in a solution is more than the number of traces wanted, return negative value
-        if np.sum(solution) > self.select:
-            return (np.sum(solution) - self.select) * -1
-        solution_frequency_coverage = sum(np.array(self.frequencies) * solution)
+        count = np.count_nonzero(solution)
+        if count > self.select:
+            return (count - self.select) * -1
+        solution_frequency_coverage = np.sum(self.frequencies * solution)
         return solution_frequency_coverage / self.total_frequency_coverage
 
 
@@ -200,8 +201,9 @@ class EventCoverage(ObjectiveFunction):
             The percentage of the selected coverage of the selected traces out of the total action status
                 coverage of the trace set
         """
-        if np.sum(solution) > self.select:
-            return (np.sum(solution) - self.select) * -1
+        count = np.count_nonzero(solution)
+        if count > self.select:
+            return (count - self.select) * -1
         solution_action_status_coverage = set()
         solution = np.array(solution, dtype=bool)
         for trace_coverage in self.trace_coverage[solution]:
@@ -276,8 +278,9 @@ class EventPairCoverage(ObjectiveFunction):
             The percentage of the selected coverage of the selected traces out of the total action status
                 coverage of the trace set
         """
-        if np.sum(solution) > self.select:
-            return (np.sum(solution) - self.select) * -1
+        count = np.count_nonzero(solution)
+        if count > self.select:
+            return (count - self.select) * -1
         solution_action_pair_coverage = set()
         solution = np.array(solution, dtype=bool)
         for trace_coverage in self.trace_coverage[solution]:
@@ -326,8 +329,9 @@ class ClusterCoverage(ObjectiveFunction):
         Returns:
             The fraction of clusters covered by the selected traces.
         """
-        if np.sum(solution) > self.select:
-            return (np.sum(solution) - self.select) * -1
+        count = np.count_nonzero(solution)
+        if count > self.select:
+            return (count - self.select) * -1
         cluster_num = self.trace_set.get_clusters()
         coverage = set()
         for i,s in enumerate(solution):
@@ -363,6 +367,7 @@ class TraceSetOptimizer:
         self.objective_functions = [objective_functions] if not isinstance(objective_functions,
                                                                            list) else objective_functions
         self.select = 0
+        self.solution_vector = None
         for objective_function in self.objective_functions:
             if not isinstance(objective_function, ObjectiveFunction):
                 raise ValueError(
@@ -394,9 +399,25 @@ class TraceSetOptimizer:
         self.trace_set = trace_set
         self.select = select
 
+    def objectives_raw(self, solution: np.ndarray) -> np.ndarray:
+        """
+        Evaluate the solution with all objective functions passed in and return the raw results.
+
+        Args:
+            solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
+                
+        Returns:
+            A numpy array of the individual objective function results, unweighted.
+        """
+        result = np.zeros(len(self.objective_functions))
+        for i,obj_func in enumerate(self.objective_functions):
+            result[i] = obj_func.evaluate(solution)
+        return result
+
     def objective(self, solution: np.ndarray) -> float:
         """
-        Evaluate the solution with all objective functions passed in and use the associated weights combine them.
+        Evaluate the solution with all objective functions passed in and use the associated weights to combine them.
 
         Args:
             solution (numpy.ndarray): A binary vector with the same length of the trace set that represent the solution.
@@ -412,6 +433,29 @@ class TraceSetOptimizer:
             total_weight += obj_func.weight
             total_objective_value += obj_func.evaluate(solution) * obj_func.weight
         return total_objective_value / total_weight
+
+    def solution(self) -> np.ndarray:
+        """returns the numpy vector of which traces were chosen in the optimized solution.
+        
+        Note that this should only be called after ``optimize()`` has finished.
+        
+        Returns:
+            A binary vector with the same length of the trace set that represent the solution.
+                On every position, 1 means the trace at the position is selected, and 0 means not selected.
+        """
+        return self._solution
+
+    def optimize(self) -> Tuple[TraceSet, float]:
+        """This method must be defined by each subclass.
+        
+        It must calculate an optimized solution and store it into self._solution,
+        then return the resulting trace set and the total value of the objective functions. 
+        """
+        self.num_of_variables = len(self.trace_set)
+        self._solution = np.zeros(self.num_of_variables)
+        self._solution, best_objective_value = self.TODO()
+        selected_traces = [self.trace_set[i] for i in range(self.num_of_variables) if self._solution[i]]
+        return TraceSet(selected_traces), best_objective_value
 
 
 class GreedyOptimizer(TraceSetOptimizer):
@@ -463,9 +507,9 @@ class GreedyOptimizer(TraceSetOptimizer):
                         best_index = i
                     solution[i] = 0
             solution[best_index] = 1
-        selected_traces = [self.trace_set[i] for i in range(num_of_variables) if solution[i]]
-        selected_traces = TraceSet(selected_traces)
-        return selected_traces, best_objective_value
+        self._solution = solution
+        selected_traces = [self.trace_set[i] for i in range(num_of_variables) if self._solution[i]]
+        return TraceSet(selected_traces), best_objective_value
 
 
 class ParticleSwarmOptimizer(TraceSetOptimizer):
@@ -562,10 +606,9 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
         w_max = 0.9
         w_min = 0.1
 
-        # Define maximum and minimum velocity to avoid exceeding this limit. The value 6 is suggested by the author of
-        # the algorithm
-        v_max = np.ones(self.num_of_variables) * 6
-        v_min = -v_max
+        # Define maximum and minimum velocity.  The value 6 is suggested by the author of the algorithm.
+        v_max = 6
+        v_min = -6
 
         # Initialise the particle container, global best position, and global best objective value
         particles = []
@@ -609,29 +652,22 @@ class ParticleSwarmOptimizer(TraceSetOptimizer):
             w = w_max - t * ((w_max - w_min) / self.num_of_iterations)
 
             for index, particle in enumerate(particles):
-                particle['V'] = w * particle['V'] + \
-                                self.c1 * np.random.rand(self.num_of_variables) * np.subtract(particle['PBESTX'],
-                                                                                              particle['X']) + \
-                                self.c2 * np.random.rand(self.num_of_variables) * np.subtract(gbest_x, particle['X'])
+                v = w * particle['V'] + \
+                    self.c1 * np.random.rand(self.num_of_variables) * np.subtract(particle['PBESTX'], particle['X']) + \
+                    self.c2 * np.random.rand(self.num_of_variables) * np.subtract(gbest_x, particle['X'])
 
-                # Check min max velocity
-                index_greater = np.where(particle['V'] > v_max)[0].tolist()
-                index_smaller = np.where(particle['V'] < v_min)[0].tolist()
-                if index_greater:
-                    for idx in index_greater:
-                        particle['V'][idx] = v_max[idx]
-                if index_smaller:
-                    for idx in index_smaller:
-                        particle['V'][idx] = v_min[idx]
+                # Clip the velocity to [min .. max]
+                # particle['V'] = np.clip(particle['V'], a_min=v_min, a_max=v_max)  # clip is slow after numpy 1.17!
+                particle['V'] = np.core.umath.maximum(np.core.umath.minimum(v, v_max), v_min)
 
                 # Sigmoid transfer
                 sigmoid = 1 / (1 + np.exp(-particle['V']))
                 temp = np.random.rand(self.num_of_variables) < sigmoid
                 temp = temp * 1
                 particle['X'] = temp
-        selected_traces = [self.trace_set[i] for i in range(self.num_of_variables) if gbest_x[i]]
-        selected_traces = TraceSet(selected_traces)
-        return selected_traces, gbest_val
+        self._solution = gbest_x
+        selected_traces = [self.trace_set[i] for i in range(self.num_of_variables) if self._solution[i]]
+        return TraceSet(selected_traces), gbest_val
 
 
 class GeneticOptimizer(TraceSetOptimizer):
@@ -911,7 +947,6 @@ class GeneticOptimizer(TraceSetOptimizer):
             self.objective_values = new_objective_values
         best_index = np.argmax(self.objective_values)
         best_objective_value = self.objective_values[best_index]
-        solution = self.population[best_index]
-        selected_traces = [self.trace_set[i] for i in range(self.num_of_genes) if solution[i]]
-        selected_traces = TraceSet(selected_traces)
-        return selected_traces, best_objective_value
+        self._solution = self.population[best_index]
+        selected_traces = [self.trace_set[i] for i in range(self.num_of_genes) if self._solution[i]]
+        return TraceSet(selected_traces), best_objective_value
