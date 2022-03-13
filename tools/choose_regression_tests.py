@@ -18,6 +18,7 @@ import sys
 
 from agilkia import TraceSet, ObjectiveFunction, EventCoverage, EventPairCoverage, FrequencyCoverage
 from agilkia import GreedyOptimizer, ParticleSwarmOptimizer, GeneticOptimizer
+from agilkia.trace_set_optimizer import ClusterCoverage
 
 
 # available coverage metrics
@@ -26,7 +27,7 @@ metric_function = {
     "action_status": EventCoverage(event_to_str=lambda ev: f"{ev.action}_{ev.status}"),
     "action_pair": EventPairCoverage(),
     "frequency": FrequencyCoverage(),
-    # "cluster": None
+    "cluster": ClusterCoverage()
 }
 
 
