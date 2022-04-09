@@ -5,6 +5,8 @@ View the traces within an Agilkia TraceSet.
 It prints a one-line summary of each trace, plus some general statistics.
 If the TraceSet is clustered, traces will be displayed in clusters, by default.
 
+TODO: allow user to specify the 'Ok' status value (e.g. --ok=200 for HTTP results)
+
 @author: m.utting@uq.edu.au
 """
 
@@ -66,7 +68,7 @@ def main():
     print("==== statistics ====")
     df = traceset.to_pandas()
     statuses = df.Status.value_counts()
-    percent_ok = 100.0 * statuses[0] / df.shape[0]
+    percent_ok = 100.0 * statuses.get(0, 0) / df.shape[0]
     # print(df.head())
     print(f"Number of traces     : {len(traceset.traces)}")
     print(f"Average trace length : {df.groupby('Trace').count().Action.mean():.2f}")
@@ -74,7 +76,7 @@ def main():
     print(f"Number of events     : {df.shape[0]}")
     print(f"Number of event kinds: {len(actions)}")
     print(textwrap.indent(str(make_action_status_table(df)), "    "))
-    print(f"Percent of status ok : {percent_ok:.2f}%")
+    print(f"Percent of status=0  : {percent_ok:.2f}%")
     error_counts = df.groupby("Error").Action.count()
     if len(error_counts) > 1:
         print(f"Categories of errors : ({100.0 - percent_ok:.2f}% total)")
