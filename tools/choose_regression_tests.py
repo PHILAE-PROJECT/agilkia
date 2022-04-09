@@ -21,6 +21,9 @@ from agilkia import GreedyOptimizer, ParticleSwarmOptimizer, GeneticOptimizer
 from agilkia.trace_set_optimizer import ClusterCoverage
 
 
+OUT_FILE = "regression.agilkia.json.gz"
+
+
 # available coverage metrics
 metric_function = {
     "action": EventCoverage(),
@@ -69,8 +72,8 @@ def main(args):
     # run the optimizer
     optimizer.set_data(traceset, args.number)
     tests,coverage = optimizer.optimize()
-    print(f"{args.optimizer} optimizer gives {len(tests)} tests, {coverage*100.0:.1f}% coverage")
-    tests.save_to_json(Path("regression.agilkia.json"))
+    print(f"{args.optimizer} optimizer gives {len(tests)} tests, {coverage*100.0:.1f}% coverage.  Saved into {OUT_FILE}")
+    tests.save_to_json(Path(OUT_FILE))
 
 # %%
 
