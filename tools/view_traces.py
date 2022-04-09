@@ -25,13 +25,9 @@ def make_action_status_table(df: pd.DataFrame) -> pd.DataFrame:
     data = pd.DataFrame({"Ok": ok, "Err": err})
     data.fillna(0, inplace=True, downcast="infer")
     data["Total"] = data.Ok + data.Err
-    totals = data.sum().rename("Total")
+    totals = pd.DataFrame([data.sum().rename("Total")])
     # add Totals row at bottom
-    data = data.append(totals)
-    # total = df.shape[0]  # number of rows = total event count
-    # percents = (totals * 100.0 / total).rename("Percent")
-    # data = data.append(percents)
-    return data
+    return pd.concat([data, totals])
 
 
 def main():
