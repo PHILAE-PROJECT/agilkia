@@ -12,9 +12,10 @@ Created on 2 March 2022
 """
 
 import csv
+import json
 from pathlib import Path
 from datetime import datetime
-from typing import List, Optional, Any
+from typing import List, Dict, Union, Optional, Any
 import sys
 
 # To install the Agilkia library, do one of::
@@ -24,12 +25,15 @@ import agilkia
 
 # %%
 
-def get_column(spec: str, row) -> Optional[Any]:
+def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]:
     """Read a column value from row, and transform it various ways.
     
     A column value is specified by a dot-separated string: N.T1.T2...
-    where N is the number of the column to read data from (0...),
+    where N specifies which column to read data from,
     and each of the optional Ti strings is a transformation to apply to that data.
+
+    Note that if row is a list (e.g. from a CSV file), then N should be a number (0...),
+    but if row is a dict (e.g. from a JSON file), then N should be an index string for that dictionary.
 
     Transformations are applied left to right.  They include::
      * int: convert the value to an int
@@ -40,7 +44,10 @@ def get_column(spec: str, row) -> Optional[Any]:
      * nonempty: discard any value equal to ''.  This will return None instead.
     """
     transforms = spec.split(".")
-    val = row[int(transforms[0])].strip()
+    if isinstance(row, dict):
+        val = row[transforms[0]]
+    else:
+        val = row[int(transforms[0])].strip()
     for f in transforms[1:]:
         if f == "int":
             val = int(val)
@@ -89,9 +96,24 @@ def set_field(event: agilkia.Event, field: str, value: Any):
     elif field.startswith("out."):
         event.outputs[field[4:]] = value
     elif field.startswith("meta."):
+        if field[5:] == "timestamp" and isinstance(value, str):
+            if value.endswith(" +0000"):
+                value = value[:-6]  # cut off the invalid (timezone?) suffix
+            value = datetime.fromisoformat(value)
         event.meta_data[field[5:]] = value
     else:
         raise ValueError(f"unknown field: {field}")
+
+
+def create_event(fields, row) -> agilkia.Event:
+    event = agilkia.Event("Unknown", {}, {}, {})
+    for f in fields:
+        [left, right] = f.split("=")
+        val = get_column(right, row)
+        if val is not None:
+            set_field(event, left, val)
+    # print(f"  adding {event}")
+    return event
 
 
 def read_traces_csv(path: Path, fields: List[str]) -> agilkia.TraceSet:
@@ -101,30 +123,48 @@ def read_traces_csv(path: Path, fields: List[str]) -> agilkia.TraceSet:
     which consists of an action, some named input and output fields,
     plus some named meta-data fields such as a session ID, timestamp etc.
     """
+    trace1 = agilkia.Trace([])
     with path.open("r") as input:
-        trace1 = agilkia.Trace([])
         for row in csv.reader(input):
-            event = agilkia.Event("Unknown", {}, {}, {})
-            for f in fields:
-                [left, right] = f.split("=")
-                val = get_column(right, row)
-                if val is not None:
-                    set_field(event, left, val)
-            # print(f"  adding {event}")
-            trace1.append(event)
-    traceset = agilkia.TraceSet([])
-    traceset.append(trace1)
-    return traceset
+            trace1.append(create_event(fields, row))
+    return agilkia.TraceSet([trace1])
+
+
+def read_traces_json(path: Path, fields: List[str]) -> agilkia.TraceSet:
+    """Reads the given JSON file as a single long trace."""
+    trace1 = agilkia.Trace([])
+    with path.open("r") as input:
+        for line in input:
+            if line.startswith("#") or line.strip() == "":
+                continue
+            trace1.append(create_event(fields, json.loads(line)))
+    return agilkia.TraceSet([trace1])
+
+
+def read_traces(path: Path, fields: List[str]) -> agilkia.TraceSet:
+    """Reads the given input CSV or JSON file as a single long trace.
+
+    Each row in the input file is assumed to be a single event in a trace,
+    which consists of an action, some named input and output fields,
+    plus some named meta-data fields such as a session ID, timestamp etc.
+    """
+    if path.suffix == ".csv":
+        return read_traces_csv(path, fields)
+    elif path.suffix == ".json":
+        return read_traces_json(path, fields)
+    else:
+        raise Exception(f"ERROR: unknown input file format: suffix={path.suffix}")
 
 
 # %% Read traces and save in the Agilkia JSON format.
 
 def read_split_save(name: str, fields: List[str], split: str, cluster: bool):
     path = Path(name)
-    traces = read_traces_csv(path, fields)
+    traces = read_traces(path, fields)
     msg = ""
     if split is not None:
-        traces = traces.with_traces_grouped_by(split)
+        # we group traces based on the split column, but map missing values to UNKNOWN.
+        traces = traces.with_traces_grouped_by(key=lambda ev: ev.inputs.get(split, "UNKNOWN"))
         msg = f", grouped by {split}"
         if cluster:
             data = traces.get_trace_data()
@@ -155,14 +195,15 @@ def main(args):
         script = args[0] or "csv2agilkia.py"
         print(f"usage: python {script} [--split=inputName [--cluster]] file.csv field1=column1 field2=column2 ...")
         print()
-        print("This script converts CSV files into Agilkia JSON trace files.")
-        for s in read_traces_csv.__doc__.split("\n")[2:]:
+        print("This script converts input CSV or JSON files into Agilkia JSON trace files.")
+        for s in read_traces.__doc__.split("\n")[2:]:
             print(s)
         print("  --split=COL will group events into traces based on the column named COL.")
         print("  --cluster will cluster traces using MeanShift based on action counts.")
         print()
         print("Each fieldN=columnN specifies how to set an Event field from an input CSV column.")
         print("Valid field names are: action, status, in.I, out.I, meta.I (where I is any identifier).")
+        print("You must set at least the 'action' and 'status' fields.")
         print("For the columnN specifiers:")
         for s in get_column.__doc__.split("\n")[2:]:
             print(s)
