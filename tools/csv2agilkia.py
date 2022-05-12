@@ -41,6 +41,9 @@ def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]
      * msec2iso: convert a timestamp (msecs since Jan 1970) to ISO 8601 DateTime string.
      * rmbrackets: remove any '[' ... ']' brackets that surround the string.
      * nonquestion: discard any value equal to '?'.  This will return None instead.
+     * uri: discard any suffix after a '?'.  Useful for discarding url parameters.
+     * /-1: split on '/' separators and keep just the last component.
+     * /-2: split on '/' separators and keep just the second-last component.
      * nonempty: discard any value equal to ''.  This will return None instead.
     """
     transforms = spec.split(".")
@@ -62,6 +65,14 @@ def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]
         elif f == "nonquestion":
             if val == "?":
                 return None  # immediate return
+        elif f == "uri":
+            val = val.split("?")[0]
+        elif f == "/-1":
+            words = val.split("/")[-1]
+        elif f == "/-2":
+            words = val.split("/")
+            if len(words) > 1:
+                val = words[-2]
         elif f == "nonempty":
             if val == "":
                 return None  # immediate return
@@ -71,7 +82,7 @@ def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]
 
 
 # tests
-row0 = "1584454655792,234, abc , , 56.7".split(",")
+row0 = "1584454655792,234, abc , , 56.7,?,http://abc.com/home?param=3".split(",")
 assert get_column("1.int", row0) == 234
 assert get_column("2", row0) == "abc"
 assert get_column("3", row0) == ""
@@ -79,6 +90,9 @@ assert get_column("3.nonempty", row0) == None
 assert get_column("3.nonempty.int", row0) == None
 assert get_column("4", row0) == "56.7"
 assert get_column("4.float", row0) == 56.7
+assert get_column("5.nonquestion", row0) == None
+assert get_column("6.uri", row0) == "http://abc.com/home"
+assert get_column("2.uri", row0) == "abc"
 assert get_column("0.msec2iso", row0) == datetime.fromisoformat("2020-03-18 00:17:35.792")
 
 
@@ -135,7 +149,7 @@ def read_traces_json(path: Path, fields: List[str]) -> agilkia.TraceSet:
     trace1 = agilkia.Trace([])
     with path.open("r") as input:
         for line in input:
-            if line.startswith("#") or line.strip() == "":
+            if line.startswith("#") or line.strip() == "" or line.strip() == "{}":
                 continue
             trace1.append(create_event(fields, json.loads(line)))
     return agilkia.TraceSet([trace1])
