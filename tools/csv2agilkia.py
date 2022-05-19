@@ -25,28 +25,7 @@ import agilkia
 
 # %%
 
-def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]:
-    """Read a column value from row, and transform it various ways.
-    
-    A column value is specified by a dot-separated string: N.T1.T2...
-    where N specifies which column to read data from,
-    and each of the optional Ti strings is a transformation to apply to that data.
-
-    Note that if row is a list (e.g. from a CSV file), then N should be a number (0...),
-    but if row is a dict (e.g. from a JSON file), then N should be an index string for that dictionary.
-
-    Transformations are applied left to right.  They include::
-     * int: convert the value to an int
-     * float: convert the value to a float
-     * msec2iso: convert a timestamp (msecs since Jan 1970) to ISO 8601 DateTime string.
-     * rmbrackets: remove any '[' ... ']' brackets that surround the string.
-     * nonquestion: discard any value equal to '?'.  This will return None instead.
-     * uri: discard any suffix after a '?'.  Useful for discarding url parameters.
-     * /-1: split on '/' separators and keep just the last component.
-     * /-2: split on '/' separators and keep just the second-last component.
-     * nonempty: discard any value equal to ''.  This will return None instead.
-    """
-    transforms = spec.split(".")
+def get_column_helper(transforms, row):
     if isinstance(row, dict):
         val = row[transforms[0]]
     else:
@@ -68,7 +47,7 @@ def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]
         elif f == "uri":
             val = val.split("?")[0]
         elif f == "/-1":
-            words = val.split("/")[-1]
+            val = val.split("/")[-1]
         elif f == "/-2":
             words = val.split("/")
             if len(words) > 1:
@@ -79,6 +58,38 @@ def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]
         else:
             raise ValueError(f"unknown column transformation: {f}")
     return val
+
+
+def get_column(spec: str, row: Union[List[str], Dict[str,str]]) -> Optional[Any]:
+    """Read a column value from row, and transform it various ways.
+    
+    A column value is specified by a dot-separated string: N.T1.T2...
+    where N specifies which column to read data from,
+    and each of the optional Ti strings is a transformation to apply to that data.
+
+    Note that if row is a list (e.g. from a CSV file), then N should be a number (0...),
+    but if row is a dict (e.g. from a JSON file), then N should be an index string for that dictionary.
+
+    Transformations are applied left to right.  They include::
+     * int: convert the value to an int
+     * float: convert the value to a float
+     * msec2iso: convert a timestamp (msecs since Jan 1970) to ISO 8601 DateTime string.
+     * rmbrackets: remove any '[' ... ']' brackets that surround the string.
+     * nonquestion: discard any value equal to '?'.  This will return None instead.
+     * uri: discard any suffix after a '?'.  Useful for discarding url parameters.
+     * /-1: split on '/' separators and keep just the last component.
+     * /-2: split on '/' separators and keep just the second-last component.
+     * nonempty: discard any value equal to ''.  This will return None instead.
+     * ?:  a question mark at the end means this column is optional.
+    """
+    transforms = spec.split(".")
+    if transforms[-1] == "?":
+        try:
+            return get_column_helper(transforms[:-1], row)
+        except:
+            return None
+    else:
+        return get_column_helper(transforms, row)
 
 
 # tests
@@ -92,8 +103,13 @@ assert get_column("4", row0) == "56.7"
 assert get_column("4.float", row0) == 56.7
 assert get_column("5.nonquestion", row0) == None
 assert get_column("6.uri", row0) == "http://abc.com/home"
+assert get_column("6.uri./-2", row0) == "abc.com"
+assert get_column("6.uri./-1", row0) == "home"
 assert get_column("2.uri", row0) == "abc"
 assert get_column("0.msec2iso", row0) == datetime.fromisoformat("2020-03-18 00:17:35.792")
+# support for optional fields
+assert get_column("9.?", row0) == None
+assert get_column("2.?", row0) == "abc"
 
 
 def set_field(event: agilkia.Event, field: str, value: Any):

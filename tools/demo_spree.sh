@@ -13,7 +13,7 @@ set -x
 
 # cp "$INPUT" .
 
-python csv2agilkia.py --split=session "$INPUT" action=url.uri./-2 status=status_code in.url=url in.method=method in.session=session_id # in.params=params meta.timestamp=timestamp
+python csv2agilkia.py --split=session "$INPUT" action=url.uri./-2 in.subaction=url.uri./-1 status=status_code in.url=url in.method=method in.session=session_id in.body=body.? # in.params=params meta.timestamp=timestamp
 
 python view_traces.py --ok 200 $OUTPUT
 
