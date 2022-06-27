@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Generate and execute tests for a Web Service.
+Generate and execute tests for a WSDL Web Service.
 
-Example args: http://www.soapclient.com/xml/soapresponder.wsdl
+Example usage::
+
+    python generate_tests.py -v -i inputs.csv http://www.soapclient.com/xml/soapresponder.wsdl
 
 @author: m.utting@uq.edu.au
 """
@@ -18,7 +20,8 @@ import agilkia
 
 def main():
     """A command line program to generate and execute test traces for a SOAP web service."""
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     # parser.add_argument("-c", "--compress", help="compress repeats of this action")
     parser.add_argument("-n", "--tests", type=int, default=2, help="number of TESTS to generate")
     parser.add_argument("-l", "--length", type=int, default=5, help="LENGTH of each test")
@@ -30,12 +33,12 @@ def main():
     parser.add_argument("-v", "--verbose",
                         help="print VERBOSE messages during testing", action="store_true")
     parser.add_argument("-s", "--seed", type=int, help="SEED for random generator")
-    parser.add_argument("-o", "--output", type=str, default="out.json", help="name of OUTPUT file")
+    parser.add_argument("-o", "--output", type=str, default="generated", help="name of OUTPUT file")
     parser.add_argument("url", nargs='+', help="URL of web service server")
     args = parser.parse_args()
     # print(f"Args are:", args)
 
-    json_output = Path(args.output).with_suffix(".json")
+    json_output = Path(args.output).with_suffix(".agilkia.json")
     if json_output.exists():
         raise Exception(f"do not want to overwrite {json_output}.")
     # process each optional argument
@@ -71,6 +74,8 @@ def main():
         if args.verbose:
             print(f"  {str(trace)}")
     tester.trace_set.save_to_json(json_output)
+    print(f"Generated {len(tester.trace_set)} traces, saved into {json_output}")
+
 
 
 if __name__ == "__main__":
