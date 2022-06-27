@@ -34,17 +34,28 @@ This 'agilkia' library is part of the Philae research project:
     http://projects.femto-st.fr/philae/en
 
 It is open source software under the MIT license.
-See LICENSE.txt
+See LICENSE.txt.
 
-# Key Features:
+## Key Library Features:
 
-* Manage sets of traces (load/save to JSON, etc.).
-* Split traces into smaller traces (sessions).
-* Cluster traces on various criteria, with support for flat and hierarchical clustering.
-* Visualise clusters of tests, to see common / rare behaviours.
-* Convert traces to Pandas DataFrame for data analysis / machine learning.
-* Generate random tests, or 'smart' tests from a machine learning (ML) model.
-* Automated testing of SOAP web services with WSDL descriptions.
+ * Manage sets of traces (load/save to JSON, etc.).
+ * Split traces into smaller traces (sessions).
+ * Cluster traces on various criteria, with support for flat and hierarchical clustering.
+ * Visualise clusters of tests, to see common / rare behaviours.
+ * Convert traces to Pandas DataFrame for data analysis / machine learning.
+ * Generate random tests, or 'smart' tests from a machine learning (ML) model.
+ * Automated testing of SOAP web services with WSDL descriptions.
+
+## Example Command-Line Tools:
+
+The **tools** directory contains several general-purpose tools built using the Agilkia library.
+
+ * csv2agilkia.py: can transform CSV or JSON files into Agilkia format, with optional clustering.
+ * view_traces.py: prints a summary of each trace, plus some statistics.
+ * choose_regression_tests.py: select a given number of traces, to maximize some coverage metric.
+
+After installing Python and the Agilkia library (see below), each of these tools
+can be run as 'python <tool>.py' to show the help message and options of the tool.
 
 
 ## About the Name
