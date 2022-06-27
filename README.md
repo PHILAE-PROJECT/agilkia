@@ -8,14 +8,13 @@ imitate customer behaviors.
 
 Agilkia is intended to provide a storage and interchange format that makes it easy to
 built 'smart' tools on top of this toolkit, often with just a few lines of code.
-The main focus of this toolkit is saving and loading traces in a standard *.JSON
+The main focus of this toolkit is saving and loading traces in a standard *.agilkia.json
 format, and transforming those traces to and from lots of other useful formats,
 including:
 
  * Pandas DataFrames (for data analysis and machine learning);
- * ARFF files (for connection to Weka and the StackedTrees tools);
  * SciPy Linkage matrices (for hierarchical clustering and drawing Dendrograms);
- * CSV files in application-specific formats (requires writing some Python code).
+ * CSV files in application-specific formats.
 
 The key datastructures supported by this library are:
 
