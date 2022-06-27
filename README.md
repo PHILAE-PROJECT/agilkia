@@ -55,7 +55,7 @@ The **tools** directory contains several general-purpose tools built using the A
  * choose_regression_tests.py: selects a given number of traces to maximize some coverage metric.
 
 After installing Python and the Agilkia library (see below), each of these tools
-can be run as '`python `*tool.py*' to show the help message and options of the tool.
+can be run as '`python <tool>.py -h`' to show the help message and options of the tool.
 
 
 ## About the Name
