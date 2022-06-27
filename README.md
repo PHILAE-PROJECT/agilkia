@@ -50,12 +50,12 @@ See LICENSE.txt.
 
 The **tools** directory contains several general-purpose tools built using the Agilkia library.
 
- * csv2agilkia.py: can transform CSV or JSON files into Agilkia format, with optional clustering.
+ * csv2agilkia.py: transforms CSV or JSON files into Agilkia format, with optional clustering.
  * view_traces.py: prints a summary of each trace, plus some statistics.
- * choose_regression_tests.py: select a given number of traces, to maximize some coverage metric.
+ * choose_regression_tests.py: selects a given number of traces to maximize some coverage metric.
 
 After installing Python and the Agilkia library (see below), each of these tools
-can be run as 'python <tool>.py' to show the help message and options of the tool.
+can be run as '`python `*tool.py*' to show the help message and options of the tool.
 
 
 ## About the Name
