@@ -180,10 +180,10 @@ def metric_distinct(traceset: agilkia.TraceSet, n=1) -> float:
     """
     counts = Counter()
     for tr in traceset:
-        for i in range(0, len(tr) - n):
+        for i in range(0, len(tr) - n + 1):
             actions = ",".join([ev.action for ev in tr[i:i+n]])
             counts[actions] += 1
-    print(f"DEBUG: distinct {len(counts)} / {counts}")
+    # print(f"DEBUG: distinct {len(counts)} / {counts}")
     return len(counts) / sum(counts.values())
 
 # %%
@@ -192,7 +192,7 @@ for n in [0]:
     (_, tests) = gen_tests_for(cluster, f"cluster {n}")
     print(f"Missing {n} has distinct-1 metric:", metric_distinct(tests))
     print(f"Missing {n} has distinct-2 metric:", metric_distinct(tests, 2))
-    print(f"Missing {n} has distinct-2 metric:", metric_distinct(tests, 3))
+    print(f"Missing {n} has distinct-3 metric:", metric_distinct(tests, 3))
 
 # %%
 
